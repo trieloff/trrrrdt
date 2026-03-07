@@ -4,6 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 See @AGENTS.md for full project standards, block development guidelines, deployment process, and skill usage instructions.
 
+## Project Context
+
+TRRRRDT Records is a fictional record label website showcasing AI-generated music and audio dramas. The name is an onomatopoeia for the sound a record makes. The aesthetic is **cassette-futurism** — retro-analog visuals (CRT screens, tape decks, analog dials) implemented with modern web tech including 3D-rendered models of record players and TV sets for audio/video playback.
+
+### Content Sources
+
+- **Artist personas** (7 fictional musicians): Songs as MP3s + lyrics in `../suno/songs/` — each artist has a distinct genre, nationality, and philosophical framework
+- **Playlists/Samplers**: Multi-artist compilations in `../suno/playlists/` (e.g., TITAN, AI Confessions Soundtrack)
+- **AI Confessions Hörspiel**: Audio drama with its own soundtrack
+- **Morro Bay Murder Investigations** (future): Audio drama podcast in `../MBMI/` — will need Apple Music integration for listeners to hear original songs alongside the Hörspiel
+
+Audio/video content is hosted externally (not in this repo). The DA (Document Authoring) MCP server is used for content authoring at `trieloff/trrrrdt`.
+
+### Site Structure
+
+Multi-page site: homepage, artist pages (one per persona), playlist/sampler pages, Hörspiel pages. The vibe is whimsical 90s with even older aesthetics layered in.
+
+### 3D Assets
+
+- **Sony PS-F9 turntable model**: FBX files in `~/Desktop/7114844/` — needs conversion to glTF/GLB for Three.js
+- **Yunost-402 Soviet portable TV**: FBX + textures in `~/Desktop/2315123.5c1515b78b497.rar` — needs extraction and glTF conversion
+
 ## Quick Reference Commands
 
 - **Install**: `npm install`
