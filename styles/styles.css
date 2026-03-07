@@ -11,17 +11,27 @@
  */
 
 :root {
-  /* colors */
-  --background-color: white;
-  --light-color: #f8f8f8;
-  --dark-color: #505050;
-  --text-color: #131313;
-  --link-color: #3b63fb;
-  --link-hover-color: #1d3ecf;
+  /* colors — warm retro hi-fi palette */
+  --background-color: #f5f0e8;
+  --light-color: #ebe5d8;
+  --dark-color: #5c4a3a;
+  --text-color: #2e2418;
+  --link-color: #b85c1e;
+  --link-hover-color: #8a4215;
+  --accent-color: #b85c1e;
+  --accent-secondary: #5a7a52;
+  --accent-warm: #c4763a;
+  --accent-coral: #d4766e;
+  --accent-mustard: #c9a84c;
+  --accent-mint: #7db5a0;
+  --accent-teal: #5b9ea6;
+  --panel-color: #e8dfd0;
+  --border-color: #c9bfae;
 
   /* fonts */
   --body-font-family: roboto, roboto-fallback, sans-serif;
   --heading-font-family: roboto-condensed, roboto-condensed-fallback, sans-serif;
+  --mono-font-family: 'Courier New', 'Courier', monospace;
 
   /* body sizes */
   --body-font-size-m: 22px;
@@ -107,9 +117,11 @@ h6 {
   margin-top: 0.8em;
   margin-bottom: 0.25em;
   font-family: var(--heading-font-family);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.25;
   scroll-margin: 40px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 h1 { font-size: var(--heading-font-size-xxl); }
@@ -131,13 +143,15 @@ blockquote {
 
 code,
 pre {
+  font-family: var(--mono-font-family);
   font-size: var(--body-font-size-s);
 }
 
 pre {
   padding: 16px;
-  border-radius: 8px;
-  background-color: var(--light-color);
+  border-radius: 4px;
+  background-color: var(--panel-color);
+  border: 1px solid var(--border-color);
   overflow-x: auto;
   white-space: pre;
 }
@@ -179,16 +193,20 @@ button.button {
   max-width: 100%;
   margin: 0;
   border: 2px solid transparent;
-  border-radius: 2.4em;
+  border-radius: 4px;
   padding: 0.5em 1.2em;
-  font: inherit;
-  font-weight: 500;
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   line-height: 1.25;
   text-decoration: none;
   cursor: pointer;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 a.button[aria-disabled="true"],
@@ -226,7 +244,7 @@ button.button.primary:disabled:focus-visible {
 
 a.button.secondary,
 button.button.secondary {
-  border-color: var(--text-color);
+  border-color: var(--border-color);
   background-color: transparent;
   color: var(--text-color);
 }
@@ -236,7 +254,7 @@ a.button.secondary:focus-visible,
 button.button.secondary:hover,
 button.button.secondary:focus-visible {
   border-color: var(--dark-color);
-  background-color: var(--light-color);
+  background-color: var(--panel-color);
   color: var(--dark-color);
 }
 
@@ -254,8 +272,8 @@ button.button.secondary:disabled:focus-visible {
 /* high-impact call-to-action */
 a.button.accent,
 button.button.accent {
-  border-color: var(--link-color);
-  background-color: var(--link-color);
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
   color: var(--background-color);
 }
 
@@ -308,11 +326,43 @@ main > .section > div {
 
 main > .section:first-of-type {
   margin-top: 0;
+  background-color: var(--dark-color);
+  color: var(--background-color);
+  padding: 48px 0;
+  border-bottom: 4px solid var(--accent-color);
 }
 
 @media (width >= 900px) {
   main > .section > div {
     padding: 0 32px;
+  }
+}
+
+main > .section:first-of-type h1 {
+  color: var(--background-color);
+  letter-spacing: 0.08em;
+}
+
+main > .section:first-of-type p {
+  color: var(--border-color);
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-s);
+}
+
+main > .section:first-of-type a.button.secondary {
+  border-color: var(--border-color);
+  color: var(--background-color);
+}
+
+main > .section:first-of-type a.button.secondary:hover {
+  border-color: var(--background-color);
+  background-color: rgb(255 255 255 / 10%);
+  color: var(--background-color);
+}
+
+@media (width >= 900px) {
+  main > .section:first-of-type {
+    padding: 64px 0;
   }
 }
 

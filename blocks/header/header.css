@@ -1,6 +1,7 @@
 /* header and nav layout */
 header .nav-wrapper {
-  background-color: var(--background-color);
+  background-color: var(--panel-color);
+  border-bottom: 2px solid var(--border-color);
   width: 100%;
   z-index: 2;
   position: fixed;
@@ -28,6 +29,7 @@ header nav[aria-expanded='true'] {
     'tools tools' var(--nav-height) / auto 1fr;
   overflow-y: auto;
   min-height: 100dvh;
+  background-color: var(--panel-color);
 }
 
 @media (width >= 900px) {
@@ -72,7 +74,7 @@ header nav .nav-hamburger button {
   border: 0;
   border-radius: 0;
   padding: 0;
-  background-color: var(--background-color);
+  background-color: transparent;
   color: inherit;
   overflow: initial;
   text-overflow: initial;
@@ -142,10 +144,13 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
 /* brand */
 header .nav-brand {
   grid-area: brand;
-  flex-basis: 128px;
+  flex-basis: 180px;
+  font-family: var(--heading-font-family);
   font-size: var(--heading-font-size-s);
   font-weight: 700;
   line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 header nav .nav-brand img {
@@ -170,11 +175,14 @@ header nav[aria-expanded='true'] .nav-sections {
 header nav .nav-sections ul {
   list-style: none;
   padding-left: 0;
-  font-size: var(--body-font-size-s);
+  font-family: var(--heading-font-family);
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 header nav .nav-sections ul > li {
-  font-weight: 500;
+  font-weight: 700;
 }
 
 header nav .nav-sections ul > li > ul {
@@ -245,7 +253,9 @@ header nav .nav-sections ul > li > ul > li {
     width: 200px;
     top: 150%;
     padding: 16px;
-    background-color: var(--light-color);
+    background-color: var(--panel-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
     white-space: initial;
   }
 
@@ -258,7 +268,7 @@ header nav .nav-sections ul > li > ul > li {
     height: 0;
     border-left: 8px solid transparent;
     border-right: 8px solid transparent;
-    border-bottom: 8px solid var(--light-color);
+    border-bottom: 8px solid var(--panel-color);
   }
 
   header nav .nav-sections .default-content-wrapper > ul > li > ul > li {

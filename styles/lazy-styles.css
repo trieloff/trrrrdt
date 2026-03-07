@@ -1,1 +1,9 @@
 /* add global styles that can be loaded post LCP here */
+
+/* mono-styled subtitles in sections */
+main > .section h2 + p:not(.button-wrapper) {
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  color: var(--dark-color);
+  letter-spacing: 0.02em;
+}

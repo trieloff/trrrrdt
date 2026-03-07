@@ -1,3 +1,4 @@
+/* hero — hi-fi receiver panel style */
 .hero-container .hero-wrapper {
   max-width: unset;
   padding: 0;
@@ -5,14 +6,45 @@
 
 .hero {
   position: relative;
-  padding: 40px 24px;
-  min-height: 300px;
+  padding: 48px 24px;
+  min-height: 200px;
+  background-color: var(--dark-color);
+  color: var(--background-color);
+  border-bottom: 4px solid var(--accent-color);
 }
 
 .hero h1 {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  color: var(--background-color);
+  font-size: var(--heading-font-size-xxl);
+  letter-spacing: 0.08em;
+}
+
+.hero p {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  color: var(--border-color);
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-s);
+}
+
+.hero .button-wrapper {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero a.button.secondary {
+  border-color: var(--border-color);
+  color: var(--background-color);
+}
+
+.hero a.button.secondary:hover {
+  border-color: var(--background-color);
+  background-color: rgb(255 255 255 / 10%);
   color: var(--background-color);
 }
 
@@ -32,6 +64,7 @@
 
 @media (width >= 900px) {
   .hero {
-    padding: 40px 32px;
+    padding: 64px 32px;
+    min-height: 240px;
   }
 }

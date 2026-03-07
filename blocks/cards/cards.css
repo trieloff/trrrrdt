@@ -1,3 +1,4 @@
+/* cards — pastel cassette J-card style */
 .cards > ul {
   list-style: none;
   margin: 0;
@@ -8,12 +9,44 @@
 }
 
 .cards > ul > li {
-  border: 1px solid #dadada;
-  background-color: var(--background-color);
+  background-color: var(--panel-color);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
+.cards > ul > li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+}
+
+/* rotating accent colors for cards */
+.cards > ul > li:nth-child(5n+1) { border-top: 4px solid var(--accent-coral); }
+.cards > ul > li:nth-child(5n+2) { border-top: 4px solid var(--accent-teal); }
+.cards > ul > li:nth-child(5n+3) { border-top: 4px solid var(--accent-mustard); }
+.cards > ul > li:nth-child(5n+4) { border-top: 4px solid var(--accent-mint); }
+.cards > ul > li:nth-child(5n+5) { border-top: 4px solid var(--accent-warm); }
+
 .cards .cards-card-body {
-  margin: 16px;
+  padding: 20px;
+}
+
+.cards .cards-card-body > *:first-child {
+  margin-top: 0;
+}
+
+.cards .cards-card-body > *:last-child {
+  margin-bottom: 0;
+}
+
+.cards .cards-card-body p:first-child {
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  font-size: var(--heading-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-color);
 }
 
 .cards .cards-card-image {
