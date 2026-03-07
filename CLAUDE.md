@@ -82,6 +82,31 @@ Blocks are auto-loaded by the framework (`scripts/aem.js` — never modify this 
 - **CSS**: Stylelint standard, mobile-first with `min-width` breakpoints at 600/900/1200px, all selectors scoped to block name
 - Avoid `-container` and `-wrapper` class suffixes (reserved by the framework for sections)
 
+## DA Content Authoring Loop
+
+Content is authored in DA (Document Authoring) at `trieloff/trrrrdt`. The authoring workflow has three steps:
+
+1. **Edit content** via the DA MCP tools (`da_create_source`, `da_update_source`, `da_get_source`)
+2. **Preview content** by clicking the Preview button in the DA editor UI — the admin API cannot fetch from DA's content source directly (gets 401 from `content.da.live`), so a browser session with the user's Adobe login is required
+3. **Verify** on the dev server at `http://localhost:3001/path.plain.html`
+
+### DA HTML Structure
+
+DA stores content as HTML. Key conventions:
+- Wrap content in `<body><header></header><main>...</main><footer></footer></body>`
+- Sections inside `<main>` are `<div>` elements separated by `<hr>` tags
+- Blocks are `<table>` elements with the block name in a `<th>` header row
+- Bold links (`<strong><a>`) become primary buttons, italic links (`<em><a>`) become secondary buttons
+- The nav fragment (`nav.html`) needs separate sections for brand, nav links, and tools (3 divs separated by `<hr>`)
+
+### Browser Preview via Playwright
+
+Keep a persistent Playwright session open for DA preview clicks:
+```bash
+npx @playwright/cli@latest -s=da --headed --persistent open "https://da.live/edit#/trieloff/trrrrdt/{page}"
+```
+After editing content via MCP, navigate to the page and click Send → Preview. The session persists login across navigations within the same session.
+
 ## Git Conventions
 
 Always use the `--prompt` parameter when committing, e.g. `git commit --prompt "what you were asked to do"`. Use semantic commit messages (e.g. `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `style:`, `test:`).
