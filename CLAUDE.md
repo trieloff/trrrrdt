@@ -62,7 +62,7 @@ Blocks are auto-loaded by the framework (`scripts/aem.js` — never modify this 
 
 ## Git Conventions
 
-Always use the `--prompt` parameter when committing, e.g. `git commit --prompt "what you were asked to do"`.
+Always use the `--prompt` parameter when committing, e.g. `git commit --prompt "what you were asked to do"`. Use semantic commit messages (e.g. `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `style:`, `test:`).
 
 ## Skills
 
