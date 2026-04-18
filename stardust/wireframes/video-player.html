@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>trrrrdt.records — Video Player Wireframe</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; line-height: 1.5; }
+  .note { font-size: 12px; color: #777; font-style: italic; margin: 6px 0 10px; padding-left: 10px; border-left: 2px solid #c8c8c8; }
+  .caption { font-size: 11px; color: #888; margin-top: 6px; }
+  .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; margin-bottom: 16px; padding: 4px 8px; background: rgba(0,0,0,0.05); display: inline-block; border-radius: 3px; }
+
+  .viewport-frame {
+    width: 100%;
+    max-width: 480px;
+    margin: 32px auto;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .viewport-frame .frame-label {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+    background: rgba(255,255,255,0.7);
+    padding: 2px 6px;
+    border-radius: 3px;
+    z-index: 10;
+  }
+
+  .track-viewport {
+    aspect-ratio: 9/16;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ROOM = WALL + TABLE (darker than audio player) */
+  .wall-zone {
+    flex: 2;
+    background: linear-gradient(180deg, #555 0%, #666 100%);
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .wall-zone .env-label {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-align: center;
+  }
+  .table-zone {
+    flex: 1;
+    background: #6a5a4a;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .table-zone .surface-label {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    font-weight: 600;
+    color: #887766;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .table-zone::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent 5%, #5a4a3a 20%, #5a4a3a 80%, transparent 95%);
+  }
+
+  /* Screen glow on wall and table */
+  .screen-glow-wall {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 60%;
+    background: radial-gradient(ellipse at 50% 100%, rgba(200,200,200,0.1) 0%, transparent 60%);
+    z-index: 1;
+    pointer-events: none;
+  }
+  .screen-glow-table {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70%;
+    height: 50%;
+    background: radial-gradient(ellipse at 50% 0%, rgba(200,200,200,0.08) 0%, transparent 60%);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Device anchored at wall-table boundary */
+  .device-anchor {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tv-placeholder {
+    width: 180px;
+    height: 170px;
+    background: #bbb;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .tv-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .crt-screen {
+    width: 120px;
+    height: 80px;
+    background: #888;
+    border-radius: 3px;
+    border: 3px solid #999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .crt-screen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 3px);
+    pointer-events: none;
+  }
+  .crt-screen .content-label {
+    font-size: 8px;
+    color: #bbb;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .knob-row {
+    display: flex;
+    gap: 40px;
+    margin-top: 8px;
+    align-items: center;
+  }
+  .knob {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #aaa;
+    border: 2px solid #999;
+    position: relative;
+  }
+  .knob .indicator {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    width: 2px;
+    height: 7px;
+    background: #ddd;
+    border-radius: 1px;
+    transform: translateX(-50%);
+  }
+  .knob-label { font-size: 7px; color: #999; text-align: center; margin-top: 2px; }
+
+  .device-shadow {
+    width: 160px;
+    height: 12px;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.15) 0%, transparent 70%);
+    margin-top: -2px;
+  }
+
+  /* Channel card overlay */
+  .channel-overlay {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    background: rgba(100,100,100,0.3);
+    padding: 8px 12px;
+    border-radius: 3px;
+  }
+  .channel-overlay .bar {
+    background: rgba(150,150,150,0.5);
+    border-radius: 2px;
+    height: 8px;
+  }
+
+  .swipe-zone {
+    position: absolute;
+    right: 12px;
+    top: 30%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 5;
+  }
+  .swipe-zone .arrow { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; }
+  .swipe-zone .arrow.up { border-bottom: 8px solid #999; }
+  .swipe-zone .arrow.down { border-top: 8px solid #999; }
+  .swipe-zone .dot { width: 4px; height: 4px; border-radius: 50%; background: #999; }
+  .swipe-zone .dot.active { background: #777; width: 6px; height: 6px; }
+
+  .annotations { max-width: 480px; margin: 0 auto 32px; padding: 0 16px; }
+  .state-diagram { max-width: 720px; margin: 32px auto; padding: 0 32px; }
+  .state-row { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
+  .state-box { flex: 1; background: #e5e5e5; border-radius: 6px; padding: 16px; }
+  .state-box .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 8px; }
+  .state-box .desc { font-size: 12px; color: #777; }
+  .arrow-between { display: flex; align-items: center; color: #bbb; font-size: 18px; padding-top: 12px; }
+</style>
+</head>
+<body>
+
+<script type="application/json" id="wireframe-meta">
+{
+  "page": "Video Player",
+  "briefing": "video-player.md",
+  "mode": "grey",
+  "sections": ["player-viewport", "wall-zone", "table-zone", "screen-glow", "channel-overlay", "knob-controls", "swipe-navigation", "empty-state"],
+  "fragments": {
+    "artist-card": { "source": "/artists/{name}", "reusedOn": ["/tv"] }
+  }
+}
+</script>
+
+<div style="max-width:720px;margin:0 auto;padding:32px">
+  <div class="section-label">Video Player — Full Viewport Immersive</div>
+  <div class="note">Same feed mechanic as audio player. Each channel = one viewport. Yunost sits on a table/shelf. Room is darker — the TV screen is the primary light source. The glow falls on the wall behind and the table below.</div>
+</div>
+
+<!-- PRIMARY STATE -->
+<div class="viewport-frame" data-section="player-viewport" data-intent="immersive video playback" data-layout="full-bleed" data-interactive="swipe-feed">
+  <div class="frame-label">1 viewport = 1 channel</div>
+
+  <div class="track-viewport">
+
+    <!-- WALL (upper 2/3) — darker -->
+    <div class="wall-zone">
+      <div class="env-label">Dark wall<br><span style="font-weight:400;font-size:9px">lit by screen glow<br>colour shifts with video content</span></div>
+      <div class="screen-glow-wall"></div>
+
+      <div class="device-anchor">
+        <div class="tv-placeholder">
+          <div class="tv-label">Юность-402</div>
+          <div class="crt-screen">
+            <div class="content-label">Video<br>on CRT</div>
+          </div>
+          <div class="knob-row">
+            <div><div class="knob"><div class="indicator"></div></div><div class="knob-label">CH</div></div>
+            <div><div class="knob"><div class="indicator" style="transform:translateX(-50%) rotate(45deg)"></div></div><div class="knob-label">VOL</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE (lower 1/3) — dark wood/shelf -->
+    <div class="table-zone">
+      <div class="screen-glow-table"></div>
+      <div class="device-shadow"></div>
+      <div class="surface-label">Table / shelf — dark wood, catches screen glow</div>
+    </div>
+
+    <!-- Channel card (top-right, CRT-style) -->
+    <div class="channel-overlay">
+      <div class="bar" style="width:35px;height:14px;background:rgba(120,120,120,0.5)"></div>
+      <div class="bar" style="width:70px;height:10px;background:rgba(140,140,140,0.4)"></div>
+      <div class="bar" style="width:55px;height:8px;background:rgba(150,150,150,0.3)"></div>
+      <div style="font-size:7px;color:#aaa;margin-top:2px">CH 01 · Title · Duration</div>
+    </div>
+
+    <!-- Swipe indicator -->
+    <div class="swipe-zone">
+      <div class="arrow up"></div>
+      <div class="dot"></div>
+      <div class="dot active"></div>
+      <div class="dot"></div>
+      <div class="arrow down"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="annotations">
+  <div class="note">Room is darker than the audio player. Wall is dim — the CRT screen is the primary light source. Glow radiates onto the wall above and the table surface below.</div>
+  <div class="note">Table/shelf: dark wood or laminate. Surface catches screen glow as subtle reflection. Heavier/darker than audio player tables.</div>
+  <div class="note">Left knob (CH): drag-rotate to change channel (alternative to swipe). Right knob (VOL): drag-rotate for volume.</div>
+  <div class="note">Channel card: CRT on-screen display style — blocky, phosphor-coloured, with scan lines. Shows CH number, title, artist, duration. Fades after 3s.</div>
+  <div class="note">Screen glow colour shifts with video content — this is the key atmospheric effect. The room breathes with the screen.</div>
+</div>
+
+<!-- INTERACTION STATES -->
+<div class="state-diagram">
+  <div class="section-label">Interaction States</div>
+
+  <div class="state-row">
+    <div class="state-box">
+      <div class="label">Snow / Empty</div>
+      <div class="desc">CRT shows TV snow (animated static). Room is dark — no screen glow. «Настройка...» on screen, flickering. Click device or swipe to tune in.</div>
+    </div>
+    <div class="arrow-between">→</div>
+    <div class="state-box">
+      <div class="label">Playing</div>
+      <div class="desc">Video on CRT. Room lit by screen glow. Channel card visible briefly. Audio playing. Glow colour matches video.</div>
+    </div>
+  </div>
+
+  <div class="state-row">
+    <div class="state-box">
+      <div class="label">Channel Change</div>
+      <div class="desc">Swipe OR rotate CH knob. 200ms static burst on CRT. Channel card flashes. New video loads. Glow crossfades. Table surface stays (or shifts subtly).</div>
+    </div>
+    <div class="arrow-between">→</div>
+    <div class="state-box">
+      <div class="label">Pre-Launch</div>
+      <div class="desc">CH 01: AI Confessions — waveform vis + audio. CH 02–09: per-artist abstract shader + featured track. Replaced by music videos when produced.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div style="max-width:720px;margin:0 auto;padding:0 32px 48px">
+  <div class="section-label">Audio Player vs Video Player</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div style="background:#e5e5e5;border-radius:6px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px">Audio (PS-F9)</div>
+      <div style="font-size:12px;color:#777">
+        • Vinyl spins, no screen<br>
+        • Brighter rooms, varied surfaces<br>
+        • Tap device to play/pause<br>
+        • Swipe only for navigation<br>
+        • Table: wood, metal, felt, plastic
+      </div>
+    </div>
+    <div style="background:#e5e5e5;border-radius:6px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px">Video (Yunost)</div>
+      <div style="font-size:12px;color:#777">
+        • CRT plays video, screen glows<br>
+        • Darker rooms, TV is key light<br>
+        • Knobs are interactive (CH + VOL)<br>
+        • Swipe OR knob-rotate for nav<br>
+        • Table: dark wood, glow reflections
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

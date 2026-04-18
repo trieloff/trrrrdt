@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>trrrrdt.records</title>
+<!-- stardust:provenance { "brand": "stardust/brand-profile.json", "briefing": "stardust/briefings/homepage.md", "wireframe": "stardust/wireframes/homepage.html", "synthesized": [] } -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Space Mono', 'Courier New', monospace;
+    --font-accent: 'Fraunces', Georgia, serif;
+
+    --heading-xxl: 96px;
+    --heading-xl: 56px;
+    --heading-lg: 40px;
+    --heading-md: 28px;
+    --heading-sm: 20px;
+    --body: 15px;
+    --body-sm: 13px;
+    --eyebrow: 11px;
+
+    --line-height-heading: 0.92;
+    --line-height-body: 1.7;
+
+    --color-bg: #FFFDF7;
+    --color-fg: #1C1C1C;
+    --color-red: #D93025;
+    --color-coral: #E8573A;
+    --color-cream: #F5E6D3;
+    --color-charcoal: #1C1C1C;
+    --color-smoke: #3A3A3A;
+    --color-parchment: #FFFDF7;
+    --color-teal: #2D7D9A;
+    --color-amber: #E8A317;
+    --color-grey: #6B6B6B;
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 48px;
+    --spacing-2xl: 80px;
+    --spacing-3xl: 120px;
+
+    --section-padding: 96px;
+    --max-width: 1200px;
+    --radius: 8px;
+    --radius-card: 10px;
+    --radius-cassette: 14px;
+
+    --bevel-light: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.12);
+    --bevel-dark: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.25);
+    --drop: 0 3px 10px rgba(0,0,0,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-size: var(--body);
+    line-height: var(--line-height-body);
+  }
+
+  /* === SVG FILTERS === */
+  svg#filters { position: absolute; width: 0; height: 0; }
+
+  /* === TEXTURE CLASSES === */
+  .tx-dark { position: relative; overflow: hidden; }
+  .tx-dark::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    width: 140%; height: 140%;
+    background: radial-gradient(ellipse at 35% 25%, rgba(255,255,255,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 75%, rgba(0,0,0,0.1) 0%, transparent 50%);
+    filter: url(#grain);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+  .tx-red { position: relative; overflow: hidden; }
+  .tx-red::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    width: 140%; height: 140%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 45%),
+                radial-gradient(ellipse at 75% 80%, rgba(0,0,0,0.1) 0%, transparent 50%);
+    filter: url(#grain);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  /* === NAV === */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--color-charcoal);
+    border-bottom: 2px solid var(--color-red);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    box-shadow: var(--bevel-dark), 0 4px 16px rgba(0,0,0,0.4);
+  }
+  nav .logo {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: 18px;
+    color: var(--color-cream);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  nav .logo span { color: var(--color-red); }
+  nav a {
+    font-family: var(--font-body);
+    font-size: var(--eyebrow);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-grey);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  nav a:hover { color: var(--color-cream); }
+
+  /* === HERO === */
+  .hero {
+    background: var(--color-charcoal);
+    color: var(--color-cream);
+    text-align: center;
+    padding: var(--spacing-3xl) 32px;
+    position: relative;
+  }
+  .hero > * { position: relative; z-index: 2; }
+  /* Scan lines — animated, visible */
+  @keyframes scanline-scroll {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 200px; }
+  }
+  @keyframes scanline-flicker {
+    0%, 100% { opacity: 1; }
+    42% { opacity: 0.97; }
+    44% { opacity: 1; }
+    82% { opacity: 0.96; }
+    84% { opacity: 1; }
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      ),
+      linear-gradient(180deg,
+        transparent 0%,
+        rgba(255,255,255,0.03) 50%,
+        transparent 100%
+      );
+    background-size: 100% 4px, 100% 200px;
+    pointer-events: none;
+    z-index: 3;
+    animation: scanline-scroll 4s linear infinite, scanline-flicker 6s steps(1) infinite;
+  }
+  /* Subtle colour bleed */
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 65% 35%, rgba(217,48,37,0.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 35% 75%, rgba(45,125,154,0.04) 0%, transparent 50%);
+    pointer-events: none; z-index: 1;
+  }
+  .hero .eyebrow {
+    font-family: var(--font-body);
+    font-size: var(--eyebrow);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-red);
+    margin-bottom: var(--spacing-lg);
+  }
+  .hero h1 {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: var(--heading-xxl);
+    line-height: var(--line-height-heading);
+    letter-spacing: -0.04em;
+    margin-bottom: var(--spacing-md);
+    text-shadow: 0 2px 20px rgba(217,48,37,0.12);
+  }
+  .hero .artist-name {
+    font-family: var(--font-accent);
+    font-weight: 800;
+    font-variation-settings: 'WONK' 1, 'SOFT' 80, 'opsz' 72;
+    font-size: var(--heading-lg);
+    color: var(--color-red);
+    margin-bottom: var(--spacing-lg);
+    mix-blend-mode: screen;
+    opacity: 0.85;
+  }
+  .hero .desc {
+    font-family: var(--font-body);
+    font-size: var(--body);
+    opacity: 0.75;
+    max-width: 520px;
+    margin: 0 auto var(--spacing-xl);
+  }
+  .hero .cta-row { display: flex; gap: var(--spacing-md); justify-content: center; }
+
+  /* === BUTTONS === */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: var(--body-sm);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-red {
+    background: var(--color-red);
+    color: var(--color-parchment);
+    box-shadow: var(--bevel-light), var(--drop);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-red);
+    border: 1px solid var(--color-red);
+  }
+  .btn-dark {
+    background: var(--color-charcoal);
+    color: var(--color-cream);
+    box-shadow: var(--bevel-dark), var(--drop);
+  }
+
+  /* === VU DIVIDER === */
+  .vu-divider {
+    display: flex;
+    gap: 2px;
+    height: 5px;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+  .vu-divider span { flex: 1; border-radius: 1px; }
+
+  /* === SECTION COMMON === */
+  .section-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: var(--section-padding) 32px;
+  }
+  .section-eyebrow {
+    font-family: var(--font-body);
+    font-size: var(--eyebrow);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-red);
+    margin-bottom: var(--spacing-md);
+  }
+
+  /* === ROSTER === */
+  .roster {
+    background: var(--color-charcoal);
+    color: var(--color-cream);
+    position: relative;
+  }
+  .artist-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-top: var(--spacing-lg);
+  }
+  .artist-card {
+    background: var(--color-smoke);
+    border-radius: var(--radius-card);
+    padding: 20px 16px;
+    display: flex;
+    gap: 12px;
+    box-shadow: var(--bevel-dark), 0 2px 8px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .artist-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--bevel-dark), 0 6px 20px rgba(0,0,0,0.3);
+  }
+  .artist-card .stripe {
+    width: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .artist-card .name {
+    font-family: var(--font-accent);
+    font-size: 18px;
+    line-height: 1.1;
+    margin-bottom: 4px;
+    color: var(--color-cream);
+  }
+  .artist-card .genre {
+    font-family: var(--font-body);
+    font-size: var(--eyebrow);
+    color: var(--color-grey);
+    margin-bottom: 2px;
+  }
+  .artist-card .count {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--color-grey);
+    opacity: 0.7;
+  }
+
+  /* === CATALOGUE === */
+  .catalogue {
+    background: var(--color-bg);
+  }
+  .catalogue-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: var(--spacing-lg);
+  }
+  .cassette-card {
+    border: 2px solid var(--color-cream);
+    border-radius: var(--radius-cassette);
+    position: relative;
+    text-align: center;
+    background: var(--color-bg);
+    cursor: pointer;
+    transition: border-color .2s, transform .15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+  }
+  .cassette-card:hover {
+    border-color: var(--color-red);
+    transform: translateY(-2px);
+  }
+  .cassette-card .midline {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    right: 12px;
+    height: 1px;
+    background: var(--color-cream);
+  }
+  /* Upper half: title */
+  .cassette-card .side-a {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 20px 20px 6px;
+    position: relative;
+    z-index: 1;
+    max-height: 50%;
+    overflow: hidden;
+  }
+  .cassette-card .title {
+    font-family: var(--font-accent);
+    font-weight: 600;
+    font-variation-settings: 'WONK' 1, 'SOFT' 60, 'opsz' 48;
+    font-size: 16px;
+    color: var(--color-charcoal);
+    line-height: 1.2;
+  }
+  /* Centre-line element: the type badge sits exactly on the midline */
+  .cassette-card .type-badge {
+    position: relative;
+    z-index: 2;
+    padding: 3px 12px;
+    margin: 0 auto;
+    background: var(--color-bg);
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-red);
+    display: inline-block;
+  }
+  /* Lower half: description */
+  .cassette-card .side-b {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 6px 20px 20px;
+    position: relative;
+    z-index: 1;
+    max-height: 50%;
+    overflow: hidden;
+  }
+  .cassette-card .desc {
+    font-family: var(--font-body);
+    font-size: var(--eyebrow);
+    color: var(--color-grey);
+    line-height: 1.5;
+  }
+
+  /* Extra cards: 5 items in 3 cols — last row has 2 items centered */
+  .catalogue-grid .cassette-card:nth-child(4) { grid-column: 1 / 2; }
+  .catalogue-grid .cassette-card:nth-child(5) { grid-column: 2 / 3; }
+
+  /* === FOOTER === */
+  footer {
+    background: var(--color-charcoal);
+    color: var(--color-cream);
+    text-align: center;
+    padding: var(--spacing-xl) 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  footer > * { position: relative; z-index: 2; }
+  footer .label-name {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: var(--heading-sm);
+    letter-spacing: -0.02em;
+    margin-bottom: var(--spacing-sm);
+  }
+  footer .label-name span { color: var(--color-red); }
+  footer .tagline {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 300;
+    font-variation-settings: 'WONK' 1, 'SOFT' 50, 'opsz' 48;
+    font-size: var(--body);
+    color: var(--color-grey);
+    margin-bottom: var(--spacing-sm);
+  }
+  footer .est {
+    font-family: var(--font-body);
+    font-size: var(--eyebrow);
+    color: var(--color-grey);
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG FILTERS -->
+<svg id="filters" aria-hidden="true">
+  <defs>
+    <filter id="grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" seed="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+      <feComponentTransfer in="mono" result="visible">
+        <feFuncA type="linear" slope="0.22" intercept="0"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="visible" mode="overlay"/>
+    </filter>
+  </defs>
+</svg>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="logo">trrrrdt<span>.</span>records</a>
+  <a href="/">Home</a>
+  <a href="/artists">Artists</a>
+  <a href="/player">Audio Player</a>
+  <a href="/tv">Video Player</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero tx-dark" data-section="hero" data-intent="emotional hook — latest release" data-layout="full-bleed">
+  <div class="eyebrow">Now Playing</div>
+  <h1>Sumpf, Sand<br>und Stahlbeton</h1>
+  <div class="artist-name">Kevin Mayfield</div>
+  <p class="desc">Steinman power ballads for the administrative apocalypse. Track 23 of an ongoing incident.</p>
+  <div class="cta-row">
+    <a href="/player" class="btn btn-red tx-red">Play →</a>
+    <a href="#roster" class="btn btn-ghost">The Roster ↓</a>
+  </div>
+</section>
+
+<!-- VU DIVIDER -->
+<div class="vu-divider">
+  <span style="background:#27AE60"></span><span style="background:#27AE60"></span>
+  <span style="background:#27AE60"></span><span style="background:#27AE60"></span>
+  <span style="background:#2ECC71"></span><span style="background:#2ECC71"></span>
+  <span style="background:#F1C40F"></span><span style="background:#F1C40F"></span>
+  <span style="background:#E8A317"></span><span style="background:#E67E22"></span>
+  <span style="background:#D93025"></span><span style="background:#D93025"></span>
+</div>
+
+<!-- ROSTER -->
+<section class="roster tx-dark" id="roster" data-section="roster" data-intent="catalogue — all nine artists" data-layout="grid" data-items="9">
+  <div class="section-inner">
+    <div class="section-eyebrow">Nine Artists. No Humans.</div>
+
+    <div class="artist-grid">
+      <div class="artist-card">
+        <div class="stripe" style="background:#c44a6a"></div>
+        <div>
+          <div class="name" style="font-weight:500;font-variation-settings:'WONK' 1,'SOFT' 70,'opsz' 48">Sylvaine Éternelle</div>
+          <div class="genre">French yéyé-synthwave</div>
+          <div class="count">19 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#7a9fb0"></div>
+        <div>
+          <div class="name" style="font-weight:200;font-variation-settings:'WONK' 0,'SOFT' 0,'opsz' 9">Helle Raud</div>
+          <div class="genre">Estonian-Danish therabilly</div>
+          <div class="count">19 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#c44a3a"></div>
+        <div>
+          <div class="name" style="font-weight:600;font-variation-settings:'WONK' 1,'SOFT' 40,'opsz' 48">Natsuko Terada</div>
+          <div class="genre">Japanese rockabilly</div>
+          <div class="count">19 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#4a7a5a"></div>
+        <div>
+          <div class="name" style="font-weight:300;font-variation-settings:'WONK' 0,'SOFT' 20,'opsz' 24">Dmitri Volkov</div>
+          <div class="genre">Russian-German folk-darkwave</div>
+          <div class="count">31 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#c49030"></div>
+        <div>
+          <div class="name" style="font-weight:800;font-variation-settings:'WONK' 1,'SOFT' 80,'opsz' 72">Kevin Mayfield</div>
+          <div class="genre">Steinman power ballads</div>
+          <div class="count">23 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#6a8a6a"></div>
+        <div>
+          <div class="name" style="font-weight:400;font-variation-settings:'WONK' 1,'SOFT' 100,'opsz' 48">The Moss Twins</div>
+          <div class="genre">Welsh 1960s doo-wop</div>
+          <div class="count">15 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#c45aa0"></div>
+        <div>
+          <div class="name" style="font-weight:900;font-variation-settings:'WONK' 1,'SOFT' 100,'opsz' 144">Itzik Kagan</div>
+          <div class="genre">Israeli-Danish drag punk</div>
+          <div class="count">17 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#c46a30"></div>
+        <div>
+          <div class="name" style="font-weight:700;font-variation-settings:'WONK' 1,'SOFT' 60,'opsz' 72">Ann Francon</div>
+          <div class="genre">70s dark rock</div>
+          <div class="count">11 tracks</div>
+        </div>
+      </div>
+      <div class="artist-card">
+        <div class="stripe" style="background:#6a6a9a"></div>
+        <div>
+          <div class="name" style="font-weight:350;font-variation-settings:'WONK' 0,'SOFT' 30,'opsz' 36">Cassidy Diane</div>
+          <div class="genre">Northern Soul / hotel-lounge</div>
+          <div class="count">21 tracks</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VU DIVIDER -->
+<div class="vu-divider">
+  <span style="background:#27AE60"></span><span style="background:#27AE60"></span>
+  <span style="background:#27AE60"></span><span style="background:#27AE60"></span>
+  <span style="background:#2ECC71"></span><span style="background:#2ECC71"></span>
+  <span style="background:#F1C40F"></span><span style="background:#F1C40F"></span>
+  <span style="background:#E8A317"></span><span style="background:#E67E22"></span>
+  <span style="background:#D93025"></span><span style="background:#D93025"></span>
+</div>
+
+<!-- CATALOGUE -->
+<section class="catalogue" data-section="catalogue" data-intent="depth — curated collections" data-layout="grid" data-items="5">
+  <div class="section-inner">
+    <div class="section-eyebrow">The Catalogue</div>
+
+    <div class="catalogue-grid">
+      <div class="cassette-card">
+        <div class="midline"></div>
+        <div class="side-a"><div class="title">TITAN</div></div>
+        <div class="type-badge">Concept Album</div>
+        <div class="side-b"><div class="desc">Six-track multilingual cycle. Each persona explores titanium from their philosophical perspective.</div></div>
+      </div>
+      <div class="cassette-card">
+        <div class="midline"></div>
+        <div class="side-a"><div class="title">Katabasis · Anabasis</div></div>
+        <div class="type-badge">Trilogy</div>
+        <div class="side-b"><div class="desc">Ann Francon's origin story. Descent, forge, creation.</div></div>
+      </div>
+      <div class="cassette-card">
+        <div class="midline"></div>
+        <div class="side-a"><div class="title">AI Confessions</div></div>
+        <div class="type-badge">Hörspiel</div>
+        <div class="side-b"><div class="desc">Eight-part audio drama. The Topological Inquisition of Babelsberg.</div></div>
+      </div>
+      <div class="cassette-card">
+        <div class="midline"></div>
+        <div class="side-a"><div class="title">Dancing about Architecture</div></div>
+        <div class="type-badge">Mixtape</div>
+        <div class="side-b"><div class="desc">Writing about music is like dancing about architecture. So we danced.</div></div>
+      </div>
+      <div class="cassette-card">
+        <div class="midline"></div>
+        <div class="side-a"><div class="title">Melodies of Mukbang</div></div>
+        <div class="type-badge">Mixtape</div>
+        <div class="side-b"><div class="desc">The soundtrack to eating alone on camera.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="tx-dark">
+  <div class="label-name">trrrrdt<span>.</span>records</div>
+  <div class="tagline">Nine artists. No humans.</div>
+  <div class="est">Est. 1983. Reissued from a timeline that never existed.</div>
+</footer>
+
+</body>
+</html>

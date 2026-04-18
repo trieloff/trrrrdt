@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Player — trrrrdt.records</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Space Mono', 'Courier New', monospace;
+    --font-accent: 'Fraunces', Georgia, serif;
+    --heading-xl: 56px; --heading-lg: 40px; --heading-md: 28px; --heading-sm: 20px;
+    --body: 15px; --body-sm: 13px; --eyebrow: 11px;
+    --color-bg: #FFFDF7; --color-fg: #1C1C1C; --color-red: #D93025;
+    --color-cream: #F5E6D3; --color-charcoal: #1C1C1C; --color-smoke: #3A3A3A;
+    --color-parchment: #FFFDF7; --color-teal: #2D7D9A; --color-amber: #E8A317; --color-grey: #6B6B6B;
+    --radius: 8px;
+    --bevel-light: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.12);
+    --bevel-dark: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.25);
+    --drop: 0 3px 10px rgba(0,0,0,0.25);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: #000; color: var(--color-cream); font-size: var(--body); margin: 0; overflow: hidden; }
+
+  /* === FULL VIEWPORT === */
+  .player-viewport {
+    width: 100vw; height: 100vh;
+    position: relative;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* WALL — darker than audio player */
+  .wall {
+    flex: 2;
+    position: relative;
+    background: linear-gradient(180deg, #0a0a0a 0%, #151515 40%, #1a1a1a 100%);
+    transition: background 1s ease;
+  }
+
+  /* TABLE — dark wood */
+  .table {
+    flex: 1;
+    position: relative;
+    background: linear-gradient(180deg, #2a1e14 0%, #231810 50%, #1a1008 100%);
+    transition: background 1s ease;
+  }
+  .table::before {
+    content: ''; position: absolute; top: 0; left: 5%; right: 5%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  }
+
+  /* SCREEN GLOW — radiates from the device onto wall and table */
+  .screen-glow-wall {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 60%; height: 70%;
+    background: radial-gradient(ellipse at 50% 100%, rgba(200,180,140,0.06) 0%, transparent 60%);
+    pointer-events: none; z-index: 1;
+  }
+  .screen-glow-table {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 50%; height: 60%;
+    background: radial-gradient(ellipse at 50% 0%, rgba(200,180,140,0.04) 0%, transparent 60%);
+    pointer-events: none; z-index: 1;
+  }
+
+  /* DEVICE ZONE */
+  .device-zone {
+    position: absolute;
+    bottom: 33.33%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    z-index: 10;
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  /* YUNOST PLACEHOLDER */
+  .yunost {
+    width: 320px; height: 260px;
+    background: linear-gradient(180deg, #c44030, #b83828);
+    border-radius: 14px;
+    box-shadow:
+      var(--bevel-light),
+      0 8px 40px rgba(0,0,0,0.5),
+      0 2px 10px rgba(0,0,0,0.3);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-start;
+    padding-top: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Plastic texture */
+  .yunost::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(0,0,0,0.08) 0%, transparent 50%);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+  .yunost .device-label {
+    font-family: var(--font-body); font-size: 8px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.5);
+    margin-bottom: 12px; position: relative; z-index: 2;
+  }
+  .yunost .model-label {
+    font-family: var(--font-heading); font-weight: 300; font-size: 10px;
+    color: rgba(255,255,255,0.4); letter-spacing: 0.05em;
+    position: absolute; bottom: 10px; right: 14px; z-index: 2;
+  }
+
+  /* CRT SCREEN */
+  .crt-screen {
+    width: 200px; height: 140px;
+    background: #222;
+    border-radius: 6px;
+    border: 4px solid #333;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 15px rgba(200,180,140,0.08);
+    z-index: 2;
+  }
+  /* Scan lines on CRT */
+  .crt-screen::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg,
+      transparent, transparent 2px,
+      rgba(0,0,0,0.15) 2px, rgba(0,0,0,0.15) 3px
+    );
+    pointer-events: none; z-index: 3;
+  }
+  /* Screen content glow */
+  .crt-screen .screen-content {
+    position: absolute; inset: 4px;
+    background: radial-gradient(ellipse at center, rgba(200,180,140,0.15) 0%, rgba(200,180,140,0.03) 60%, transparent 100%);
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 1;
+  }
+  .crt-screen .screen-content span {
+    font-family: var(--font-body); font-size: 9px; color: rgba(200,180,140,0.4);
+    text-transform: uppercase; letter-spacing: 0.05em; text-align: center;
+  }
+
+  /* KNOBS */
+  .knob-row {
+    display: flex; gap: 80px; margin-top: 14px; position: relative; z-index: 2;
+  }
+  .knob-group { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .knob {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #555, #333);
+    border: 2px solid #444;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    cursor: pointer;
+  }
+  .knob .indicator {
+    position: absolute; top: 3px; left: 50%; width: 2px; height: 8px;
+    background: var(--color-cream); border-radius: 1px; transform: translateX(-50%);
+  }
+  .knob-label {
+    font-family: var(--font-body); font-size: 7px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.35);
+  }
+
+  /* Contact shadow */
+  .device-shadow {
+    width: 280px; height: 20px; margin-top: -4px;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.3) 0%, transparent 70%);
+  }
+
+  /* CHANNEL CARD OVERLAY — top right, CRT OSD style */
+  .channel-card {
+    position: absolute;
+    top: 24px; right: 32px;
+    z-index: 20;
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
+  }
+  .channel-card .ch-number {
+    font-family: var(--font-body); font-size: 20px; font-weight: 700;
+    color: var(--color-cream); opacity: 0.8;
+    margin-bottom: 4px;
+  }
+  .channel-card .ch-title {
+    font-family: var(--font-heading); font-weight: 300; font-size: 13px;
+    color: var(--color-cream); opacity: 0.7; margin-bottom: 2px;
+  }
+  .channel-card .ch-meta {
+    font-family: var(--font-body); font-size: 9px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--color-grey);
+  }
+
+  /* SWIPE INDICATOR */
+  .swipe-indicator {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    z-index: 20;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    opacity: 0.3;
+  }
+  .swipe-indicator .arrow-up, .swipe-indicator .arrow-down {
+    width: 0; height: 0;
+    border-left: 5px solid transparent; border-right: 5px solid transparent;
+  }
+  .swipe-indicator .arrow-up { border-bottom: 7px solid var(--color-cream); }
+  .swipe-indicator .arrow-down { border-top: 7px solid var(--color-cream); }
+  .swipe-indicator .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--color-grey); }
+  .swipe-indicator .dot.active { width: 6px; height: 6px; background: var(--color-cream); }
+
+  /* SNOW / EMPTY STATE */
+  @keyframes snow-flicker {
+    0% { background-position: 0 0; }
+    25% { background-position: -100px 50px; }
+    50% { background-position: 50px -80px; }
+    75% { background-position: -30px 120px; }
+    100% { background-position: 0 0; }
+  }
+  .snow {
+    position: absolute; inset: 4px; z-index: 2; border-radius: 2px;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='s'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='6' seed='5'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    opacity: 0.3;
+    animation: snow-flicker 0.15s steps(4) infinite;
+    display: none; /* shown when tuning */
+  }
+  .crt-screen:hover .snow { display: block; } /* demo: hover to see snow */
+
+  .tuning-text {
+    position: absolute; inset: 0; z-index: 4;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-body); font-size: 10px; color: rgba(200,180,140,0.4);
+    letter-spacing: 0.05em;
+    display: none; /* shown in empty state */
+  }
+</style>
+</head>
+<body>
+
+<!-- PLAYER VIEWPORT -->
+<div class="player-viewport" data-section="player-viewport" data-intent="immersive video playback" data-layout="full-bleed" data-interactive="swipe-feed">
+
+  <!-- WALL -->
+  <div class="wall">
+    <div class="screen-glow-wall"></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table">
+    <div class="screen-glow-table"></div>
+  </div>
+
+  <!-- DEVICE -->
+  <div class="device-zone">
+    <div class="yunost">
+      <div class="device-label">Телевизионный приёмник</div>
+      <div class="crt-screen">
+        <div class="screen-content"><span>CH 01<br>Playing</span></div>
+        <div class="snow"></div>
+        <div class="tuning-text">Настройка...</div>
+      </div>
+      <div class="knob-row">
+        <div class="knob-group">
+          <div class="knob"><div class="indicator"></div></div>
+          <div class="knob-label">Каналы</div>
+        </div>
+        <div class="knob-group">
+          <div class="knob"><div class="indicator" style="transform:translateX(-50%) rotate(45deg)"></div></div>
+          <div class="knob-label">Громкость</div>
+        </div>
+      </div>
+      <div class="model-label">Юность-402</div>
+    </div>
+    <div class="device-shadow"></div>
+  </div>
+
+  <!-- CHANNEL CARD -->
+  <div class="channel-card">
+    <div class="ch-number">CH 01</div>
+    <div class="ch-title">AI Confessions</div>
+    <div class="ch-meta">Hörspiel · Episode 1 · 12:34</div>
+  </div>
+
+  <!-- SWIPE INDICATOR -->
+  <div class="swipe-indicator">
+    <div class="arrow-up"></div>
+    <div class="dot active"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="arrow-down"></div>
+  </div>
+
+</div>
+
+</body>
+</html>
