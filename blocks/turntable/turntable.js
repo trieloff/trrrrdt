@@ -490,26 +490,33 @@ async function initScene(block, tracks, state) {
   const center = box.getCenter(new THREE.Vector3());
   model.position.set(-center.x, -box.min.y, -center.z);
   scene.add(model);
+  // compose world matrices NOW — the pivot center is measured from them
+  model.updateMatrixWorld(true);
 
   // group vinyl meshes under a pivot, spin around the disc normal
   let vinyl = null;
   let spinAxis = null;
   if (vinylMeshes.length) {
-    const vinylBox = new THREE.Box3();
-    vinylMeshes.forEach((m) => vinylBox.expandByObject(m));
-    const vinylCenter = vinylBox.getCenter(new THREE.Vector3());
-    vinyl = new THREE.Group();
-    vinyl.position.copy(vinylCenter);
-    scene.add(vinyl);
-    vinylMeshes.forEach((m) => vinyl.attach(m));
-    const vinylSize = vinylBox.getSize(new THREE.Vector3());
-    const dims = [vinylSize.x, vinylSize.y, vinylSize.z];
+    // measure the disc from the grooves mesh alone so the label can't bias it,
+    // in LOCAL geometry space — the disc leans, so its true center and normal
+    // must be transformed to world, not read off an axis-aligned box
+    const disc = vinylMeshes.find((m) => (m.material?.name || '').toLowerCase() === 'carbon')
+      || vinylMeshes[0];
+    disc.geometry.computeBoundingBox();
+    const localBox = disc.geometry.boundingBox;
+    const localSize = localBox.getSize(new THREE.Vector3());
+    const dims = [localSize.x, localSize.y, localSize.z];
     const thin = dims.indexOf(Math.min(...dims));
+    const vinylCenter = disc.localToWorld(localBox.getCenter(new THREE.Vector3()));
     spinAxis = [
       new THREE.Vector3(1, 0, 0),
       new THREE.Vector3(0, 1, 0),
       new THREE.Vector3(0, 0, 1),
-    ][thin];
+    ][thin].applyQuaternion(disc.getWorldQuaternion(new THREE.Quaternion())).normalize();
+    vinyl = new THREE.Group();
+    vinyl.position.copy(vinylCenter);
+    scene.add(vinyl);
+    vinylMeshes.forEach((m) => vinyl.attach(m));
   }
 
   const scaledBox = new THREE.Box3().setFromObject(model);
@@ -584,7 +591,8 @@ async function initScene(block, tracks, state) {
     rimLight.color.copy(env.accent);
     scene.background.copy(env.bg);
     scene.fog.color.copy(env.bg);
-    if (vinyl && spinAxis && state.playing && !state.reducedMotion) {
+    const spinning = state.playing || window.location.hash === '#spin';
+    if (vinyl && spinAxis && spinning && !state.reducedMotion) {
       vinyl.rotateOnAxis(spinAxis, SPIN_SPEED * delta);
     }
     renderer.render(scene, camera);
