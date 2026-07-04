@@ -15,12 +15,12 @@
 }
 
 /* --- palette: each cassette gets a color via nth-child --- */
-.cassettes > ul > li:nth-child(6n+1) { --cassette-color: var(--accent-coral); }
+.cassettes > ul > li:nth-child(6n+1) { --cassette-color: var(--accent-color); }
 .cassettes > ul > li:nth-child(6n+2) { --cassette-color: var(--accent-mustard); }
-.cassettes > ul > li:nth-child(6n+3) { --cassette-color: var(--accent-mint); }
-.cassettes > ul > li:nth-child(6n+4) { --cassette-color: var(--accent-teal); }
-.cassettes > ul > li:nth-child(6n+5) { --cassette-color: var(--accent-warm); }
-.cassettes > ul > li:nth-child(6n+6) { --cassette-color: var(--accent-secondary); }
+.cassettes > ul > li:nth-child(6n+3) { --cassette-color: var(--accent-teal); }
+.cassettes > ul > li:nth-child(6n+4) { --cassette-color: var(--accent-mint); }
+.cassettes > ul > li:nth-child(6n+5) { --cassette-color: var(--accent-coral); }
+.cassettes > ul > li:nth-child(6n+6) { --cassette-color: var(--smoke-color); }
 
 .cassettes .cassette-link {
   display: block;
@@ -163,29 +163,30 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 4px 8px;
+  padding: 5px 10px;
   min-height: 2.4em;
-  background: rgb(255 255 255 / 70%);
-  border-radius: 3px;
+  background: rgb(255 253 247 / 88%);
+  border-radius: 4px;
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 6%);
 }
 
 .cassettes .cassette-title {
-  font-family: var(--heading-font-family);
-  font-weight: 700;
-  font-size: var(--body-font-size-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-family: var(--accent-font-family);
+  font-weight: 600;
+  font-variation-settings: 'WONK' 1, 'SOFT' 60, 'opsz' 48;
+  font-size: 14px;
   color: var(--text-color);
   line-height: 1.2;
 }
 
 .cassettes .cassette-subtitle {
   font-family: var(--mono-font-family);
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: var(--dark-color);
-  letter-spacing: 0.02em;
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 /* --- bottom tape guides --- */

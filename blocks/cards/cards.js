@@ -18,6 +18,12 @@ export default function decorate(block) {
       li.append(col);
     });
     if (hasImage) li.classList.add('cards-has-image');
+    // channel stripe: cards linking to an artist page get that artist's desk color
+    const artistLink = li.querySelector('a[href*="/artists/"]');
+    if (artistLink) {
+      const slug = new URL(artistLink.href, window.location.href).pathname.split('/').pop();
+      li.style.setProperty('--channel', `var(--channel-${slug}, var(--accent-color))`);
+    }
     if (li.hasChildNodes()) ul.append(li);
   });
   ul.querySelectorAll('picture > img').forEach((img) => {

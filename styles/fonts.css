@@ -1,76 +1,86 @@
 /* stylelint-disable max-line-length */
 
-/* Barlow Condensed — geometric industrial heading font */
+/* Space Grotesk — variable 300-700, the Rams grid with the weight axis on psychedelics */
 @font-face {
-  font-family: barlow-condensed;
+  font-family: space-grotesk;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 300 700;
   font-display: swap;
-  src: url('../fonts/barlow-condensed-bold.woff2') format('woff2');
+  src: url('../fonts/space-grotesk-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
-  font-family: barlow-condensed;
+  font-family: space-grotesk;
   font-style: normal;
-  font-weight: 700;
+  font-weight: 300 700;
   font-display: swap;
-  src: url('../fonts/barlow-condensed-bold-ext.woff2') format('woff2');
+  src: url('../fonts/space-grotesk-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* DM Sans — warm geometric body font */
+/* Space Mono — the machine talking */
 @font-face {
-  font-family: dm-sans;
+  font-family: space-mono;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../fonts/dm-sans-regular.woff2') format('woff2');
+  src: url('../fonts/space-mono-400-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
 @font-face {
-  font-family: dm-sans;
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url('../fonts/dm-sans-bold.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: dm-sans;
-  font-style: normal;
-  font-weight: 400 700;
-  font-display: swap;
-  src: url('../fonts/dm-sans-ext.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-/* IBM Plex Mono — retro-tech monospace */
-@font-face {
-  font-family: ibm-plex-mono;
+  font-family: space-mono;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('../fonts/ibm-plex-mono-regular.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: ibm-plex-mono;
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('../fonts/ibm-plex-mono-ext.woff2') format('woff2');
+  src: url('../fonts/space-mono-400-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 @font-face {
-  font-family: ibm-plex-mono;
+  font-family: space-mono;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/space-mono-700-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: space-mono;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../fonts/space-mono-700-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Cyrillic mono fallback for the Volkov catalogue — Space Mono has no cyrillic subset */
+@font-face {
+  font-family: mono-cyrillic-fallback;
   font-style: normal;
   font-weight: 400;
   font-display: swap;
   src: url('../fonts/ibm-plex-mono-cyrillic.woff2') format('woff2');
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+
+/* Fraunces — variable, four axes; the psychedelic crack in the functionalist facade */
+@font-face {
+  font-family: fraunces;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/fraunces-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: fraunces;
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/fraunces-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }

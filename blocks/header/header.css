@@ -1,22 +1,11 @@
 /* header and nav layout */
 header .nav-wrapper {
-  background-color: var(--panel-color);
-  border-bottom: 2px solid var(--border-color);
+  background-color: var(--text-color);
+  border-bottom: 2px solid var(--accent-color);
   width: 100%;
   z-index: 2;
   position: fixed;
-
-  /* molded plastic faceplate */
-  background-image:
-    linear-gradient(
-      180deg,
-      rgb(255 255 255 / 12%) 0%,
-      transparent 40%,
-      rgb(0 0 0 / 4%) 100%
-    );
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 20%),
-    0 1px 3px rgb(0 0 0 / 8%);
+  box-shadow: var(--bevel-dark), 0 4px 16px rgb(0 0 0 / 40%);
 }
 
 header nav {
@@ -32,6 +21,7 @@ header nav {
   height: var(--nav-height);
   padding: 0 24px;
   font-family: var(--body-font-family);
+  color: var(--light-color);
 }
 
 header nav[aria-expanded='true'] {
@@ -41,7 +31,7 @@ header nav[aria-expanded='true'] {
     'tools tools' var(--nav-height) / auto 1fr;
   overflow-y: auto;
   min-height: 100dvh;
-  background-color: var(--panel-color);
+  background-color: var(--text-color);
 }
 
 @media (width >= 900px) {
@@ -158,11 +148,19 @@ header .nav-brand {
   grid-area: brand;
   flex-basis: 180px;
   font-family: var(--heading-font-family);
-  font-size: var(--heading-font-size-s);
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 300;
   line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.02em;
+}
+
+header .nav-brand a:any-link {
+  color: var(--light-color);
+  text-decoration: none;
+}
+
+header .nav-brand a:hover {
+  color: var(--accent-coral);
 }
 
 header nav .nav-brand img {
@@ -187,10 +185,20 @@ header nav[aria-expanded='true'] .nav-sections {
 header nav .nav-sections ul {
   list-style: none;
   padding-left: 0;
-  font-family: var(--heading-font-family);
+  font-family: var(--mono-font-family);
   font-size: var(--body-font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+}
+
+header nav .nav-sections ul > li > a:any-link {
+  color: var(--dark-color);
+  transition: color 0.2s;
+}
+
+header nav .nav-sections ul > li > a:hover {
+  color: var(--light-color);
+  text-decoration: none;
 }
 
 header nav .nav-sections ul > li {

@@ -96,19 +96,21 @@ html:has(main .turntable) {
 }
 
 .turntable .turntable-artist {
-  font-family: var(--heading-font-family);
-  font-weight: 700;
+  font-family: var(--accent-font-family);
+  font-weight: 650;
+  font-variation-settings: 'WONK' 1, 'SOFT' 70, 'opsz' 72;
   font-size: var(--heading-font-size-l);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  line-height: 1.1;
-  color: var(--background-color);
+  line-height: 1.05;
+  color: var(--light-color);
   text-shadow: 0 2px 12px rgb(0 0 0 / 60%);
 }
 
 .turntable .turntable-title {
-  font-size: var(--body-font-size-s);
-  color: var(--background-color);
+  font-family: var(--heading-font-family);
+  font-weight: 300;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: var(--light-color);
   opacity: 0.9;
   text-shadow: 0 1px 6px rgb(0 0 0 / 60%);
   margin-top: 2px;
@@ -135,7 +137,7 @@ html:has(main .turntable) {
   font-size: var(--body-font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--background-color);
+  color: var(--light-color);
   background-color: transparent;
   border: 1px solid rgb(255 255 255 / 40%);
   border-radius: 4px;
@@ -175,7 +177,7 @@ html:has(main .turntable) {
 }
 
 .turntable .turntable-dot-active {
-  background-color: var(--background-color);
+  background-color: var(--light-color);
   transform: scale(1.5);
 }
 
