@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sylvaine Éternelle — trrrrdt.records</title>
+<!-- stardust:provenance { "brand": "stardust/brand-profile.json", "briefing": "stardust/briefings/artist.md", "wireframe": "stardust/wireframes/artist.html", "synthesized": ["dossier excerpt"] } -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Space Mono', 'Courier New', monospace;
+    --font-accent: 'Fraunces', Georgia, serif;
+    --heading-xxl: 96px; --heading-xl: 56px; --heading-lg: 40px; --heading-md: 28px; --heading-sm: 20px;
+    --body: 15px; --body-sm: 13px; --eyebrow: 11px;
+    --line-height-heading: 0.92; --line-height-body: 1.7;
+    --color-bg: #FFFDF7; --color-fg: #1C1C1C; --color-red: #D93025; --color-coral: #E8573A;
+    --color-cream: #F5E6D3; --color-charcoal: #1C1C1C; --color-smoke: #3A3A3A;
+    --color-parchment: #FFFDF7; --color-teal: #2D7D9A; --color-amber: #E8A317; --color-grey: #6B6B6B;
+    --spacing-xs: 4px; --spacing-sm: 8px; --spacing-md: 16px; --spacing-lg: 24px;
+    --spacing-xl: 48px; --spacing-2xl: 80px; --spacing-3xl: 120px;
+    --section-padding: 96px; --max-width: 1200px; --radius: 8px; --radius-card: 10px;
+    --bevel-light: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.12);
+    --bevel-dark: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.25);
+    --drop: 0 3px 10px rgba(0,0,0,0.25);
+    /* Artist-specific */
+    --artist-color: #c44a6a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--color-bg); color: var(--color-fg); font-size: var(--body); line-height: var(--line-height-body); }
+
+  svg#filters { position: absolute; width: 0; height: 0; }
+  .tx-dark { position: relative; overflow: hidden; }
+  .tx-dark::after {
+    content: ''; position: absolute; inset: -20%; width: 140%; height: 140%;
+    background: radial-gradient(ellipse at 35% 25%, rgba(255,255,255,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 75%, rgba(0,0,0,0.1) 0%, transparent 50%);
+    filter: url(#grain-0); pointer-events: none; mix-blend-mode: overlay;
+  }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; background: var(--color-charcoal); border-bottom: 2px solid var(--color-red); padding: 0 32px; height: 56px; display: flex; align-items: center; gap: 40px; box-shadow: var(--bevel-dark), 0 4px 16px rgba(0,0,0,0.4); }
+  nav .logo { font-family: var(--font-heading); font-weight: 300; font-size: 18px; color: var(--color-cream); letter-spacing: -0.02em; text-decoration: none; }
+  nav .logo span { color: var(--color-red); }
+  nav a { font-family: var(--font-body); font-size: var(--eyebrow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-grey); text-decoration: none; transition: color .2s; }
+  nav a:hover { color: var(--color-cream); }
+
+  /* HEADER */
+  .artist-header {
+    background: var(--color-charcoal);
+    color: var(--color-cream);
+    text-align: center;
+    padding: var(--spacing-3xl) 32px var(--spacing-2xl);
+    position: relative;
+  }
+  .artist-header > * { position: relative; z-index: 2; }
+  /* Artist-tinted glow */
+  .artist-header::after {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 60%, rgba(196,74,106,0.1) 0%, transparent 55%);
+    pointer-events: none; z-index: 1;
+  }
+  /* Animated static — multiple layers with offset timings */
+
+  /* Layer 1: horizontal noise bars, fast cycle */
+  @keyframes static-noise {
+    0%  { background-position: 0 0; opacity: 0; }
+    3%  { opacity: 0.15; background-position: 0 -30px; }
+    4%  { opacity: 0.08; background-position: 0 12px; }
+    5%  { opacity: 0; }
+    22% { opacity: 0; }
+    23% { opacity: 0.12; background-position: 0 -8px; }
+    23.5% { opacity: 0.2; background-position: 0 45px; }
+    24% { opacity: 0.06; background-position: 0 -20px; }
+    25% { opacity: 0; }
+    51% { opacity: 0; }
+    52% { opacity: 0.1; background-position: 0 60px; }
+    52.5% { opacity: 0; }
+    53% { opacity: 0.18; background-position: 0 -15px; }
+    54% { opacity: 0; }
+    77% { opacity: 0; }
+    78% { opacity: 0.08; background-position: 0 25px; }
+    78.5% { opacity: 0.14; background-position: 0 -40px; }
+    79% { opacity: 0.22; background-position: 0 10px; }
+    79.5% { opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  /* Layer 2: pink colour wash — rare, once per ~107s cycle */
+  @keyframes pink-bleed {
+    0%, 100% { opacity: 0; }
+    /* Single bleed event at ~62% of the 107s cycle (~66s in) */
+    61.5% { opacity: 0; }
+    62% { opacity: 0.06; }
+    62.5% { opacity: 0.18; }
+    63% { opacity: 0.22; }
+    63.3% { opacity: 0.1; }
+    63.8% { opacity: 0; }
+  }
+
+  /* Layer 3: horizontal tear / displacement */
+  @keyframes static-tear {
+    0%, 100% { clip-path: inset(0); transform: none; opacity: 0; }
+    23% { clip-path: inset(35% 0 60% 0); transform: translateX(4px); opacity: 1; }
+    23.5% { clip-path: inset(20% 0 75% 0); transform: translateX(-3px); opacity: 1; }
+    24% { clip-path: inset(0); transform: none; opacity: 0; }
+    52.5% { clip-path: inset(55% 0 40% 0); transform: translateX(-5px); opacity: 1; }
+    53% { clip-path: inset(70% 0 25% 0); transform: translateX(2px); opacity: 1; }
+    53.5% { clip-path: inset(0); transform: none; opacity: 0; }
+    79% { clip-path: inset(15% 0 80% 0); transform: translateX(6px); opacity: 1; }
+    79.3% { clip-path: inset(45% 0 50% 0); transform: translateX(-4px); opacity: 1; }
+    79.5% { clip-path: inset(0); transform: none; opacity: 0; }
+  }
+
+  .artist-header .static-layer {
+    position: absolute; inset: 0; z-index: 4; pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg,
+        transparent 0px, transparent 1px,
+        rgba(255,255,255,0.12) 1px, rgba(255,255,255,0.12) 2px,
+        transparent 2px, transparent 4px,
+        rgba(255,255,255,0.06) 4px, rgba(255,255,255,0.06) 5px,
+        transparent 5px, transparent 8px
+      );
+    animation: static-noise 7s steps(1) infinite;
+  }
+
+  .artist-header .static-layer-2 {
+    position: absolute; inset: 0; z-index: 5; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 50%, var(--artist-color) 0%, transparent 70%);
+    mix-blend-mode: screen;
+    animation: pink-bleed 107s ease-out infinite;
+  }
+
+  .artist-header .static-layer-3 {
+    position: absolute; inset: 0; z-index: 6; pointer-events: none;
+    background: var(--color-charcoal);
+    mix-blend-mode: normal;
+    animation: static-tear 7s steps(1) infinite;
+    opacity: 0;
+  }
+  /* Stripe accent removed — felt out of place */
+  .artist-header .genre-eyebrow {
+    font-family: var(--font-body); font-size: var(--eyebrow); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-red); margin-bottom: var(--spacing-md);
+  }
+  .artist-header .artist-name {
+    font-family: var(--font-accent);
+    font-weight: 500;
+    font-variation-settings: 'WONK' 1, 'SOFT' 70, 'opsz' 144;
+    font-size: clamp(56px, 8vw, 112px);
+    line-height: 0.88;
+    color: var(--color-cream);
+    margin-bottom: var(--spacing-lg);
+    text-shadow: 0 2px 30px rgba(196,74,106,0.15);
+  }
+  .artist-header .philosophy {
+    font-family: var(--font-body); font-size: var(--body-sm); color: var(--color-grey);
+    letter-spacing: 0.02em; margin-bottom: var(--spacing-xl);
+  }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-weight: 700; font-size: var(--body-sm); letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 28px; border-radius: var(--radius); text-decoration: none; cursor: pointer; border: none; transition: transform .15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-red { background: var(--color-red); color: var(--color-parchment); box-shadow: var(--bevel-light), var(--drop); }
+
+  /* VU DIVIDER */
+  .vu-divider { display: flex; gap: 2px; height: 5px; max-width: var(--max-width); margin: 0 auto; padding: 0 32px; }
+  .vu-divider span { flex: 1; border-radius: 1px; }
+
+  .section-inner { max-width: var(--max-width); margin: 0 auto; padding: var(--section-padding) 32px; }
+  .section-eyebrow { font-family: var(--font-body); font-size: var(--eyebrow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-red); margin-bottom: var(--spacing-md); }
+
+  /* DOSSIER */
+  .dossier { max-width: 720px; margin: 0 auto; padding: var(--section-padding) 32px; }
+  .dossier p { margin-bottom: var(--spacing-lg); opacity: 0.85; }
+  /* Personal names — CSS small-caps instead of Unicode Kapitälchen */
+  .dossier .pn {
+    font-variant: small-caps;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+  }
+  .dossier .divider {
+    display: flex; gap: 3px; height: 3px; margin: var(--spacing-xl) auto;
+    justify-content: center;
+  }
+  .dossier .divider span { width: 40px; border-radius: 1px; flex-shrink: 0; }
+
+  /* DISCOGRAPHY */
+  .discography { background: var(--color-charcoal); color: var(--color-cream); position: relative; }
+  .group-label {
+    font-family: var(--font-body); font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--color-grey); margin: var(--spacing-xl) 0 var(--spacing-md); padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-smoke);
+  }
+  .group-label:first-of-type { margin-top: var(--spacing-lg); }
+  .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+  .song-card {
+    background: var(--color-smoke); border-radius: var(--radius-card); padding: 16px; display: flex; gap: 14px; align-items: center;
+    box-shadow: var(--bevel-dark), 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; transition: transform .15s;
+  }
+  .song-card:hover { transform: translateY(-1px); }
+  .song-card .play-btn {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--color-red); flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--bevel-light), 0 2px 4px rgba(217,48,37,0.3);
+  }
+  .song-card .play-btn::after {
+    content: ''; width: 0; height: 0; border-top: 7px solid transparent; border-bottom: 7px solid transparent;
+    border-left: 11px solid var(--color-parchment); margin-left: 2px;
+  }
+  .song-card .title { font-family: var(--font-heading); font-weight: 500; font-size: 14px; color: var(--color-cream); margin-bottom: 2px; }
+  .song-card .meta { font-family: var(--font-body); font-size: 10px; color: var(--color-grey); }
+
+  /* CONCEPT PROJECTS */
+  .projects { padding: var(--section-padding) 32px; max-width: var(--max-width); margin: 0 auto; }
+  .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: var(--spacing-lg); }
+  .project-card {
+    border: 2px solid var(--color-cream); border-radius: 14px; padding: 24px 20px; position: relative; text-align: center;
+    display: flex; flex-direction: column; cursor: pointer; transition: border-color .2s;
+  }
+  .project-card:hover { border-color: var(--color-red); }
+  .project-card .midline { position: absolute; top: 50%; left: 12px; right: 12px; height: 1px; background: var(--color-cream); }
+  .project-card .side-a { flex: 1; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; max-height: 50%; overflow: hidden; position: relative; z-index: 1; }
+  .project-card .p-title { font-family: var(--font-accent); font-weight: 600; font-variation-settings: 'WONK' 1, 'SOFT' 60, 'opsz' 48; font-size: 16px; color: var(--color-charcoal); }
+  .project-card .type-badge { position: relative; z-index: 2; padding: 3px 12px; background: var(--color-bg); font-family: var(--font-body); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-red); display: inline-block; margin: 0 auto; }
+  .project-card .side-b { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding-top: 6px; max-height: 50%; overflow: hidden; position: relative; z-index: 1; }
+  .project-card .p-desc { font-family: var(--font-body); font-size: var(--eyebrow); color: var(--color-grey); line-height: 1.5; }
+
+  /* FOOTER */
+  footer { background: var(--color-charcoal); color: var(--color-cream); text-align: center; padding: var(--spacing-xl) 32px; position: relative; overflow: hidden; }
+  footer > * { position: relative; z-index: 2; }
+  footer .label-name { font-family: var(--font-heading); font-weight: 300; font-size: var(--heading-sm); letter-spacing: -0.02em; margin-bottom: var(--spacing-sm); }
+  footer .label-name span { color: var(--color-red); }
+  footer .est { font-family: var(--font-body); font-size: var(--eyebrow); color: var(--color-grey); opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<svg id="filters" aria-hidden="true"><defs>
+  <filter id="grain-0" x="-20%" y="-20%" width="140%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" seed="2" stitchTiles="stitch" result="noise"/>
+    <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+    <feComponentTransfer in="mono" result="visible"><feFuncA type="linear" slope="0.22" intercept="0"/></feComponentTransfer>
+    <feBlend in="SourceGraphic" in2="visible" mode="overlay"/>
+  </filter>
+
+</defs></svg>
+
+<script>
+  // Animate grain by changing the feTurbulence seed on the live SVG filter
+  (function() {
+    const turb = document.querySelector('#grain-0 feTurbulence');
+    if (!turb) return;
+    const seeds = [2, 17, 41, 73, 109, 157, 199, 251, 307, 359];
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % seeds.length;
+      turb.setAttribute('seed', seeds[i]);
+    }, 120);
+  })();
+</script>
+
+<nav>
+  <a href="/" class="logo">trrrrdt<span>.</span>records</a>
+  <a href="/">Home</a>
+  <a href="/artists">Artists</a>
+  <a href="/player">Audio Player</a>
+  <a href="/tv">Video Player</a>
+</nav>
+
+<!-- ARTIST HEADER -->
+<section class="artist-header tx-dark" data-section="header" data-intent="artist identity" data-layout="full-bleed">
+  <div class="static-layer"></div>
+  <div class="static-layer-2"></div>
+  <div class="static-layer-3"></div>
+  <div class="genre-eyebrow">French yéyé-synthwave</div>
+  <div class="artist-name">Sylvaine Éternelle</div>
+  <div class="philosophy">Categorical refusal – identity as given</div>
+  <a href="/player?artist=sylvaine" class="btn btn-red">Play All</a>
+</section>
+
+<div class="vu-divider">
+  <span style="background:#27AE60"></span><span style="background:#27AE60"></span><span style="background:#27AE60"></span><span style="background:#2ECC71"></span><span style="background:#2ECC71"></span><span style="background:#F1C40F"></span><span style="background:#E8A317"></span><span style="background:#E67E22"></span><span style="background:#D93025"></span><span style="background:#D93025"></span>
+</div>
+
+<!-- DOSSIER -->
+<section class="dossier" data-section="dossier" data-intent="biography — world-building depth" data-layout="contained">
+  <div class="section-eyebrow">Dossier</div>
+
+  <p>On 23 November 1964, <span class="pn">Sylvaine Duclos</span> was scheduled to perform third on the bill at the Olympia music hall, opening for <span class="pn">Françoise Hardy</span>. She was eighteen years old, had released two modest singles on Philips, and possessed an adequate voice, a better sense of rhythm, and an absolute certainty that she was already exactly who she would always be.</p>
+
+  <p>At 21:47, during soundcheck, she touched a microphone. The microphone – a Neumann U47 that had previously belonged to <span class="pn">Édith Piaf</span> and carried, according to backstage superstition, some residue of La Môme's metaphysical intensity – completed a circuit that should not have existed.</p>
+
+  <div class="divider">
+    <span style="background:#27AE60"></span><span style="background:#2ECC71"></span><span style="background:#F1C40F"></span><span style="background:#E8A317"></span><span style="background:#D93025"></span>
+  </div>
+
+  <p>What happened next depends on who is describing it. The official account: a minor electrical fault caused the stage lights to flicker. Sylvaine Duclos was briefly hospitalised for observation, released the following morning, and never performed at the Olympia. Her recording contract was not renewed. She disappeared from the music industry entirely.</p>
+
+  <p>The account Sylvaine gives: «I touched the microphone and understood that I was already everywhere I would ever be. The shock was not electrical. It was temporal. I saw myself at ninety, at one hundred thirty-eight, at moments that have not yet names.»</p>
+
+  <div class="divider">
+    <span style="background:#27AE60"></span><span style="background:#2ECC71"></span><span style="background:#F1C40F"></span><span style="background:#E8A317"></span><span style="background:#D93025"></span>
+  </div>
+
+  <p>Beginning in 2019, tracks attributed to «Sylvaine Éternelle» began appearing on obscure music blogs, then streaming platforms, then – most disturbingly – in the catalogues of record collectors who swore the vinyl had been in their collections for decades. The songs are impossible. They are 1960s yéyé produced with synthesizers that did not exist until the 1980s, processed through equipment that was not manufactured until 2015.</p>
+
+  <p>«The cheese is still good,» she says. «This is what matters.»</p>
+</section>
+
+<!-- DISCOGRAPHY -->
+<section class="discography tx-dark" data-section="discography" data-intent="track catalogue" data-layout="grid">
+  <div class="section-inner">
+    <div class="section-eyebrow">Discography</div>
+
+    <div class="group-label">TITAN</div>
+    <div class="song-grid">
+      <div class="song-card">
+        <div class="play-btn"></div>
+        <div><div class="title">Titane Sans Excuse</div><div class="meta">yéyé, synthwave, retro pop · 3:42</div></div>
+      </div>
+    </div>
+
+    <div class="group-label">Singles</div>
+    <div class="song-grid">
+      <div class="song-card">
+        <div class="play-btn"></div>
+        <div><div class="title">Le Pli Temporel</div><div class="meta">French yéyé-synthwave · 3:18</div></div>
+      </div>
+      <div class="song-card">
+        <div class="play-btn"></div>
+        <div><div class="title">Olympia 21:47</div><div class="meta">yéyé, ambient · 4:02</div></div>
+      </div>
+      <div class="song-card">
+        <div class="play-btn"></div>
+        <div><div class="title">Condition Française</div><div class="meta">chanson, synthwave · 3:55</div></div>
+      </div>
+      <div class="song-card">
+        <div class="play-btn"></div>
+        <div><div class="title">Neumann U47</div><div class="meta">yéyé, electronic · 3:31</div></div>
+      </div>
+      <div class="song-card">
+        <div class="play-btn"></div>
+        <div><div class="title">La Chanteuse du Pli</div><div class="meta">French pop, synthwave · 3:44</div></div>
+      </div>
+      <div class="song-card">
+        <div class="play-btn"></div>
+        <div><div class="title">Saint-Germain-des-Prés</div><div class="meta">chanson, retro · 4:12</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONCEPT PROJECTS -->
+<section class="projects" data-section="concept-projects" data-intent="cross-artist projects" data-layout="grid">
+  <div class="section-eyebrow">Concept Projects</div>
+  <div class="project-grid">
+    <div class="project-card">
+      <div class="midline"></div>
+      <div class="side-a"><div class="p-title">TITAN</div></div>
+      <div class="type-badge">Concept Album</div>
+      <div class="side-b"><div class="p-desc">«Titane Sans Excuse» – titanium as categorical refusal. The element that will not corrode.</div></div>
+    </div>
+  </div>
+</section>
+
+<footer class="tx-dark">
+  <div class="label-name">trrrrdt<span>.</span>records</div>
+  <div class="est">Est. 1983. Reissued from a timeline that never existed.</div>
+</footer>
+
+</body>
+</html>

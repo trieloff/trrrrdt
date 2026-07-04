@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titane Sans Excuse — Sylvaine Éternelle — trrrrdt.records</title>
+<!-- stardust:provenance { "brand": "stardust/brand-profile.json", "briefing": "stardust/briefings/article.md", "wireframe": "stardust/wireframes/article.html", "synthesized": ["production notes"] } -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Space Mono', 'Courier New', monospace;
+    --font-accent: 'Fraunces', Georgia, serif;
+    --heading-xxl: 96px; --heading-xl: 56px; --heading-lg: 40px; --heading-md: 28px; --heading-sm: 20px;
+    --body: 15px; --body-sm: 13px; --eyebrow: 11px;
+    --line-height-heading: 0.92; --line-height-body: 1.7;
+    --color-bg: #FFFDF7; --color-fg: #1C1C1C; --color-red: #D93025; --color-coral: #E8573A;
+    --color-cream: #F5E6D3; --color-charcoal: #1C1C1C; --color-smoke: #3A3A3A;
+    --color-parchment: #FFFDF7; --color-teal: #2D7D9A; --color-amber: #E8A317; --color-grey: #6B6B6B;
+    --spacing-xs: 4px; --spacing-sm: 8px; --spacing-md: 16px; --spacing-lg: 24px;
+    --spacing-xl: 48px; --spacing-2xl: 80px; --spacing-3xl: 120px;
+    --section-padding: 64px; --max-width: 720px; --radius: 8px;
+    --bevel-light: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.12);
+    --bevel-dark: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.25);
+    --drop: 0 3px 10px rgba(0,0,0,0.25);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--color-bg); color: var(--color-fg); font-size: var(--body); line-height: var(--line-height-body); }
+
+  svg#filters { position: absolute; width: 0; height: 0; }
+  .tx-dark { position: relative; overflow: hidden; }
+  .tx-dark::after {
+    content: ''; position: absolute; inset: -20%; width: 140%; height: 140%;
+    background: radial-gradient(ellipse at 35% 25%, rgba(255,255,255,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 75%, rgba(0,0,0,0.1) 0%, transparent 50%);
+    filter: url(#grain); pointer-events: none; mix-blend-mode: overlay;
+  }
+
+  /* NAV */
+  nav { position: sticky; top: 0; z-index: 100; background: var(--color-charcoal); border-bottom: 2px solid var(--color-red); padding: 0 32px; height: 56px; display: flex; align-items: center; gap: 40px; box-shadow: var(--bevel-dark), 0 4px 16px rgba(0,0,0,0.4); }
+  nav .logo { font-family: var(--font-heading); font-weight: 300; font-size: 18px; color: var(--color-cream); letter-spacing: -0.02em; text-decoration: none; }
+  nav .logo span { color: var(--color-red); }
+  nav a { font-family: var(--font-body); font-size: var(--eyebrow); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-grey); text-decoration: none; transition: color .2s; }
+  nav a:hover { color: var(--color-cream); }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-weight: 700; font-size: var(--body-sm); letter-spacing: 0.05em; text-transform: uppercase; padding: 12px 28px; border-radius: var(--radius); text-decoration: none; cursor: pointer; border: none; transition: transform .15s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-red { background: var(--color-red); color: var(--color-parchment); box-shadow: var(--bevel-light), var(--drop); }
+
+  /* ARTICLE LAYOUT */
+  article { max-width: var(--max-width); margin: 0 auto; padding: var(--spacing-2xl) 32px; }
+
+  /* HEADER */
+  .article-header { margin-bottom: var(--spacing-xl); }
+  .article-header .meta-eyebrow {
+    font-family: var(--font-body); font-size: var(--eyebrow); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-red); margin-bottom: var(--spacing-md);
+  }
+  .article-header h1 {
+    font-family: var(--font-heading); font-weight: 300; font-size: var(--heading-xl);
+    line-height: var(--line-height-heading); letter-spacing: -0.03em; margin-bottom: var(--spacing-md);
+  }
+  .article-header .artist-link {
+    font-family: var(--font-accent); font-weight: 500;
+    font-variation-settings: 'WONK' 1, 'SOFT' 70, 'opsz' 48;
+    font-size: var(--heading-md); color: var(--color-red); text-decoration: none;
+    margin-bottom: var(--spacing-lg); display: block;
+  }
+  .article-header .artist-link:hover { text-decoration: underline; }
+
+  /* SPEC BLOCK */
+  .spec-block {
+    background: var(--color-charcoal); color: var(--color-cream); border-radius: var(--radius);
+    padding: 20px 24px; margin: var(--spacing-xl) 0; font-family: var(--font-body); font-size: var(--body-sm);
+    line-height: 1.6; box-shadow: var(--bevel-dark), var(--drop); position: relative; overflow: hidden;
+  }
+  .spec-block > * { position: relative; z-index: 2; }
+  .spec-block .spec-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--color-red); margin-bottom: var(--spacing-sm);
+  }
+
+  /* LYRICS */
+  .lyrics { margin: var(--spacing-xl) 0; }
+  .lyrics .section-tag {
+    font-family: var(--font-body); font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--color-grey); margin: var(--spacing-lg) 0 var(--spacing-sm);
+    padding-bottom: 6px; border-bottom: 1px solid var(--color-cream);
+  }
+  .lyrics .section-tag:first-child { margin-top: 0; }
+  .lyrics p {
+    font-family: var(--font-body); font-size: var(--body); line-height: 1.8; opacity: 0.85;
+    margin-bottom: 4px;
+  }
+  .lyrics .direction {
+    font-size: var(--eyebrow); color: var(--color-grey); font-style: italic; opacity: 0.6; margin-bottom: 4px;
+  }
+
+  /* PRODUCTION NOTES */
+  .production-notes { margin: var(--spacing-xl) 0; }
+  .production-notes h2 {
+    font-family: var(--font-body); font-size: var(--eyebrow); font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--color-red); margin-bottom: var(--spacing-md);
+  }
+  .production-notes p { margin-bottom: var(--spacing-lg); opacity: 0.85; }
+
+  .pull-quote {
+    border-left: 3px solid var(--color-red); padding: var(--spacing-lg) var(--spacing-lg);
+    margin: var(--spacing-xl) 0; background: rgba(217,48,37,0.03); border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .pull-quote p {
+    font-family: var(--font-accent); font-weight: 400; font-style: italic;
+    font-variation-settings: 'WONK' 1, 'SOFT' 50, 'opsz' 48;
+    font-size: var(--heading-sm); line-height: 1.4; color: var(--color-fg); opacity: 1; margin: 0;
+  }
+
+  /* RELATED */
+  .related { margin: var(--spacing-xl) 0 0; padding-top: var(--spacing-xl); border-top: 1px solid var(--color-cream); }
+  .related h2 {
+    font-family: var(--font-body); font-size: var(--eyebrow); font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--color-red); margin-bottom: var(--spacing-md);
+  }
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .related-card {
+    background: var(--color-charcoal); border-radius: var(--radius); padding: 20px;
+    box-shadow: var(--bevel-dark), 0 2px 6px rgba(0,0,0,0.15); cursor: pointer; transition: transform .15s;
+    text-decoration: none;
+  }
+  .related-card:hover { transform: translateY(-1px); }
+  .related-card .r-title { font-family: var(--font-heading); font-weight: 500; font-size: 14px; color: var(--color-cream); margin-bottom: 4px; }
+  .related-card .r-meta { font-family: var(--font-body); font-size: 10px; color: var(--color-grey); }
+
+  /* FOOTER */
+  footer { background: var(--color-charcoal); color: var(--color-cream); text-align: center; padding: var(--spacing-xl) 32px; margin-top: var(--spacing-2xl); }
+  footer .label-name { font-family: var(--font-heading); font-weight: 300; font-size: var(--heading-sm); letter-spacing: -0.02em; margin-bottom: var(--spacing-sm); }
+  footer .label-name span { color: var(--color-red); }
+  footer .est { font-family: var(--font-body); font-size: var(--eyebrow); color: var(--color-grey); opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<svg id="filters" aria-hidden="true"><defs>
+  <filter id="grain" x="-20%" y="-20%" width="140%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" seed="2" stitchTiles="stitch" result="noise"/>
+    <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+    <feComponentTransfer in="mono" result="visible"><feFuncA type="linear" slope="0.22" intercept="0"/></feComponentTransfer>
+    <feBlend in="SourceGraphic" in2="visible" mode="overlay"/>
+  </filter>
+</defs></svg>
+
+<nav>
+  <a href="/" class="logo">trrrrdt<span>.</span>records</a>
+  <a href="/">Home</a>
+  <a href="/artists">Artists</a>
+  <a href="/player">Audio Player</a>
+  <a href="/tv">Video Player</a>
+</nav>
+
+<article>
+
+  <!-- HEADER -->
+  <header class="article-header" data-section="header" data-intent="article identity" data-layout="contained">
+    <div class="meta-eyebrow">yéyé, synthwave, retro pop · 3:42</div>
+    <h1>Titane Sans Excuse</h1>
+    <a href="/artists/sylvaine" class="artist-link">Sylvaine Éternelle</a>
+    <a href="/player?track=titane-sans-excuse" class="btn btn-red">▶ Play</a>
+  </header>
+
+  <!-- INTRO COPY -->
+  <div class="spec-block tx-dark" data-section="spec-block" data-intent="editorial hook" data-layout="contained">
+    <div class="spec-label">Liner Note</div>
+    <div>Titanium spent 119 years between its discovery as an oxide and its first reduction to pure metal. Sylvaine finds this patience admirable. She recorded the song in 1964 and 2031 simultaneously. The Farfisa is from the former. The arpeggiator is from the latter. Neither apologises for being difficult to find.</div>
+  </div>
+
+  <!-- LYRICS -->
+  <div class="lyrics" data-section="lyrics" data-intent="song content" data-layout="contained">
+    <div class="section-tag">Intro</div>
+    <p class="direction">[Farfisa Organ, Synth Arpeggios, vinyl crackle]</p>
+    <p>(Un, deux, trois, quatre!)</p>
+
+    <div class="section-tag">Verse 1</div>
+    <p>Dans une étoile qui meurt, trois milliards de degrés</p>
+    <p>L'atome prend sa forme, le Titan est forgé</p>
+    <p>Quatre milliards d'années à travers le vide noir</p>
+    <p>Jusqu'au sable de Cornouailles, un vicaire peut le voir</p>
+    <p>Gregor trouve la poudre, Klaproth lui donne un nom</p>
+    <p>Les Titans emprisonnés dans leur propre maison</p>
+    <p>Cent dix-neuf ans d'attente pour toucher le métal pur</p>
+    <p>La patience est un feu, la patience est un mur</p>
+
+    <div class="section-tag">Pre-Chorus</div>
+    <p class="direction">[Energy: Rising · Add Strings Synth Pad]</p>
+    <p>On ne s'excuse jamais d'être difficile à trouver</p>
+    <p>(Jamais, jamais)</p>
+    <p>La valeur n'est pas dans l'abondance</p>
+    <p>C'est dans la transformation!</p>
+
+    <div class="section-tag">Chorus</div>
+    <p class="direction">[Full arrangement]</p>
+    <p>Titane! Titane sans excuse</p>
+    <p>Quarante-sept protons, pas un de plus</p>
+    <p>Titane! L'étoile dans la ruse</p>
+    <p>On ne s'excuse pas d'être précieux</p>
+  </div>
+
+  <!-- PRODUCTION NOTES -->
+  <div class="production-notes" data-section="body" data-intent="context and world-building" data-layout="contained">
+    <h2>Production Notes</h2>
+    <p>Sylvaine's contribution to the TITAN cycle takes the element literally. Titanium – atomic number 47, named for the Titans of Greek mythology – spent 119 years between its discovery as an oxide and its first reduction to pure metal. She finds this patience admirable. She finds the metaphor obvious. She records it anyway.</p>
+
+    <div class="pull-quote">
+      <p>«On ne s'excuse jamais d'être difficile à trouver.» One does not apologise for being difficult to find.</p>
+    </div>
+
+    <p>The arrangement is pure Sylvaine: Farfisa organ from 1964 processed through a synth arpeggiator that will not be manufactured until 2031. The temporal anomaly is not the subject of the song. It is the production method.</p>
+  </div>
+
+  <!-- RELATED -->
+  <div class="related" data-section="related" data-intent="cross-linking" data-layout="grid">
+    <h2>Related</h2>
+    <div class="related-grid">
+      <a href="/artists/sylvaine" class="related-card">
+        <div class="r-title">Sylvaine Éternelle</div>
+        <div class="r-meta">Artist page · 19 tracks · French yéyé-synthwave</div>
+      </a>
+      <a href="/articles/titan" class="related-card">
+        <div class="r-title">TITAN — Liner Notes</div>
+        <div class="r-meta">Concept album · 9 artists · Multilingual cycle</div>
+      </a>
+    </div>
+  </div>
+
+</article>
+
+<footer class="tx-dark">
+  <div class="label-name">trrrrdt<span>.</span>records</div>
+  <div class="est">Est. 1983. Reissued from a timeline that never existed.</div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Player — trrrrdt.records</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Space Mono', 'Courier New', monospace;
+    --font-accent: 'Fraunces', Georgia, serif;
+    --color-cream: #F5E6D3; --color-charcoal: #1C1C1C; --color-red: #D93025;
+    --color-grey: #6B6B6B; --color-parchment: #FFFDF7;
+    --eyebrow: 11px; --body-sm: 13px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { margin: 0; overflow: hidden; background: #000; color: var(--color-cream); font-family: var(--font-body); }
+
+  #canvas-container { position: fixed; inset: 0; z-index: 1; }
+  canvas { display: block; }
+
+  /* TRACK INFO OVERLAY */
+  .track-info {
+    position: fixed; bottom: 32px; left: 32px; z-index: 20;
+    pointer-events: none;
+  }
+  .track-info .artist-name {
+    font-family: var(--font-accent); font-weight: 800;
+    font-variation-settings: 'WONK' 1, 'SOFT' 80, 'opsz' 72;
+    font-size: 28px; color: var(--color-cream);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+    margin-bottom: 4px;
+  }
+  .track-info .track-title {
+    font-family: var(--font-heading); font-weight: 300;
+    font-size: 18px; color: var(--color-cream); opacity: 0.9;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+    margin-bottom: 6px;
+  }
+  .track-info .track-meta {
+    font-family: var(--font-body); font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--color-grey);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+
+  /* SWIPE INDICATOR */
+  .swipe-indicator {
+    position: fixed; right: 20px; top: 50%; transform: translateY(-50%);
+    z-index: 20; display: flex; flex-direction: column;
+    align-items: center; gap: 6px; opacity: 0.35;
+    pointer-events: none;
+  }
+  .swipe-indicator .arrow { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; }
+  .swipe-indicator .arrow-up { border-bottom: 7px solid var(--color-cream); }
+  .swipe-indicator .arrow-down { border-top: 7px solid var(--color-cream); }
+  .swipe-indicator .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--color-grey); }
+  .swipe-indicator .dot.active { width: 6px; height: 6px; background: var(--color-cream); }
+
+  /* LOADING */
+  .loading {
+    position: fixed; inset: 0; z-index: 50;
+    background: var(--color-charcoal);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity 0.6s;
+  }
+  .loading.done { opacity: 0; pointer-events: none; }
+  .loading .spinner {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 3px solid var(--color-grey);
+    border-top-color: var(--color-red);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading .label {
+    margin-top: 16px; font-family: var(--font-body);
+    font-size: var(--eyebrow); text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--color-grey);
+  }
+
+  /* DEBUG INFO */
+  #debug {
+    position: fixed; top: 12px; left: 12px; z-index: 30;
+    font-family: var(--font-body); font-size: 10px; color: var(--color-grey);
+    opacity: 0.5; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<div class="loading" id="loader">
+  <div class="spinner"></div>
+  <div class="label">Loading PS-F9...</div>
+</div>
+
+<div class="track-info">
+  <div class="artist-name">Kevin Mayfield</div>
+  <div class="track-title">Sumpf, Sand und Stahlbeton</div>
+  <div class="track-meta">Steinman power ballads · 128 BPM · 4:12</div>
+</div>
+
+<div class="swipe-indicator">
+  <div class="arrow arrow-up"></div>
+  <div class="dot"></div>
+  <div class="dot active"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="arrow arrow-down"></div>
+</div>
+
+<div id="debug"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const container = document.getElementById('canvas-container');
+const debug = document.getElementById('debug');
+const loader = document.getElementById('loader');
+
+// Scene
+const scene = new THREE.Scene();
+
+// Kevin Mayfield's room — warm amber
+const wallColor = new THREE.Color(0x2a1a08);
+const tableColor = new THREE.Color(0x6a4e2a);
+scene.background = wallColor;
+scene.fog = new THREE.Fog(wallColor, 8, 25);
+
+// Camera — slightly elevated, looking down
+const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.set(0, 2.5, 5);
+camera.lookAt(0, 0.5, 0);
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+container.appendChild(renderer.domElement);
+
+// Orbit controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.minDistance = 2;
+controls.maxDistance = 10;
+controls.maxPolarAngle = Math.PI / 2.1;
+controls.target.set(0, 0.5, 0);
+
+// Lights — warm directional key, soft fill
+const keyLight = new THREE.DirectionalLight(0xffd4a0, 2.5);
+keyLight.position.set(-3, 5, 2);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 0.1;
+keyLight.shadow.camera.far = 20;
+keyLight.shadow.camera.left = -4;
+keyLight.shadow.camera.right = 4;
+keyLight.shadow.camera.top = 4;
+keyLight.shadow.camera.bottom = -4;
+scene.add(keyLight);
+
+const fillLight = new THREE.DirectionalLight(0x8899bb, 0.4);
+fillLight.position.set(2, 3, -1);
+scene.add(fillLight);
+
+const ambientLight = new THREE.AmbientLight(0x332211, 0.6);
+scene.add(ambientLight);
+
+// Rim light from behind — warm
+const rimLight = new THREE.PointLight(0xe8a317, 0.8, 10);
+rimLight.position.set(0, 2, -3);
+scene.add(rimLight);
+
+// Table surface — large plane
+const tableGeo = new THREE.PlaneGeometry(20, 20);
+const tableMat = new THREE.MeshStandardMaterial({
+  color: tableColor,
+  roughness: 0.75,
+  metalness: 0.05,
+});
+const tableMesh = new THREE.Mesh(tableGeo, tableMat);
+tableMesh.rotation.x = -Math.PI / 2;
+tableMesh.position.y = 0;
+tableMesh.receiveShadow = true;
+scene.add(tableMesh);
+
+// Wall — vertical plane behind
+const wallGeo = new THREE.PlaneGeometry(20, 10);
+const wallMat = new THREE.MeshStandardMaterial({
+  color: wallColor,
+  roughness: 0.9,
+  metalness: 0.0,
+});
+const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+wallMesh.position.set(0, 5, -5);
+scene.add(wallMesh);
+
+// Load PS-F9
+const gltfLoader = new GLTFLoader();
+let psf9Model = null;
+let vinylPart = null;
+
+gltfLoader.load('psf9.glb', (gltf) => {
+  psf9Model = gltf.scene;
+  
+  // Debug: log all mesh names
+  const names = [];
+  psf9Model.traverse((child) => {
+    if (child.isMesh) {
+      names.push(child.name);
+      child.castShadow = true;
+      child.receiveShadow = true;
+      
+      // Try to find the vinyl/platter part
+      const n = child.name.toLowerCase();
+      if (n.includes('vinyl') || n.includes('platter') || n.includes('disc') || n.includes('record') || n.includes('plate')) {
+        vinylPart = child;
+      }
+    }
+  });
+  debug.textContent = 'Meshes: ' + names.join(', ');
+  
+  // Auto-centre and scale
+  const box = new THREE.Box3().setFromObject(psf9Model);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  
+  // Scale to reasonable size (about 2 units tall)
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const scale = 2.0 / maxDim;
+  psf9Model.scale.setScalar(scale);
+  
+  // Recompute after scaling
+  box.setFromObject(psf9Model);
+  box.getCenter(center);
+  
+  // Place on table
+  const bottom = box.min.y;
+  psf9Model.position.y -= bottom;
+  psf9Model.position.x -= center.x;
+  psf9Model.position.z -= center.z;
+  
+  scene.add(psf9Model);
+  
+  // Update camera target
+  const modelCenter = new THREE.Vector3();
+  new THREE.Box3().setFromObject(psf9Model).getCenter(modelCenter);
+  controls.target.copy(modelCenter);
+  
+  // Hide loader
+  loader.classList.add('done');
+  
+}, (progress) => {
+  if (progress.total) {
+    const pct = Math.round(progress.loaded / progress.total * 100);
+    loader.querySelector('.label').textContent = 'Loading PS-F9... ' + pct + '%';
+  }
+}, (error) => {
+  console.error('GLB load error:', error);
+  loader.querySelector('.label').textContent = 'Error loading model';
+});
+
+// Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+  
+  // Spin vinyl if found
+  if (vinylPart) {
+    vinylPart.rotation.y += 0.02;
+  }
+  
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>

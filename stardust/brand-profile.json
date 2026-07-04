@@ -1,0 +1,320 @@
+{
+  "name": "trrrrdt.records",
+  "philosophy": "A record scratch that doesn't just take you to another track — it takes you into another life. trrrrdt.records is a label from a timeline where the 80s never died, cassette futurism is the dominant aesthetic, and Dieter Rams dropped acid exactly once. We release music by nine fictional personas, each a philosophical experiment wearing a genre as a disguise. The hardware is the interface: a Soviet TV is a video player, a vertical turntable is an audio player. Less but better — but the less is hallucinating.",
+
+  "logo": {
+    "primary": null,
+    "variants": [],
+    "clearSpace": "Minimum clear space equal to the height of the 't' in the wordmark",
+    "donts": ["Don't set the wordmark in anything other than the brand display face", "Don't add effects — the name is already an effect"]
+  },
+
+  "colors": {
+    "primary": [
+      {
+        "name": "Yunost Red",
+        "hex": "#D93025",
+        "pantone": null,
+        "role": "Primary brand — the candy-shell Soviet red. Hero backgrounds, primary CTAs, the heartbeat of the identity."
+      },
+      {
+        "name": "Charcoal Machinery",
+        "hex": "#1C1C1C",
+        "pantone": null,
+        "role": "Primary dark — matte equipment surfaces, page backgrounds, body text on light."
+      },
+      {
+        "name": "Warm Cream",
+        "hex": "#F5E6D3",
+        "pantone": null,
+        "role": "Primary light — aged paper, light page backgrounds, body text on dark. The warmth of old liner notes."
+      }
+    ],
+    "secondary": [
+      {
+        "name": "Coral Oxide",
+        "hex": "#E8573A",
+        "role": "Secondary warm — hover states on red, accent gradients, the hotter sibling."
+      },
+      {
+        "name": "Smoke",
+        "hex": "#3A3A3A",
+        "role": "Secondary dark — card backgrounds, subtle elevation on dark surfaces."
+      },
+      {
+        "name": "Parchment",
+        "hex": "#FFFDF7",
+        "role": "Lightest neutral — page canvas, maximum contrast text backgrounds."
+      }
+    ],
+    "web": [
+      { "name": "Studio Teal", "hex": "#2D7D9A", "role": "Links, interactive elements, the cool counterpoint to all that red warmth." },
+      { "name": "VU Amber", "hex": "#E8A317", "role": "Warnings, meter highlights, the glow of the signal chain." },
+      { "name": "Bakelite Grey", "hex": "#6B6B6B", "role": "Disabled states, captions, fine print, knob markings." }
+    ],
+    "gradients": [
+      {
+        "name": "Tape Warp",
+        "stops": ["#D93025", "#E8573A", "#E8A317"],
+        "usage": "Hero backgrounds, psychedelic accent moments. The Rams grid dissolving under heat."
+      },
+      {
+        "name": "Cold Start",
+        "stops": ["#1C1C1C", "#2D7D9A", "#1C1C1C"],
+        "usage": "Dark section transitions, the CRT warming up."
+      }
+    ]
+  },
+
+  "componentStyle": {
+    "borderRadius": {
+      "default": "8px",
+      "usage": "Soft plasticky bevels — the warm, slightly bulging edges of injection-molded 80s consumer electronics. Not sharp, not fully round. The Yunost's shell curves. Think the corner radius of a cassette tape casing."
+    },
+    "maxWidth": "1280px",
+    "pagePadding": "32px",
+    "navbarHeight": "56px",
+    "buttons": {
+      "patterns": [
+        {
+          "name": "Primary (red)",
+          "style": "background: #D93025; color: #FFFDF7; border-radius: 8px; padding: 10px 24px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -2px 0 rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.3)",
+          "example": "PLAY"
+        },
+        {
+          "name": "Primary (dark)",
+          "style": "background: #1C1C1C; color: #F5E6D3; border-radius: 8px; padding: 10px 24px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 13px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -2px 0 rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.3)",
+          "example": "BROWSE ARTISTS"
+        },
+        {
+          "name": "Ghost",
+          "style": "background: transparent; color: #D93025; border: 1px solid #D93025; border-radius: 8px; padding: 9px 24px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 13px",
+          "example": "MORE INFO"
+        }
+      ],
+      "dualCTA": "Primary + Ghost side by side for hero sections"
+    }
+  },
+
+  "texture": {
+    "philosophy": "No flat colors. Every surface is worn in — the plastic has been handled, the paint has oxidized, the screen has burn-in. CSS filters, SVG noise, layered gradients, and subtle animations create the patina of real hardware that has lived.",
+    "techniques": [
+      "SVG feTurbulence noise overlays at 2-5% opacity on all colored surfaces",
+      "CSS radial-gradient hotspots simulating uneven plastic fading",
+      "Inset box-shadows with rgba white/black for injection-mold bevel illusion",
+      "backdrop-filter: contrast(1.02) brightness(0.98) for subtle CRT warmth",
+      "Vignette effect on hero sections via radial-gradient overlay",
+      "Grain animation: subtle keyframe-driven noise texture shift"
+    ],
+    "bevel": {
+      "style": "Soft plasticky bevels — the warm, slightly bulging edges of injection-molded consumer electronics. Achieved via layered inset shadows: white highlight on top edge, dark shadow on bottom, creating the illusion of rounded thermoplastic.",
+      "css": "box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -2px 0 rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.2); border-radius: 8px;"
+    }
+  },
+
+  "motifs": [
+    {
+      "name": "VU Meter Bar",
+      "description": "Horizontal segmented bar reminiscent of analog VU meters — blocks of color from green through amber to red. Used as decorative dividers or loading indicators.",
+      "usage": "Section dividers, progress indicators. Never purely decorative — imply a signal level."
+    },
+    {
+      "name": "Knob Dial",
+      "description": "Circular indicator with a notched position marker, like a volume or tuning knob. White indicator line on dark circle.",
+      "usage": "Navigation markers, section indicators, interactive controls. Subtle, not literal."
+    },
+    {
+      "name": "Scan Lines",
+      "description": "Faint horizontal lines across images or dark sections, evoking CRT phosphor rows. 1px lines at ~4px intervals, 3-5% opacity.",
+      "usage": "Image overlays on hero sections, video player chrome. Light touch — visible on inspection, felt subconsciously."
+    },
+    {
+      "name": "Cassette Label",
+      "description": "Rounded-rectangle frame with a horizontal centre line and hand-lettered-style text inside. The universal format of the mixtape label.",
+      "usage": "Track listings, artist cards, featured content callouts."
+    },
+    {
+      "name": "Channel Stripe",
+      "description": "Vertical colored stripe on the left edge of a card or section — like the colored stripe on a mixing desk channel.",
+      "usage": "Artist profile cards, playlist containers. Color varies by artist/persona."
+    }
+  ],
+
+  "typography": {
+    "heading": {
+      "family": "\"Space Grotesk\", system-ui, sans-serif",
+      "weights": ["Variable 300-700"],
+      "lineHeight": 0.92,
+      "letterSpacing": "-0.03em",
+      "usage": "All headings. Variable weight pushed to extremes — ultralight for massive display type, bold for compact labels. The Rams grid, but the weight axis is on psychedelics."
+    },
+    "subheading": {
+      "family": "\"Space Grotesk\", system-ui, sans-serif",
+      "weight": "500",
+      "usage": "Subheadings, section titles. Medium weight, tighter than body."
+    },
+    "body": {
+      "family": "\"Space Mono\", \"Courier New\", monospace",
+      "weight": "400",
+      "opacity": 0.85,
+      "usage": "All body text. Monospace because this is a machine talking. The slight opacity softens the technical edge."
+    },
+    "accent": {
+      "family": "\"Fraunces\", Georgia, serif",
+      "weight": "Variable 100-900",
+      "axes": {
+        "WONK": "0-1 — from straight to exuberantly curly letterforms",
+        "SOFT": "0-100 — from sharp corners to rounded, bulbous terminals",
+        "opsz": "9-144 — optical size, controls stroke contrast and detail",
+        "wght": "100-900 — standard weight axis"
+      },
+      "usage": "One word per headline maximum — the psychedelic crack in the functionalist facade. Four variable axes: WONK 0 is a sober serif, WONK 1 + SOFT 100 is full psychedelic cursive. Artist names get their own axis settings. A single font that spans from ᴅɪᴇᴛᴇʀ ʀᴀᴍs to acid trip."
+    },
+    "eyebrow": {
+      "family": "\"Space Mono\", \"Courier New\", monospace",
+      "weight": "700",
+      "transform": "uppercase",
+      "usage": "Category labels, section eyebrows, metadata. ALL CAPS MONO — like equipment panel markings."
+    },
+    "button": {
+      "family": "\"Space Grotesk\", system-ui, sans-serif",
+      "weight": "700",
+      "usage": "All interactive elements. Grotesk, not mono — buttons are for humans, not machines."
+    },
+    "rules": [
+      "Display headings (h1) use variable weight 300 at large sizes — the Rams lightness",
+      "h2-h3 use weight 600-700 — functional, label-like",
+      "Body mono at 15px/1.7 — generous leading for readability in monospace",
+      "Never mix serif accent into body copy — it lives only in headings and artist names",
+      "Kerning on display type is optical, not metric",
+      "Numbers in tabular lining figures — we are reading meters, not prose"
+    ]
+  },
+
+  "photography": {
+    "style": "Product photography of analog hardware — warm directional lighting, shallow depth of field, matte dark backgrounds. The objects glow; the space around them doesn't. Think Braun catalogue shot by someone who listens to Tangerine Dream.",
+    "rules": [
+      "Warm color temperature — always golden/amber, never cool/clinical",
+      "Single strong key light, usually from upper left",
+      "Textures are the subject: brushed metal, warm plastic, knurled knobs, magnetic tape",
+      "Shallow DOF — one element sharp, the rest falls away",
+      "Dark negative space — let the object float"
+    ],
+    "donts": [
+      "No flat lay / overhead shots — these objects have dimension",
+      "No cool/blue lighting — even the shadows are warm",
+      "No lifestyle photography with people — the hardware IS the persona",
+      "No vintage filters or fake grain — the objects are already vintage, don't gild the lily"
+    ],
+    "social": "Close-up details of hardware textures, knob positions, VU needle positions. The macro lens as a storytelling device."
+  },
+
+  "voice": {
+    "character": "A Braun product manual written by someone who knows it's absurd but commits to the bit completely. Deadpan, precise, occasionally profound by accident. The voice of a machine that has developed taste but would never admit it.",
+    "traits": ["Deadpan", "Precise", "Absurdist", "Committed", "Laconic"],
+    "antiTraits": ["Winking", "Ironic", "Loud", "Earnest", "Apologetic"],
+    "examples": {
+      "do": [
+        { "text": "Nine artists. No humans.", "context": "Economy of language. States the impossible as fact." },
+        { "text": "The PS-F9 was designed to play records vertically. We designed it to play records impossibly.", "context": "Takes a real product fact and extends it one step past reality." },
+        { "text": "Specifications: heartbreak in E minor, 128 BPM, infinite duration.", "context": "Technical format applied to emotional content. The deadpan is doing the work." },
+        { "text": "Now playing. Always playing. The needle doesn't lift.", "context": "Short declarative sentences. The rhythm IS the meaning." }
+      ],
+      "dont": [
+        { "text": "Welcome to the most unique record label in the world! 🎵", "context": "Superlatives, exclamation marks, emoji. We don't announce, we state." },
+        { "text": "We're not your typical record label *wink wink*", "context": "Breaking the fourth wall undermines the commitment. The joke only works if you never acknowledge it's a joke." },
+        { "text": "Our AI-generated artists push the boundaries of what music can be!", "context": "Never say AI-generated. Never explain the trick. Never use 'boundaries' or 'push'." }
+      ]
+    },
+    "rules": [
+      "Never say 'AI-generated', 'fictional', or 'virtual artists' — the personas are artists, full stop",
+      "Never use exclamation marks in marketing copy",
+      "Technical language is welcome — BPM, frequency, impedance — used for emotional subjects",
+      "Short sentences. If a sentence has a comma, it probably wants to be two sentences.",
+      "The deadpan breaks exactly once per page — one line that's genuinely poetic. Then back to business."
+    ]
+  },
+
+  "tone": {
+    "description": "The tone is a constant — deadpan functionalism. What varies is the density. Homepage copy is sparse and declarative. Artist pages are denser, almost dossier-like. The player interfaces have no copy at all — the hardware speaks.",
+    "writingGoals": [
+      {
+        "goal": "To intrigue",
+        "description": "Every sentence should make the reader wonder if this is real. Not by being mysterious — by being too specific to be fake."
+      },
+      {
+        "goal": "To catalogue",
+        "description": "Present the artists and their work with the precision of a vinyl pressing plant's inventory system."
+      },
+      {
+        "goal": "To commit",
+        "description": "The world-building is the product. If the copy ever breaks character, the whole thing collapses."
+      }
+    ],
+    "cleverVsClear": {
+      "clever": "Artist descriptions, track metadata, the one poetic line per page.",
+      "clear": "Navigation, playback controls, technical specifications, footer."
+    }
+  },
+
+  "contentPillars": [
+    {
+      "name": "The Roster",
+      "description": "Nine personas, each a philosophical experiment in a genre costume. The core product."
+    },
+    {
+      "name": "The Hardware",
+      "description": "The PS-F9 turntable and Yunost TV as functional web interfaces. The medium is the message."
+    },
+    {
+      "name": "The Catalogue",
+      "description": "Songs, concept albums, audio dramas. Organized with the rigor of a librarian and the taste of a crate digger."
+    }
+  ],
+
+  "personas": [
+    {
+      "name": "The Crate Digger",
+      "description": "Knows the catalogue cold. Wants to discover the deep cuts. Appreciates the world-building but came for the music.",
+      "values": ["Discovery", "Depth", "Curation"],
+      "motto": "What else have they done?",
+      "stats": []
+    },
+    {
+      "name": "The Design Tourist",
+      "description": "Here for the PS-F9 and the Yunost. Wants to spin the turntable, flip the channels. May never listen to a full track.",
+      "values": ["Interaction", "Craft", "Novelty"],
+      "motto": "How does this work?",
+      "stats": []
+    }
+  ],
+
+  "spacing": {
+    "scale": [
+      { "name": "3XS", "value": "2px" },
+      { "name": "2XS", "value": "4px" },
+      { "name": "XS", "value": "8px" },
+      { "name": "S", "value": "16px" },
+      { "name": "M", "value": "24px" },
+      { "name": "L", "value": "32px" },
+      { "name": "XL", "value": "48px" },
+      { "name": "2XL", "value": "64px" },
+      { "name": "3XL", "value": "96px" },
+      { "name": "4XL", "value": "128px" }
+    ],
+    "borderRadius": [
+      { "name": "Default", "value": "8px" },
+      { "name": "Card", "value": "10px" },
+      { "name": "Button", "value": "8px" },
+      { "name": "Cassette Label", "value": "14px" },
+      { "name": "Knob", "value": "50%" }
+    ]
+  },
+
+  "extraction": {
+    "method": "Conversational — designer-directed brand discovery",
+    "source": "Lars (Adobe) — cassette futurism, psychedelic Dieter Rams, the 80s never died, Yunost Red palette. Voice governed by Babelsberg Manual of Style (/mnt/skills/babelsberg-style/SKILL.md).",
+    "capturedAt": "2025-04-17T17:24:00Z",
+    "screenshots": []
+  }
+}

@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>trrrrdt.records — Brand Board</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --yunost-red: #D93025;
+    --coral-oxide: #E8573A;
+    --charcoal: #1C1C1C;
+    --smoke: #3A3A3A;
+    --warm-cream: #F5E6D3;
+    --parchment: #FFFDF7;
+    --studio-teal: #2D7D9A;
+    --vu-amber: #E8A317;
+    --bakelite-grey: #6B6B6B;
+    --font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Space Mono', 'Courier New', monospace;
+    --font-accent: 'Fraunces', Georgia, serif;
+    --bevel-light: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -2px 0 rgba(0,0,0,0.12);
+    --bevel-dark: inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -2px 0 rgba(0,0,0,0.25);
+    --drop: 0 3px 10px rgba(0,0,0,0.25);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--parchment);
+    color: var(--charcoal);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* === TEXTURE SYSTEM ===
+     Real SVG filters applied via filter: url(#...).
+     Visible, not subtle. The hardware has lived. */
+
+  /* Noise filter definitions live in the body as an inline SVG */
+
+  .textured-red {
+    position: relative;
+    overflow: hidden;
+  }
+  .textured-red::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(ellipse at 35% 25%, rgba(255,255,255,0.18) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 75%, rgba(0,0,0,0.12) 0%, transparent 50%);
+    filter: url(#grain);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .textured-dark {
+    position: relative;
+    overflow: hidden;
+  }
+  .textured-dark::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 75% 80%, rgba(0,0,0,0.15) 0%, transparent 50%);
+    filter: url(#grain);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  .textured-cream {
+    position: relative;
+    overflow: hidden;
+  }
+  .textured-cream::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(ellipse at 40% 30%, rgba(0,0,0,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 65% 70%, rgba(139,119,90,0.06) 0%, transparent 40%);
+    filter: url(#grain-light);
+    pointer-events: none;
+    mix-blend-mode: multiply;
+  }
+
+  .textured-teal {
+    position: relative;
+    overflow: hidden;
+  }
+  .textured-teal::after {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.15) 0%, transparent 45%),
+                radial-gradient(ellipse at 80% 80%, rgba(0,0,0,0.12) 0%, transparent 50%);
+    filter: url(#grain);
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  /* Warm vignette on body */
+  body > .vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(28,28,28,0.06) 100%);
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* STICKY NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: var(--charcoal);
+    border-bottom: 2px solid var(--yunost-red);
+    padding: 0 32px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    overflow-x: auto;
+    box-shadow: var(--bevel-dark), 0 4px 16px rgba(0,0,0,0.4);
+  }
+  nav .brand-name {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: 18px;
+    color: var(--warm-cream);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  nav a {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--bakelite-grey);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .2s;
+  }
+  nav a:hover { color: var(--warm-cream); }
+
+  /* SECTIONS */
+  section {
+    padding: 80px 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  section.full-bleed { max-width: 100%; }
+  .section-eyebrow {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--yunost-red);
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  .section-body {
+    max-width: 640px;
+    opacity: 0.85;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--charcoal);
+    color: var(--warm-cream);
+    padding: 120px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero > * { position: relative; z-index: 2; }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px,
+      rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+  .hero .brand-display {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: clamp(48px, 10vw, 120px);
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+    margin-bottom: 32px;
+    text-shadow: 0 2px 20px rgba(217,48,37,0.15);
+  }
+  .hero .brand-display .red { color: var(--yunost-red); }
+  .hero .philosophy {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.8;
+    max-width: 600px;
+    margin: 0 auto;
+    opacity: 0.8;
+  }
+  .hero .tagline {
+    font-family: var(--font-accent);
+    font-style: italic;
+    font-weight: 300;
+    font-variation-settings: 'WONK' 1, 'SOFT' 80, 'opsz' 144;
+    font-size: clamp(18px, 3vw, 32px);
+    color: var(--yunost-red);
+    margin-top: 40px;
+    text-shadow: 0 0 30px rgba(217,48,37,0.3);
+  }
+
+  /* VU DIVIDER */
+  .vu-divider {
+    display: flex; gap: 2px; padding: 0 32px; height: 6px;
+    max-width: 1280px; margin: 0 auto;
+  }
+  .vu-divider span { flex: 1; border-radius: 1px; }
+
+  /* COLOR PALETTE */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .color-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--bevel-light), var(--drop);
+  }
+  .color-swatch {
+    height: 100px;
+    display: flex;
+    align-items: flex-end;
+    padding: 8px 12px;
+    position: relative;
+  }
+  .color-swatch span {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    position: relative;
+    z-index: 2;
+  }
+  .color-info {
+    padding: 12px;
+    background: var(--charcoal);
+  }
+  .color-info .name {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--warm-cream);
+  }
+  .color-info .role {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--bakelite-grey);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .gradient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .gradient-card {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--bevel-light), var(--drop);
+  }
+  .gradient-swatch {
+    height: 80px;
+    display: flex;
+    align-items: flex-end;
+    padding: 8px 12px;
+  }
+  .gradient-swatch span {
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--warm-cream);
+    text-shadow: 0 1px 3px rgba(0,0,0,.5);
+  }
+  .gradient-info { padding: 12px; background: var(--charcoal); }
+  .gradient-info .name { font-family: var(--font-heading); font-weight: 600; font-size: 14px; color: var(--warm-cream); }
+  .gradient-info .usage { font-family: var(--font-body); font-size: 11px; color: var(--bakelite-grey); margin-top: 4px; }
+
+  /* TYPOGRAPHY */
+  .type-specimen { margin-top: 40px; display: flex; flex-direction: column; gap: 48px; }
+  .type-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 32px;
+    align-items: baseline;
+  }
+  @media (max-width: 768px) { .type-row { grid-template-columns: 1fr; gap: 8px; } }
+  .type-meta {
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--bakelite-grey);
+    line-height: 1.6;
+  }
+  .type-meta strong {
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--charcoal);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .type-rules {
+    margin-top: 40px;
+    padding: 24px;
+    background: var(--charcoal);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--bevel-dark), var(--drop);
+    position: relative;
+    overflow: hidden;
+  }
+  .type-rules li {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--bakelite-grey);
+    line-height: 1.6;
+    list-style: none;
+    padding-left: 20px;
+    position: relative;
+  }
+  .type-rules li::before { content: '▸'; position: absolute; left: 0; color: var(--yunost-red); }
+
+  /* TEXTURE DEMO */
+  .texture-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .texture-card {
+    height: 140px;
+    border-radius: 10px;
+    display: flex;
+    align-items: flex-end;
+    padding: 12px;
+    position: relative;
+    box-shadow: var(--bevel-light), var(--drop);
+    overflow: hidden;
+  }
+  .texture-card .label {
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    position: relative;
+    z-index: 2;
+  }
+
+  .bevel-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 32px;
+  }
+  @media (max-width: 600px) { .bevel-compare { grid-template-columns: 1fr; } }
+  .bevel-box {
+    height: 100px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* MOTIFS */
+  .motif-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .motif-card {
+    background: var(--charcoal);
+    border-radius: 10px;
+    padding: 24px;
+    border-left: 3px solid var(--yunost-red);
+    box-shadow: var(--bevel-dark), var(--drop);
+    position: relative;
+    overflow: hidden;
+  }
+  .motif-card > * { position: relative; z-index: 2; }
+  .motif-card .name { font-family: var(--font-heading); font-weight: 600; font-size: 16px; color: var(--warm-cream); margin-bottom: 8px; }
+  .motif-card .desc { font-family: var(--font-body); font-size: 12px; color: var(--bakelite-grey); line-height: 1.6; margin-bottom: 12px; }
+  .motif-card .usage { font-family: var(--font-body); font-size: 11px; color: var(--studio-teal); line-height: 1.5; }
+
+  .vu-demo { display: flex; gap: 2px; align-items: flex-end; height: 40px; margin-top: 16px; }
+  .vu-demo span { flex: 1; border-radius: 2px; max-width: 24px; }
+
+  .scanline-demo {
+    position: relative;
+    height: 120px;
+    background: var(--smoke);
+    border-radius: 10px;
+    margin-top: 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--bevel-dark);
+  }
+  .scanline-demo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.04) 3px, rgba(255,255,255,0.04) 4px);
+    pointer-events: none;
+  }
+  .scanline-demo span {
+    font-family: var(--font-heading);
+    font-weight: 300;
+    font-size: 32px;
+    color: var(--warm-cream);
+    letter-spacing: -0.03em;
+    opacity: .6;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* VOICE */
+  .voice-character {
+    background: var(--charcoal);
+    color: var(--warm-cream);
+    padding: 48px 32px;
+    border-radius: 10px;
+    margin-top: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--bevel-dark), var(--drop);
+  }
+  .voice-character > * { position: relative; z-index: 2; }
+  .voice-character::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px);
+    pointer-events: none;
+    z-index: 1;
+  }
+  .voice-character blockquote {
+    font-family: var(--font-accent);
+    font-weight: 300;
+    font-style: italic;
+    font-variation-settings: 'WONK' 1, 'SOFT' 60, 'opsz' 72;
+    font-size: clamp(20px, 3vw, 28px);
+    line-height: 1.4;
+    max-width: 600px;
+  }
+
+  .trait-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .trait {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .trait.yes { background: var(--yunost-red); color: var(--parchment); box-shadow: var(--bevel-light), 0 2px 4px rgba(217,48,37,0.3); }
+  .trait.no { background: transparent; color: var(--bakelite-grey); border: 1px solid var(--bakelite-grey); text-decoration: line-through; }
+
+  .dodont-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
+  @media (max-width: 768px) { .dodont-grid { grid-template-columns: 1fr; } }
+  .dodont-card { border-radius: 10px; padding: 20px; font-family: var(--font-body); font-size: 13px; line-height: 1.6; }
+  .dodont-card.do { background: rgba(45,125,154,0.08); border-left: 3px solid var(--studio-teal); }
+  .dodont-card.dont { background: rgba(217,48,37,0.06); border-left: 3px solid var(--yunost-red); }
+  .dodont-card .label { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .dodont-card.do .label { color: var(--studio-teal); }
+  .dodont-card.dont .label { color: var(--yunost-red); }
+  .dodont-card .example { color: var(--charcoal); }
+  .dodont-card .context { font-size: 11px; color: var(--bakelite-grey); margin-top: 8px; }
+
+  .voice-rules { margin-top: 32px; display: flex; flex-direction: column; gap: 8px; }
+  .voice-rules li {
+    font-family: var(--font-body); font-size: 12px; color: var(--charcoal);
+    line-height: 1.6; list-style: none; padding-left: 20px; position: relative; opacity: 0.85;
+  }
+  .voice-rules li::before { content: '▸'; position: absolute; left: 0; color: var(--yunost-red); }
+
+  /* TONE */
+  .tone-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 32px; }
+  .tone-card {
+    background: var(--charcoal);
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: var(--bevel-dark), var(--drop);
+    position: relative;
+    overflow: hidden;
+  }
+  .tone-card > * { position: relative; z-index: 2; }
+  .tone-card .goal { font-family: var(--font-heading); font-weight: 600; font-size: 16px; color: var(--yunost-red); margin-bottom: 8px; }
+  .tone-card .desc { font-family: var(--font-body); font-size: 12px; color: var(--bakelite-grey); line-height: 1.6; }
+
+  .pillar-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-top: 32px; }
+  .pillar-card {
+    background: var(--charcoal);
+    border-radius: 10px;
+    padding: 32px 24px;
+    border-top: 3px solid var(--yunost-red);
+    box-shadow: var(--bevel-dark), var(--drop);
+    position: relative;
+    overflow: hidden;
+  }
+  .pillar-card > * { position: relative; z-index: 2; }
+  .pillar-card .name { font-family: var(--font-heading); font-weight: 600; font-size: 20px; color: var(--warm-cream); margin-bottom: 12px; }
+  .pillar-card .desc { font-family: var(--font-body); font-size: 12px; color: var(--bakelite-grey); line-height: 1.6; }
+
+  .component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 32px; }
+  .component-card {
+    background: var(--charcoal);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    box-shadow: var(--bevel-dark), var(--drop);
+  }
+  .component-card .value { font-family: var(--font-heading); font-weight: 300; font-size: 36px; color: var(--warm-cream); margin-bottom: 8px; }
+  .component-card .label { font-family: var(--font-body); font-size: 11px; color: var(--bakelite-grey); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  .button-showcase { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 32px; align-items: center; }
+  .btn-demo {
+    display: inline-block;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: default;
+  }
+
+  .spacing-scale { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; align-items: flex-end; }
+  .spacing-block { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .spacing-block .bar {
+    background: var(--yunost-red);
+    border-radius: 4px;
+    width: 32px;
+    box-shadow: var(--bevel-light);
+    position: relative;
+    overflow: hidden;
+  }
+  .spacing-block .lbl { font-family: var(--font-body); font-size: 10px; color: var(--bakelite-grey); text-align: center; }
+
+  .board-footer {
+    text-align: center;
+    padding: 48px 32px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    color: var(--bakelite-grey);
+  }
+
+  /* Fraunces axis demo */
+  .fraunces-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .fraunces-demo span {
+    font-family: var(--font-accent);
+    line-height: 1.0;
+    transition: all .3s;
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG FILTER DEFINITIONS — the texture engine -->
+<svg style="position:absolute;width:0;height:0" aria-hidden="true">
+  <defs>
+    <!-- Heavy grain for dark/saturated surfaces -->
+    <filter id="grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" seed="2" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+      <feComponentTransfer in="mono" result="visible">
+        <feFuncA type="linear" slope="0.25" intercept="0"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="visible" mode="overlay"/>
+    </filter>
+    <!-- Lighter grain for cream/light surfaces -->
+    <filter id="grain-light" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="3" seed="7" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="saturate" values="0" in="noise" result="mono"/>
+      <feComponentTransfer in="mono" result="visible">
+        <feFuncA type="linear" slope="0.12" intercept="0"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="visible" mode="multiply"/>
+    </filter>
+    <!-- Knob gradient -->
+    <radialGradient id="knob-grad">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.08)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.15)"/>
+    </radialGradient>
+  </defs>
+</svg>
+
+<div class="vignette"></div>
+
+<nav>
+  <span class="brand-name">trrrrdt<span style="color:var(--yunost-red)">.</span>records</span>
+  <a href="#philosophy">Philosophy</a>
+  <a href="#colors">Colours</a>
+  <a href="#texture">Texture</a>
+  <a href="#typography">Type</a>
+  <a href="#motifs">Motifs</a>
+  <a href="#voice">Voice</a>
+  <a href="#tone">Tone</a>
+  <a href="#pillars">Pillars</a>
+  <a href="#components">Components</a>
+  <a href="#spacing">Spacing</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero full-bleed textured-dark" id="philosophy">
+  <div class="brand-display">trrrrdt<span class="red">.</span>records</div>
+  <p class="philosophy">
+    A record scratch that doesn't just take you to another track – it takes you into another life.
+    Nine artists. No humans. A label from a timeline where the 80s never died,
+    cassette futurism is the dominant æsthetic, and ᴅɪᴇᴛᴇʀ ʀᴀᴍs dropped acid exactly once.
+  </p>
+  <p class="tagline">Less but better – but the less is hallucinating.</p>
+</section>
+
+<!-- VU DIVIDER -->
+<div class="vu-divider">
+  <span style="background:#27AE60"></span><span style="background:#27AE60"></span>
+  <span style="background:#27AE60"></span><span style="background:#27AE60"></span>
+  <span style="background:#27AE60"></span><span style="background:#2ECC71"></span>
+  <span style="background:#2ECC71"></span><span style="background:#F1C40F"></span>
+  <span style="background:#F1C40F"></span><span style="background:#E8A317"></span>
+  <span style="background:#E67E22"></span><span style="background:#D93025"></span>
+  <span style="background:#D93025"></span>
+</div>
+
+<!-- COLORS -->
+<section id="colors">
+  <div class="section-eyebrow">Colour Palette</div>
+  <div class="section-title">The signal chain</div>
+  <p class="section-body">No flat colours. Every surface is worn in – the plastic has been handled, the paint has oxidized, the screen has burn-in.</p>
+
+  <h3 style="font-family:var(--font-body);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--yunost-red);margin-top:40px;margin-bottom:8px">Primary</h3>
+  <div class="color-grid">
+    <div class="color-card">
+      <div class="color-swatch textured-red" style="background:#D93025"><span style="color:#fff">#D93025</span></div>
+      <div class="color-info"><div class="name">Yunost Red</div><div class="role">The heartbeat. Hero backgrounds, primary CTAs.</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch textured-dark" style="background:#1C1C1C"><span style="color:#888">#1C1C1C</span></div>
+      <div class="color-info"><div class="name">Charcoal Machinery</div><div class="role">Matte equipment surfaces, page backgrounds.</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch textured-cream" style="background:#F5E6D3"><span style="color:#1C1C1C">#F5E6D3</span></div>
+      <div class="color-info"><div class="name">Warm Cream</div><div class="role">Aged liner notes. Body text on dark.</div></div>
+    </div>
+  </div>
+
+  <h3 style="font-family:var(--font-body);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--yunost-red);margin-top:32px;margin-bottom:8px">Secondary</h3>
+  <div class="color-grid">
+    <div class="color-card">
+      <div class="color-swatch textured-red" style="background:#E8573A"><span style="color:#fff">#E8573A</span></div>
+      <div class="color-info"><div class="name">Coral Oxide</div><div class="role">Hover states, the hotter sibling.</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch textured-dark" style="background:#3A3A3A"><span style="color:#888">#3A3A3A</span></div>
+      <div class="color-info"><div class="name">Smoke</div><div class="role">Card backgrounds, subtle elevation.</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch textured-cream" style="background:#FFFDF7"><span style="color:#1C1C1C">#FFFDF7</span></div>
+      <div class="color-info"><div class="name">Parchment</div><div class="role">Lightest neutral. Page canvas.</div></div>
+    </div>
+  </div>
+
+  <h3 style="font-family:var(--font-body);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--yunost-red);margin-top:32px;margin-bottom:8px">Functional</h3>
+  <div class="color-grid">
+    <div class="color-card">
+      <div class="color-swatch textured-teal" style="background:#2D7D9A"><span style="color:#fff">#2D7D9A</span></div>
+      <div class="color-info"><div class="name">Studio Teal</div><div class="role">Links, interactive elements.</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch textured-red" style="background:#E8A317"><span style="color:#000">#E8A317</span></div>
+      <div class="color-info"><div class="name">VU Amber</div><div class="role">Warnings, meter highlights.</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch textured-dark" style="background:#6B6B6B"><span style="color:#fff">#6B6B6B</span></div>
+      <div class="color-info"><div class="name">Bakelite Grey</div><div class="role">Disabled states, knob markings.</div></div>
+    </div>
+  </div>
+
+  <h3 style="font-family:var(--font-body);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--yunost-red);margin-top:32px;margin-bottom:8px">Gradients</h3>
+  <div class="gradient-grid">
+    <div class="gradient-card">
+      <div class="gradient-swatch" style="background:linear-gradient(135deg, #D93025, #E8573A, #E8A317)"><span>Tape Warp</span></div>
+      <div class="gradient-info"><div class="name">Tape Warp</div><div class="usage">Hero accents. The Rams grid dissolving under heat.</div></div>
+    </div>
+    <div class="gradient-card">
+      <div class="gradient-swatch" style="background:linear-gradient(135deg, #1C1C1C, #2D7D9A, #1C1C1C)"><span>Cold Start</span></div>
+      <div class="gradient-info"><div class="name">Cold Start</div><div class="usage">Dark transitions. The CRT warming up.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TEXTURE -->
+<section id="texture" style="background:var(--warm-cream);position:relative;overflow:hidden">
+  <div style="position:relative;z-index:2">
+  <div class="section-eyebrow">Texture System</div>
+  <div class="section-title">Everything has been handled</div>
+  <p class="section-body">SVG feTurbulence filters, radial-gradient hotspots, layered inset shadows for injection-mould bevels. The patina of real hardware that has lived.</p>
+
+  <div class="texture-grid">
+    <div class="texture-card textured-red" style="background:var(--yunost-red);color:var(--parchment)">
+      <span class="label">Grain on red</span>
+    </div>
+    <div class="texture-card textured-dark" style="background:var(--charcoal);color:var(--warm-cream)">
+      <span class="label">Grain on dark</span>
+    </div>
+    <div class="texture-card textured-cream" style="background:var(--warm-cream);color:var(--charcoal);border:1px solid rgba(0,0,0,0.06)">
+      <span class="label">Grain on cream</span>
+    </div>
+    <div class="texture-card textured-teal" style="background:var(--studio-teal);color:var(--parchment)">
+      <span class="label">Grain on teal</span>
+    </div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-top:48px;margin-bottom:12px">Bevel System</div>
+  <p class="section-body" style="margin-bottom:24px">Soft plasticky bevels – the warm, bulging edges of injection-moulded 80s electronics. White highlight on top, dark shadow on bottom.</p>
+  <div class="bevel-compare">
+    <div class="bevel-box textured-red" style="background:var(--yunost-red);color:var(--parchment);box-shadow:var(--bevel-light), var(--drop)">
+      Light bevel
+    </div>
+    <div class="bevel-box textured-dark" style="background:var(--charcoal);color:var(--warm-cream);box-shadow:var(--bevel-dark), var(--drop)">
+      Dark bevel
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- TYPOGRAPHY -->
+<section id="typography">
+  <div class="section-eyebrow">Typography</div>
+  <div class="section-title">The variable axis is on <span style="font-family:var(--font-accent);font-weight:900;font-variation-settings:'WONK' 1,'SOFT' 100,'opsz' 144;color:var(--yunost-red)">psychedelics</span></div>
+
+  <div class="type-specimen">
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Heading</strong>
+        Space Grotesk Variable<br>
+        Weight 300 · 0.92 lh · -0.03em
+      </div>
+      <div style="font-family:var(--font-heading);font-weight:300;font-size:56px;line-height:0.92;letter-spacing:-0.03em">The needle doesn't lift</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Subheading</strong>
+        Space Grotesk 500<br>
+        1.1 lh · -0.02em
+      </div>
+      <div style="font-family:var(--font-heading);font-weight:500;font-size:28px;line-height:1.1;letter-spacing:-0.02em">Nine artists. No humans. One turntable.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Body</strong>
+        Space Mono 400<br>
+        15px · 1.7 lh · %85 opacity
+      </div>
+      <div style="font-family:var(--font-body);font-size:15px;line-height:1.7;opacity:0.85">The PS-F9 was designed to play records vertically. We designed it to play records impossibly. Specifications: heartbreak in E minor, 128 BPM, infinite duration.</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Accent – wonky</strong>
+        Fraunces Variable<br>
+        Weight 900 · WONK 1 · SOFT 100<br>
+        opsz 144
+      </div>
+      <div style="font-family:var(--font-accent);font-weight:900;font-variation-settings:'WONK' 1,'SOFT' 100,'opsz' 144;font-size:64px;line-height:0.9;color:var(--yunost-red);text-shadow:0 2px 12px rgba(217,48,37,0.2)">Sylvaine</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Accent – sober</strong>
+        Fraunces Variable<br>
+        Weight 200 · WONK 0 · SOFT 0<br>
+        opsz 9
+      </div>
+      <div style="font-family:var(--font-accent);font-weight:200;font-variation-settings:'WONK' 0,'SOFT' 0,'opsz' 9;font-size:48px;line-height:1.0;color:var(--charcoal);letter-spacing:0.01em">ДМИТРИЙ ВОЛКОВ</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Accent – italic</strong>
+        Fraunces Italic<br>
+        Weight 400 · WONK 1 · SOFT 50<br>
+        The psychedelic crack
+      </div>
+      <div style="font-family:var(--font-accent);font-weight:400;font-style:italic;font-variation-settings:'WONK' 1,'SOFT' 50,'opsz' 72;font-size:42px;line-height:1.0;color:var(--coral-oxide)">the scratch that changes your life</div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Four axes</strong>
+        Weight 100–900<br>
+        WONK 0–1<br>
+        SOFT 0–100<br>
+        Optical size 9–144<br>
+        Every artist gets their own setting
+      </div>
+      <div class="fraunces-demo">
+        <span style="font-weight:200;font-variation-settings:'WONK' 0,'SOFT' 0,'opsz' 9;font-size:28px;color:var(--charcoal)">Helle Raud</span>
+        <span style="font-weight:500;font-variation-settings:'WONK' 0,'SOFT' 50,'opsz' 48;font-size:32px;color:var(--studio-teal)">Kevin Mayfield</span>
+        <span style="font-weight:800;font-variation-settings:'WONK' 1,'SOFT' 80,'opsz' 96;font-size:38px;color:var(--yunost-red)">Ann Francon</span>
+        <span style="font-weight:900;font-variation-settings:'WONK' 1,'SOFT' 100,'opsz' 144;font-size:44px;color:var(--coral-oxide)">Itzik Kagan</span>
+      </div>
+    </div>
+
+    <div class="type-row">
+      <div class="type-meta">
+        <strong>Eyebrow</strong>
+        Space Mono 700<br>
+        Uppercase · 0.1em
+      </div>
+      <div style="font-family:var(--font-body);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:var(--yunost-red)">Now Playing – Track 07</div>
+    </div>
+  </div>
+
+  <ul class="type-rules textured-dark">
+    <li>Display headings (h1) use weight 300 at large sizes – the Rams lightness</li>
+    <li>h2–h3 use weight 600–700 – functional, label-like</li>
+    <li>Body mono at 15px/1.7 – generous leading for monospace readability</li>
+    <li>Fraunces accent lives only in headings and artist names – never body copy</li>
+    <li>Each artist persona gets unique WONK + SOFT + weight settings</li>
+    <li>WONK 1 + SOFT 100 = full psychedelic; WONK 0 + SOFT 0 = austere serif</li>
+    <li>Numbers in tabular lining figures – we are reading meters, not prose</li>
+    <li>En dashes with spaces – never em dashes (Babelsberg rule one)</li>
+  </ul>
+</section>
+
+<!-- MOTIFS -->
+<section id="motifs" style="background:var(--warm-cream)">
+  <div class="section-eyebrow">Visual Motifs</div>
+  <div class="section-title">The signals before the words</div>
+  <p class="section-body">Hardware details abstracted into interface patterns. Each has a real-world origin – VU meters, CRT phosphor, cassette labels, mixing desk channels.</p>
+
+  <div class="motif-grid">
+    <div class="motif-card textured-dark">
+      <div class="name">VU Meter Bar</div>
+      <div class="desc">Horizontal segmented bar – green through amber to red. Dividers that imply a signal level.</div>
+      <div class="usage">Section dividers, progress indicators.</div>
+      <div class="vu-demo">
+        <span style="background:#27AE60;height:60%"></span><span style="background:#27AE60;height:65%"></span>
+        <span style="background:#27AE60;height:70%"></span><span style="background:#27AE60;height:75%"></span>
+        <span style="background:#2ECC71;height:80%"></span><span style="background:#2ECC71;height:85%"></span>
+        <span style="background:#F1C40F;height:88%"></span><span style="background:#E8A317;height:92%"></span>
+        <span style="background:#E67E22;height:95%"></span><span style="background:#D93025;height:100%"></span>
+      </div>
+    </div>
+
+    <div class="motif-card textured-dark">
+      <div class="name">Scan Lines</div>
+      <div class="desc">Faint horizontal lines at 4px intervals. CRT phosphor rows felt subconsciously.</div>
+      <div class="usage">Hero overlays, video player chrome.</div>
+      <div class="scanline-demo"><span>ЮНОСТЬ</span></div>
+    </div>
+
+    <div class="motif-card textured-dark">
+      <div class="name">Cassette Label</div>
+      <div class="desc">Rounded-rectangle frame with horizontal centre line. The universal mixtape format.</div>
+      <div class="usage">Track listings, artist cards.</div>
+      <div style="margin-top:16px;border:2px solid var(--warm-cream);border-radius:14px;padding:16px;position:relative;box-shadow:var(--bevel-dark)">
+        <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:var(--warm-cream);opacity:.3"></div>
+        <div style="font-family:var(--font-accent);font-weight:600;font-variation-settings:'WONK' 1,'SOFT' 60,'opsz' 48;font-size:13px;color:var(--warm-cream);text-align:center;position:relative">SIDE A – ДМИТРИЙ ВОЛКОВ</div>
+      </div>
+    </div>
+
+    <div class="motif-card textured-dark">
+      <div class="name">Channel Stripe</div>
+      <div class="desc">Vertical coloured stripe on the left edge – like a mixing desk channel marker.</div>
+      <div class="usage">Artist cards, playlist containers.</div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <div style="width:3px;background:var(--yunost-red);border-radius:2px"></div>
+        <div>
+          <div style="font-family:var(--font-accent);font-weight:500;font-variation-settings:'WONK' 1,'SOFT' 70,'opsz' 48;font-size:14px;color:var(--warm-cream)">Sylvaine Éternelle</div>
+          <div style="font-family:var(--font-body);font-size:11px;color:var(--bakelite-grey)">French yéyé-synthwave</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="motif-card textured-dark">
+      <div class="name">Knob Dial</div>
+      <div class="desc">Circular indicator with notched position. White line on dark circle.</div>
+      <div class="usage">Navigation markers, interactive controls.</div>
+      <div style="margin-top:16px;display:flex;gap:12px;justify-content:center">
+        <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="var(--smoke)"/><circle cx="22" cy="22" r="20" fill="url(#knob-grad)"/><line x1="22" y1="4" x2="22" y2="13" stroke="var(--warm-cream)" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="var(--smoke)"/><circle cx="22" cy="22" r="20" fill="url(#knob-grad)"/><line x1="22" y1="4" x2="22" y2="13" stroke="var(--warm-cream)" stroke-width="2" stroke-linecap="round" transform="rotate(90,22,22)"/></svg>
+        <svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="var(--smoke)"/><circle cx="22" cy="22" r="20" fill="url(#knob-grad)"/><line x1="22" y1="4" x2="22" y2="13" stroke="var(--yunost-red)" stroke-width="2" stroke-linecap="round" transform="rotate(135,22,22)"/></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VOICE -->
+<section id="voice">
+  <div class="section-eyebrow">Voice</div>
+  <div class="section-title">A product manual that developed <span style="font-family:var(--font-accent);font-weight:900;font-variation-settings:'WONK' 1,'SOFT' 100,'opsz' 144;color:var(--yunost-red)">taste</span></div>
+
+  <div class="voice-character textured-dark">
+    <blockquote>A Braun product manual written by someone who knows it's absurd but commits to the bit completely. Deadpan, precise, occasionally profound by accident.</blockquote>
+  </div>
+
+  <div style="margin-top:32px">
+    <div class="section-eyebrow" style="margin-bottom:12px">This / Not This</div>
+    <div class="trait-grid">
+      <span class="trait yes">Deadpan</span>
+      <span class="trait yes">Precise</span>
+      <span class="trait yes">Absurdist</span>
+      <span class="trait yes">Committed</span>
+      <span class="trait yes">Laconic</span>
+      <span class="trait no">Winking</span>
+      <span class="trait no">Ironic</span>
+      <span class="trait no">Loud</span>
+      <span class="trait no">Earnest</span>
+      <span class="trait no">Apologetic</span>
+    </div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-top:40px;margin-bottom:0">Copy Examples</div>
+  <div class="dodont-grid">
+    <div class="dodont-card do">
+      <div class="label">✓ Do</div>
+      <div class="example">«Nine artists. No humans.»</div>
+      <div class="context">Economy of language. States the impossible as fact.</div>
+    </div>
+    <div class="dodont-card dont">
+      <div class="label">✗ Don't</div>
+      <div class="example">«Welcome to the most unique record label in the world! 🎵»</div>
+      <div class="context">Superlatives, exclamation marks, emoji. We state, we don't announce.</div>
+    </div>
+    <div class="dodont-card do">
+      <div class="label">✓ Do</div>
+      <div class="example">«The PS-F9 was designed to play records vertically. We designed it to play records impossibly.»</div>
+      <div class="context">Real product fact extended one step past reality.</div>
+    </div>
+    <div class="dodont-card dont">
+      <div class="label">✗ Don't</div>
+      <div class="example">«We're not your typical record label *wink wink*»</div>
+      <div class="context">The joke only works if you never acknowledge it's a joke.</div>
+    </div>
+    <div class="dodont-card do">
+      <div class="label">✓ Do</div>
+      <div class="example">«Specifications: heartbreak in E minor, 128 BPM, infinite duration.»</div>
+      <div class="context">Technical format for emotional content. The deadpan does the work.</div>
+    </div>
+    <div class="dodont-card dont">
+      <div class="label">✗ Don't</div>
+      <div class="example">«Our AI-generated artists push the boundaries of what music can be!»</div>
+      <div class="context">Never say AI-generated. Never explain the trick.</div>
+    </div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-top:40px;margin-bottom:12px">Hard Rules</div>
+  <ul class="voice-rules">
+    <li>Never say «AI-generated», «fictional», or «virtual artists» – the personas are artists, full stop</li>
+    <li>Never use exclamation marks in marketing copy</li>
+    <li>Technical language is welcome – BPM, frequency, impedance – used for emotional subjects</li>
+    <li>Short sentences. If a sentence has a comma, it probably wants to be two sentences.</li>
+    <li>The deadpan breaks exactly once per page – one line that's genuinely poetic. Then back to business.</li>
+    <li>En dashes with spaces – never em dashes. Guillemets «like so» – never curly quotes.</li>
+  </ul>
+</section>
+
+<!-- TONE -->
+<section id="tone" style="background:var(--warm-cream)">
+  <div class="section-eyebrow">Tone</div>
+  <div class="section-title">Constant deadpan. Variable density.</div>
+  <p class="section-body">The tone doesn't change. The density does. Homepage copy is sparse. Artist pages are denser. Player interfaces have no copy at all – the hardware speaks.</p>
+
+  <div class="tone-cards">
+    <div class="tone-card textured-dark">
+      <div class="goal">To Intrigue</div>
+      <div class="desc">Every sentence should make the reader wonder if this is real. Not by being mysterious – by being too specific to be fake.</div>
+    </div>
+    <div class="tone-card textured-dark">
+      <div class="goal">To Catalogue</div>
+      <div class="desc">Present the artists with the precision of a vinyl pressing plant's inventory system.</div>
+    </div>
+    <div class="tone-card textured-dark">
+      <div class="goal">To Commit</div>
+      <div class="desc">The world-building is the product. If the copy breaks character, the whole thing collapses.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PILLARS -->
+<section id="pillars">
+  <div class="section-eyebrow">Content Pillars</div>
+  <div class="section-title">Three frequencies</div>
+
+  <div class="pillar-grid">
+    <div class="pillar-card textured-dark">
+      <div class="name">The Roster</div>
+      <div class="desc">Nine personas, each a philosophical experiment in a genre costume. The core product.</div>
+    </div>
+    <div class="pillar-card textured-dark">
+      <div class="name">The Hardware</div>
+      <div class="desc">The PS-F9 turntable and Yunost TV as functional web interfaces. The medium is the message.</div>
+    </div>
+    <div class="pillar-card textured-dark">
+      <div class="name">The Catalogue</div>
+      <div class="desc">Songs, concept albums, audio dramas. The rigor of a librarian. The taste of a crate digger.</div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section id="components" style="background:var(--warm-cream)">
+  <div class="section-eyebrow">Component Style</div>
+  <div class="section-title">Injection-moulded. Soft bevels. Warm radii.</div>
+
+  <div class="component-grid">
+    <div class="component-card">
+      <div class="value">8px</div>
+      <div class="label">Border Radius</div>
+    </div>
+    <div class="component-card">
+      <div class="value">1280</div>
+      <div class="label">Max Width (px)</div>
+    </div>
+    <div class="component-card">
+      <div class="value">56</div>
+      <div class="label">Nav Height (px)</div>
+    </div>
+    <div class="component-card">
+      <div class="value">32</div>
+      <div class="label">Page Padding (px)</div>
+    </div>
+  </div>
+
+  <div class="section-eyebrow" style="margin-top:40px;margin-bottom:12px">Buttons</div>
+  <div class="button-showcase">
+    <span class="btn-demo textured-red" style="background:var(--yunost-red);color:var(--parchment);box-shadow:var(--bevel-light), var(--drop)">Play</span>
+    <span class="btn-demo textured-dark" style="background:var(--charcoal);color:var(--warm-cream);box-shadow:var(--bevel-dark), var(--drop)">Browse Artists</span>
+    <span class="btn-demo" style="background:transparent;color:var(--yunost-red);border:1px solid var(--yunost-red)">More Info</span>
+  </div>
+</section>
+
+<!-- SPACING -->
+<section id="spacing">
+  <div class="section-eyebrow">Spacing Scale</div>
+  <div class="section-title">Measured in machine tolerances</div>
+
+  <div class="spacing-scale">
+    <div class="spacing-block"><div class="bar" style="height:2px"></div><div class="lbl">3XS<br>2px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:4px"></div><div class="lbl">2XS<br>4px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:8px"></div><div class="lbl">XS<br>8px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:16px"></div><div class="lbl">S<br>16px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:24px"></div><div class="lbl">M<br>24px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:32px"></div><div class="lbl">L<br>32px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:48px"></div><div class="lbl">XL<br>48px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:64px"></div><div class="lbl">2XL<br>64px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:96px"></div><div class="lbl">3XL<br>96px</div></div>
+    <div class="spacing-block"><div class="bar" style="height:128px"></div><div class="lbl">4XL<br>128px</div></div>
+  </div>
+</section>
+
+<div class="board-footer">
+  trrrrdt.records – Brand Board – Extracted 2025-04-17 – Conversational · Babelsberg-inflected
+</div>
+
+</body>
+</html>

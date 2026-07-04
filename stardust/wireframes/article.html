@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>trrrrdt.records — Article Wireframe</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #333; font-size: 14px; line-height: 1.5; }
+  .note { font-size: 12px; color: #777; font-style: italic; margin: 6px 0 10px; padding-left: 10px; border-left: 2px solid #c8c8c8; }
+  .caption { font-size: 11px; color: #888; margin-top: 6px; }
+  .bar { background: #ccc; border-radius: 3px; height: 14px; margin: 4px 0; }
+  .btn-placeholder { display: inline-block; background: #999; color: #eee; padding: 10px 24px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-right: 8px; margin-top: 8px; }
+  .section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; margin-bottom: 16px; padding: 4px 8px; background: rgba(0,0,0,0.05); display: inline-block; border-radius: 3px; }
+  section { max-width: 720px; margin: 0 auto; padding: 48px 32px; }
+  section.dark { background: #444; color: #ccc; max-width: 100%; }
+  section.dark .bar { background: #666; }
+  section.dark .note { color: #aaa; border-left-color: #666; }
+  section.dark .section-label { background: rgba(255,255,255,0.08); color: #999; }
+
+  .wf-nav { display: flex; align-items: center; gap: 24px; padding: 16px 32px; background: #444; }
+  .wf-nav .logo { width: 140px; height: 16px; background: #777; border-radius: 2px; }
+  .wf-nav .nav-item { width: 60px; height: 10px; background: #666; border-radius: 2px; }
+
+  /* Spec block */
+  .spec-block { border: 2px solid #ddd; border-radius: 4px; padding: 16px; background: #f0f0f0; margin: 16px 0; }
+  .spec-block .bar { background: #bbb; }
+
+  /* Lyrics */
+  .lyrics-block { padding: 24px 0; }
+  .lyrics-section-label { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: 0.08em; margin: 16px 0 8px; }
+
+  /* Pull quote */
+  .pull-quote { border-left: 3px solid #bbb; padding: 16px 24px; margin: 24px 0; background: #eee; border-radius: 0 4px 4px 0; }
+
+  /* Related links */
+  .related-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .related-card { background: #e5e5e5; border-radius: 4px; padding: 16px; }
+  .related-card .bar { background: #bbb; }
+</style>
+</head>
+<body>
+
+<script type="application/json" id="wireframe-meta">
+{
+  "page": "Article",
+  "briefing": "article.md",
+  "mode": "grey",
+  "sections": ["nav", "header", "spec-block", "lyrics", "body", "related"],
+  "note": "Flexible template — structure varies by article type (song, press, liner notes)"
+}
+</script>
+
+<nav class="wf-nav"><div class="logo"></div><div class="nav-item"></div><div class="nav-item"></div><div class="nav-item"></div><div class="nav-item"></div></nav>
+
+<div style="max-width:720px;margin:0 auto;padding:32px 32px 0">
+  <div class="section-label">Article — Song Variant</div>
+  <div class="note">Flexible template. Shown here as a song article — the most common type. Press articles and liner notes use the same skeleton with different sections active.</div>
+</div>
+
+<!-- HEADER -->
+<section data-section="header" data-intent="article identity" data-layout="contained">
+  <div class="bar" style="width:8%;height:9px;background:#bbb;margin-bottom:12px"></div>
+  <div class="note">Genre · BPM · Duration — Space Mono eyebrow</div>
+
+  <div class="bar" style="width:60%;height:36px;background:#aaa;margin-bottom:8px"></div>
+  <div class="note">Song title — Space Grotesk 300, large</div>
+
+  <div class="bar" style="width:25%;height:20px;background:#bbb;margin-bottom:16px"></div>
+  <div class="note">Artist name — Fraunces at artist's axis settings</div>
+
+  <span class="btn-placeholder">▶ PLAY</span>
+  <div class="caption">Enters audio player with this track</div>
+</section>
+
+<!-- STYLE PROMPT (SPEC BLOCK) -->
+<section data-section="spec-block" data-intent="technical specification" data-layout="contained">
+  <div class="section-label">Style Prompt</div>
+  <div class="note">The Suno style prompt displayed as a technical specification — monospace, bordered, equipment-panel aesthetic. ~100 characters.</div>
+
+  <div class="spec-block">
+    <div class="bar" style="width:90%;height:12px;margin-bottom:4px"></div>
+    <div class="bar" style="width:70%;height:12px"></div>
+  </div>
+  <div class="caption">Monospace text in bordered block — «Estonian-Danish therabilly, female vocals, 132 BPM, minor key»</div>
+</section>
+
+<!-- LYRICS -->
+<section data-section="lyrics" data-intent="song content" data-layout="contained">
+  <div class="section-label">Lyrics</div>
+  <div class="note">Full lyrics with structure tags rendered as section dividers. [Verse], [Chorus], [Bridge] become eyebrow labels.</div>
+
+  <div class="lyrics-block">
+    <div class="lyrics-section-label">[Verse 1]</div>
+    <div class="bar" style="width:75%;margin-bottom:4px"></div>
+    <div class="bar" style="width:68%;margin-bottom:4px"></div>
+    <div class="bar" style="width:72%;margin-bottom:4px"></div>
+    <div class="bar" style="width:60%;margin-bottom:4px"></div>
+
+    <div class="lyrics-section-label">[Chorus]</div>
+    <div class="bar" style="width:55%;margin-bottom:4px"></div>
+    <div class="bar" style="width:50%;margin-bottom:4px"></div>
+    <div class="bar" style="width:58%;margin-bottom:4px"></div>
+
+    <div class="lyrics-section-label">[Verse 2]</div>
+    <div class="bar" style="width:70%;margin-bottom:4px"></div>
+    <div class="bar" style="width:78%;margin-bottom:4px"></div>
+    <div class="bar" style="width:65%;margin-bottom:4px"></div>
+    <div class="bar" style="width:73%;margin-bottom:4px"></div>
+
+    <div class="lyrics-section-label">[Bridge]</div>
+    <div class="bar" style="width:45%;margin-bottom:4px"></div>
+    <div class="bar" style="width:40%;margin-bottom:4px"></div>
+  </div>
+</section>
+
+<!-- PRODUCTION NOTES (optional) -->
+<section data-section="body" data-intent="context and world-building" data-layout="contained">
+  <div class="section-label">Production Notes</div>
+  <div class="note">Optional. The story behind the track — thematic context, philosophical operation at work. Full Babelsberg density. This is where the world-building goes long-form.</div>
+
+  <div style="max-width:640px">
+    <div class="bar" style="width:100%;margin-bottom:6px"></div>
+    <div class="bar" style="width:95%;margin-bottom:6px"></div>
+    <div class="bar" style="width:88%;margin-bottom:6px"></div>
+    <div class="bar" style="width:92%;margin-bottom:16px"></div>
+  </div>
+
+  <div class="pull-quote">
+    <div class="bar" style="width:85%;height:16px;background:#bbb;margin-bottom:4px"></div>
+    <div class="bar" style="width:70%;height:16px;background:#bbb"></div>
+    <div class="caption">Pull quote — key passage highlighted</div>
+  </div>
+
+  <div style="max-width:640px">
+    <div class="bar" style="width:97%;margin-bottom:6px"></div>
+    <div class="bar" style="width:90%;margin-bottom:6px"></div>
+    <div class="bar" style="width:100%;margin-bottom:6px"></div>
+    <div class="bar" style="width:85%;margin-bottom:6px"></div>
+  </div>
+</section>
+
+<!-- RELATED -->
+<section data-section="related" data-intent="cross-linking" data-layout="grid">
+  <div class="section-label">Related</div>
+  <div class="note">Links to the artist page and other articles. Two-column grid of cards.</div>
+
+  <div class="related-grid">
+    <div class="related-card">
+      <div class="bar" style="width:60%;height:12px;background:#aaa;margin-bottom:4px"></div>
+      <div class="bar" style="width:80%;height:10px;margin-bottom:4px"></div>
+      <div class="caption">→ Artist page</div>
+    </div>
+    <div class="related-card">
+      <div class="bar" style="width:70%;height:12px;background:#aaa;margin-bottom:4px"></div>
+      <div class="bar" style="width:75%;height:10px;margin-bottom:4px"></div>
+      <div class="caption">→ Next track / related article</div>
+    </div>
+  </div>
+</section>
+
+<div style="max-width:720px;margin:32px auto;padding:0 32px">
+  <div class="section-label">Article Variants</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px">
+    <div style="background:#e5e5e5;border-radius:6px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px">Song</div>
+      <div style="font-size:11px;color:#777">Header + spec block + lyrics + production notes + related</div>
+    </div>
+    <div style="background:#e5e5e5;border-radius:6px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px">Press</div>
+      <div style="font-size:11px;color:#777">Header (headline + publication + date) + body prose + pull quotes + related</div>
+    </div>
+    <div style="background:#e5e5e5;border-radius:6px;padding:16px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px">Liner Notes</div>
+      <div style="font-size:11px;color:#777">Header (project title + artists) + essay body + tracklist with links + related</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
