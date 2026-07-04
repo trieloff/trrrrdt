@@ -1,0 +1,222 @@
+/* turntable — full-viewport PS-F9 player, the device is the UI */
+
+/* the player page scroll-snaps between tracks */
+html:has(main .turntable) {
+  scroll-snap-type: y proximity;
+}
+
+.turntable {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background-color: var(--text-color);
+}
+
+.turntable .turntable-feed {
+  position: relative;
+}
+
+.turntable .turntable-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  margin-bottom: -100vh;
+  margin-bottom: -100svh;
+  overflow: hidden;
+}
+
+.turntable .turntable-track {
+  height: 100vh;
+  height: 100svh;
+  scroll-snap-align: start;
+  pointer-events: none;
+}
+
+.turntable .turntable-canvas,
+.turntable .turntable-canvas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* --- loading --- */
+.turntable .turntable-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background-color: var(--text-color);
+  transition: opacity 0.6s;
+  z-index: 3;
+}
+
+.turntable .turntable-loading.turntable-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.turntable .turntable-spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 3px solid var(--dark-color);
+  border-top-color: var(--accent-color);
+  animation: turntable-spin 0.8s linear infinite;
+}
+
+@keyframes turntable-spin {
+  to { transform: rotate(360deg); }
+}
+
+.turntable .turntable-loading-label {
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--border-color);
+}
+
+/* --- track info overlay: equipment panel markings --- */
+.turntable .turntable-info {
+  position: absolute;
+  bottom: 88px;
+  left: 24px;
+  z-index: 2;
+  pointer-events: none;
+  max-width: min(70vw, 480px);
+}
+
+.turntable .turntable-info p {
+  margin: 0;
+}
+
+.turntable .turntable-artist {
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  font-size: var(--heading-font-size-l);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  color: var(--background-color);
+  text-shadow: 0 2px 12px rgb(0 0 0 / 60%);
+}
+
+.turntable .turntable-title {
+  font-size: var(--body-font-size-s);
+  color: var(--background-color);
+  opacity: 0.9;
+  text-shadow: 0 1px 6px rgb(0 0 0 / 60%);
+  margin-top: 2px;
+}
+
+.turntable .turntable-meta {
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--border-color);
+  margin-top: 6px;
+}
+
+/* --- play control: printed on the faceplate --- */
+.turntable .turntable-play {
+  position: absolute;
+  bottom: 32px;
+  left: 24px;
+  z-index: 2;
+  margin: 0;
+  padding: 10px 18px;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--background-color);
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.turntable .turntable-play:hover,
+.turntable .turntable-play:focus-visible {
+  background-color: rgb(255 255 255 / 12%);
+}
+
+.turntable .turntable-play:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* --- feed position dots --- */
+.turntable .turntable-dots {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.turntable .turntable-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: rgb(255 255 255 / 35%);
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.turntable .turntable-dot-active {
+  background-color: var(--background-color);
+  transform: scale(1.5);
+}
+
+/* --- screen-reader status --- */
+.turntable .turntable-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  margin: 0;
+}
+
+/* --- no-WebGL fallback: plain deck, audio still works --- */
+.turntable.turntable-no-3d .turntable-canvas,
+.turntable.turntable-no-3d .turntable-loading {
+  display: none;
+}
+
+.turntable.turntable-no-3d .turntable-stage {
+  background: linear-gradient(180deg, #2a2a2a 0%, var(--text-color) 100%);
+}
+
+@media (width >= 900px) {
+  .turntable .turntable-info {
+    bottom: 96px;
+    left: 48px;
+  }
+
+  .turntable .turntable-play {
+    bottom: 36px;
+    left: 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turntable .turntable-spinner {
+    animation: none;
+  }
+
+  .turntable .turntable-dot {
+    transition: none;
+  }
+}
