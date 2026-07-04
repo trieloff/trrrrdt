@@ -727,16 +727,19 @@ export default function decorate(block) {
   const dots = [...stage.querySelectorAll('.turntable-dot')];
   const audio = createAudioEngine();
 
+  const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const dof = stage.querySelector('.turntable-dof');
   const dofRange = stage.querySelector('.turntable-dof-range');
   const dofValue = stage.querySelector('.turntable-dof-value');
 
-  const storedDofRaw = window.localStorage.getItem('trrrrdt-dof');
+  // the Focus slider is a dev-only tuning control; production is fixed at 20%
+  const storedDofRaw = isLocalDev ? window.localStorage.getItem('trrrrdt-dof') : null;
   const storedDof = storedDofRaw === null ? NaN : Number(storedDofRaw);
   const state = {
     current: -1,
     playing: false,
     rendering: false,
-    dofAmount: Number.isFinite(storedDof) && storedDof >= 0 ? storedDof : 0.3,
+    dofAmount: Number.isFinite(storedDof) && storedDof >= 0 ? storedDof : 0.2,
     reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     setEnvironment: () => {},
     getLevels: () => audio.getLevels(),
@@ -744,13 +747,17 @@ export default function decorate(block) {
     stopRender: () => {},
   };
 
-  dofRange.value = String(Math.round(state.dofAmount * 100));
-  dofValue.textContent = `${Math.round(state.dofAmount * 100)}%`;
-  dofRange.addEventListener('input', () => {
-    state.dofAmount = Number(dofRange.value) / 100;
-    window.localStorage.setItem('trrrrdt-dof', String(state.dofAmount));
-    dofValue.textContent = `${dofRange.value}%`;
-  });
+  if (isLocalDev) {
+    dofRange.value = String(Math.round(state.dofAmount * 100));
+    dofValue.textContent = `${Math.round(state.dofAmount * 100)}%`;
+    dofRange.addEventListener('input', () => {
+      state.dofAmount = Number(dofRange.value) / 100;
+      window.localStorage.setItem('trrrrdt-dof', String(state.dofAmount));
+      dofValue.textContent = `${dofRange.value}%`;
+    });
+  } else {
+    dof.remove();
+  }
 
   function updateOverlay() {
     const track = tracks[state.current];
