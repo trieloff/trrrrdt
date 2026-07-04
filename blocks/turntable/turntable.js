@@ -187,6 +187,56 @@ function createAudioEngine() {
   };
 }
 
+/*
+ * Procedural desk grain — long wandering streaks plus speckle, drawn once
+ * on a canvas. Grayscale so the room palette tints it via material.color.
+ */
+function makeDeskGrain() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#b0a89c';
+  ctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 320; i += 1) {
+    const y0 = Math.random() * size;
+    const amp = 1.5 + Math.random() * 3;
+    const period = 90 + Math.random() * 260;
+    const alpha = 0.05 + Math.random() * 0.09;
+    const shade = Math.random() > 0.42 ? 30 : 235;
+    ctx.strokeStyle = `rgba(${shade}, ${shade}, ${shade}, ${alpha})`;
+    ctx.lineWidth = 0.6 + Math.random() * 2.2;
+    ctx.beginPath();
+    for (let x = 0; x <= size; x += 8) {
+      const y = y0 + Math.sin(((x / period) + i) * Math.PI * 2) * amp;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  // occasional knots
+  for (let i = 0; i < 3; i += 1) {
+    const kx = Math.random() * size;
+    const ky = Math.random() * size;
+    const kr = 3 + Math.random() * 9;
+    const grad = ctx.createRadialGradient(kx, ky, 1, kx, ky, kr);
+    grad.addColorStop(0, 'rgba(40, 36, 30, 0.5)');
+    grad.addColorStop(1, 'rgba(40, 36, 30, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(kx, ky, kr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // fine speckle
+  for (let i = 0; i < 5000; i += 1) {
+    const v = Math.floor(Math.random() * 70);
+    ctx.fillStyle = `rgba(${v}, ${v}, ${v}, 0.05)`;
+    ctx.fillRect(Math.random() * size, Math.random() * size, 1.4, 1.4);
+  }
+  return canvas;
+}
+
 /* psychedelic wallpaper — five patterns, colors and motion from the style hash */
 const WALLPAPER_VERTEX = `
   varying vec2 vUv;
@@ -280,6 +330,7 @@ const WALLPAPER_FRAGMENT = `
 async function initScene(block, tracks, state) {
   const THREE = await import('../../scripts/vendor/three.module.min.js');
   const { GLTFLoader } = await import('../../scripts/vendor/GLTFLoader.js');
+  const { RoomEnvironment } = await import('../../scripts/vendor/RoomEnvironment.js');
   const container = block.querySelector('.turntable-canvas');
   const loading = block.querySelector('.turntable-loading');
 
@@ -291,21 +342,29 @@ async function initScene(block, tracks, state) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 1.25;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.append(renderer.domElement);
 
-  const keyLight = new THREE.DirectionalLight(0xffd4a0, 2.5);
+  // image-based light so the plastics and glass pick up reflections
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+  const keyLight = new THREE.DirectionalLight(0xffd9ab, 2.9);
   keyLight.position.set(-3, 5, 2);
   keyLight.castShadow = true;
-  keyLight.shadow.mapSize.set(1024, 1024);
+  keyLight.shadow.mapSize.set(2048, 2048);
+  keyLight.shadow.radius = 5;
+  keyLight.shadow.bias = -0.0004;
   scene.add(keyLight);
-  scene.add(new THREE.DirectionalLight(0x8899bb, 0.4));
-  scene.add(new THREE.AmbientLight(0x443322, 0.7));
-  const rimLight = new THREE.PointLight(0xe8a317, 0.8, 12);
-  rimLight.position.set(0, 2, -3);
+  const fillLight = new THREE.DirectionalLight(0xaabbd0, 0.45);
+  fillLight.position.set(3, 3, 3);
+  scene.add(fillLight);
+  scene.add(new THREE.HemisphereLight(0xffe8cc, 0x1a140e, 0.38));
+  const rimLight = new THREE.PointLight(0xe8a317, 1.5, 14);
+  rimLight.position.set(0, 2.4, -3);
   scene.add(rimLight);
 
   // wallpaper — the animated psychedelic wall
@@ -330,7 +389,24 @@ async function initScene(block, tracks, state) {
   wall.position.set(0, 7, -6);
   scene.add(wall);
 
-  const tableMat = new THREE.MeshStandardMaterial({ roughness: 0.75, metalness: 0.05 });
+  const deskCanvas = makeDeskGrain();
+  const deskMap = new THREE.CanvasTexture(deskCanvas);
+  deskMap.colorSpace = THREE.SRGBColorSpace;
+  deskMap.wrapS = THREE.RepeatWrapping;
+  deskMap.wrapT = THREE.RepeatWrapping;
+  deskMap.repeat.set(7, 7);
+  deskMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const deskBump = new THREE.CanvasTexture(deskCanvas);
+  deskBump.wrapS = THREE.RepeatWrapping;
+  deskBump.wrapT = THREE.RepeatWrapping;
+  deskBump.repeat.set(7, 7);
+  const tableMat = new THREE.MeshStandardMaterial({
+    map: deskMap,
+    bumpMap: deskBump,
+    bumpScale: 0.6,
+    roughness: 0.62,
+    metalness: 0.08,
+  });
   const table = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), tableMat);
   table.rotation.x = -Math.PI / 2;
   table.receiveShadow = true;
@@ -365,7 +441,7 @@ async function initScene(block, tracks, state) {
       target.bg.setHSL(hues[0], 0.55, 0.14);
       target.fg.setHSL(hues[1], 0.55, 0.34);
       target.accent.setHSL(hues[2], 0.85, 0.55);
-      target.table.setHSL(hues[0], 0.35, 0.20);
+      target.table.setHSL(hues[0], 0.30, 0.16);
       target.speed = speed;
       target.scale = scale;
       wallUniforms.uPattern.value = pattern;
@@ -400,6 +476,7 @@ async function initScene(block, tracks, state) {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
+      if (child.material) child.material.envMapIntensity = 0.35;
       const mat = (child.material?.name || '').toLowerCase();
       if (mat === 'carbon' || mat === 'label') vinylMeshes.push(child);
     }
