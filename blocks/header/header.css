@@ -3,7 +3,7 @@ header .nav-wrapper {
   background-color: var(--text-color);
   border-bottom: 2px solid var(--accent-color);
   width: 100%;
-  z-index: 2;
+  z-index: 10;
   position: fixed;
   box-shadow: var(--bevel-dark), 0 4px 16px rgb(0 0 0 / 40%);
 }

@@ -39,6 +39,7 @@
   --channel-cassidy-diane: #6a6a9a;
   --channel-ann-francon: #c46a30;
   --channel-itzik-kagan: #c45aa0;
+  --channel-johnny-kovacs: #6d8290;
 
   /* fonts */
   --body-font-family: space-mono, mono-cyrillic-fallback, 'Courier New', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', monospace;
@@ -88,6 +89,12 @@
     --heading-font-size-s: 20px;
     --heading-font-size-xs: 16px;
   }
+}
+
+/* the root paints the overscroll/rubber-band area — keep it dark so it
+   matches the charcoal header (top) and footer (bottom), not the parchment body */
+html {
+  background-color: var(--text-color);
 }
 
 body {
@@ -327,6 +334,10 @@ main > .section > div {
 main > .section:first-of-type {
   margin-top: 0;
   position: relative;
+
+  /* contain the scan-line pseudo-elements' z-index so they can't paint
+     over the fixed header as the hero scrolls underneath it */
+  isolation: isolate;
   overflow: hidden;
   background-color: var(--text-color);
   color: var(--light-color);
