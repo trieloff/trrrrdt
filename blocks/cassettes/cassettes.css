@@ -1,0 +1,208 @@
+/* cassettes — retro cassette tape cards */
+
+.cassettes > ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+/* --- cassette card --- */
+.cassettes > ul > li {
+  position: relative;
+}
+
+/* --- palette: each cassette gets a color via nth-child --- */
+.cassettes > ul > li:nth-child(6n+1) { --cassette-color: var(--accent-coral); }
+.cassettes > ul > li:nth-child(6n+2) { --cassette-color: var(--accent-mustard); }
+.cassettes > ul > li:nth-child(6n+3) { --cassette-color: var(--accent-mint); }
+.cassettes > ul > li:nth-child(6n+4) { --cassette-color: var(--accent-teal); }
+.cassettes > ul > li:nth-child(6n+5) { --cassette-color: var(--accent-warm); }
+.cassettes > ul > li:nth-child(6n+6) { --cassette-color: var(--accent-secondary); }
+
+.cassettes .cassette-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cassettes .cassette-shell {
+  position: relative;
+  aspect-ratio: 10 / 6.3;
+  border-radius: 10px 10px 6px 6px;
+  padding: 10px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow: hidden;
+  background-color: var(--cassette-color, var(--panel-color));
+  border: 2px solid rgb(0 0 0 / 10%);
+
+  /* molded plastic surface */
+  background-image:
+    linear-gradient(
+      175deg,
+      rgb(255 255 255 / 18%) 0%,
+      rgb(255 255 255 / 6%) 30%,
+      transparent 55%,
+      rgb(0 0 0 / 8%) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    inset 0 -1px 0 rgb(0 0 0 / 10%),
+    0 2px 4px rgb(0 0 0 / 10%);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.cassettes .cassette-shell:hover,
+.cassettes .cassette-link:hover .cassette-shell {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 6px 16px rgb(0 0 0 / 14%);
+}
+
+/* --- screw holes --- */
+.cassettes .cassette-screws {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.cassettes .cassette-screws span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 40% 40%, rgb(255 255 255 / 20%), transparent 60%),
+    rgb(0 0 0 / 15%);
+  border: 1px solid rgb(0 0 0 / 10%);
+}
+
+/* --- reel window --- */
+.cassettes .cassette-window {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  background-color: rgb(0 0 0 / 60%);
+  border-radius: 4px;
+  padding: 8px 16px;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 30%);
+}
+
+/* --- reels --- */
+.cassettes .cassette-reel {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 2px solid rgb(255 255 255 / 20%);
+  position: relative;
+
+  /* reel spokes */
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 8%) 30%, transparent 31%),
+    conic-gradient(
+      from 0deg,
+      rgb(255 255 255 / 10%) 0deg 10deg,
+      transparent 10deg 60deg,
+      rgb(255 255 255 / 10%) 60deg 70deg,
+      transparent 70deg 120deg,
+      rgb(255 255 255 / 10%) 120deg 130deg,
+      transparent 130deg 180deg,
+      rgb(255 255 255 / 10%) 180deg 190deg,
+      transparent 190deg 240deg,
+      rgb(255 255 255 / 10%) 240deg 250deg,
+      transparent 250deg 300deg,
+      rgb(255 255 255 / 10%) 300deg 310deg,
+      transparent 310deg 360deg
+    );
+}
+
+/* hub center */
+.cassettes .cassette-reel::after {
+  content: '';
+  position: absolute;
+  inset: 30%;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 15%);
+  background: rgb(0 0 0 / 40%);
+}
+
+/* --- tape between reels --- */
+.cassettes .cassette-tape {
+  flex: 1;
+  height: 2px;
+  background: rgb(255 255 255 / 12%);
+  margin: 0 4px;
+  position: relative;
+}
+
+.cassettes .cassette-tape::before,
+.cassettes .cassette-tape::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 10%);
+}
+
+.cassettes .cassette-tape::before { left: -6px; }
+.cassettes .cassette-tape::after { right: -6px; }
+
+/* --- label --- */
+.cassettes .cassette-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px 8px;
+  min-height: 2.4em;
+  background: rgb(255 255 255 / 70%);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 6%);
+}
+
+.cassettes .cassette-title {
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-color);
+  line-height: 1.2;
+}
+
+.cassettes .cassette-subtitle {
+  font-family: var(--mono-font-family);
+  font-size: 11px;
+  color: var(--dark-color);
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+
+/* --- bottom tape guides --- */
+.cassettes .cassette-guides {
+  height: 6px;
+  margin: -2px 20% 0;
+  border-radius: 0 0 3px 3px;
+  background: var(--cassette-color, var(--panel-color));
+  opacity: 0.6;
+  filter: brightness(0.85);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+}
+
+/* --- responsive --- */
+@media (width >= 900px) {
+  .cassettes > ul {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
