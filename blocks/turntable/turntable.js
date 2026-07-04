@@ -99,6 +99,10 @@ function buildStage(tracks) {
     <a class="turntable-eject" href="/">⏏ Eject</a>
     <button type="button" class="turntable-play" aria-pressed="false">Drop the needle</button>
     <div class="turntable-dots" role="presentation"></div>
+    <label class="turntable-dof">
+      <span class="turntable-dof-label">Focus <span class="turntable-dof-value"></span></span>
+      <input class="turntable-dof-range" type="range" min="0" max="100" step="1" aria-label="Depth of field amount">
+    </label>
   `;
   const dots = stage.querySelector('.turntable-dots');
   tracks.forEach(() => {
@@ -342,6 +346,10 @@ async function initScene(block, tracks, state) {
   const THREE = await import('../../scripts/vendor/three.module.min.js');
   const { GLTFLoader } = await import('../../scripts/vendor/GLTFLoader.js');
   const { RoomEnvironment } = await import('../../scripts/vendor/RoomEnvironment.js');
+  const { RectAreaLightUniformsLib } = await import('../../scripts/vendor/RectAreaLightUniformsLib.js');
+  const { EffectComposer } = await import('../../scripts/vendor/EffectComposer.js');
+  const { RenderPass } = await import('../../scripts/vendor/RenderPass.js');
+  const { BokehPass } = await import('../../scripts/vendor/BokehPass.js');
   const container = block.querySelector('.turntable-canvas');
   const loading = block.querySelector('.turntable-loading');
 
@@ -371,6 +379,13 @@ async function initScene(block, tracks, state) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.append(renderer.domElement);
 
+  // post: depth of field keeps the device crisp and lets the room fall away
+  const composer = new EffectComposer(renderer);
+  composer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  composer.addPass(new RenderPass(scene, camera));
+  const bokeh = new BokehPass(scene, camera, { focus: 5.0, aperture: 0, maxblur: 0 });
+  composer.addPass(bokeh);
+
   // image-based light so the plastics and glass pick up reflections
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -389,6 +404,15 @@ async function initScene(block, tracks, state) {
   const rimLight = new THREE.PointLight(0xe8a317, 1.5, 14);
   rimLight.position.set(0, 2.4, -3);
   scene.add(rimLight);
+
+  // the wall is a light source — its glow washes coloured bounce across the
+  // desk wood and the vinyl's plastic, pulsing and shifting hue with the music
+  RectAreaLightUniformsLib.init();
+  const wallGlow = new THREE.RectAreaLight(0xd93025, 4, 26, 12);
+  wallGlow.position.set(0, 6, -5.5);
+  wallGlow.lookAt(0, 1, 0);
+  scene.add(wallGlow);
+  const wallGlowColor = new THREE.Color(0xd93025);
 
   // wallpaper — the animated psychedelic wall
   const wallUniforms = {
@@ -589,6 +613,7 @@ async function initScene(block, tracks, state) {
     camera.aspect = clientWidth / clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(clientWidth, clientHeight);
+    composer.setSize(clientWidth, clientHeight);
   }
   window.addEventListener('resize', resize);
   resize();
@@ -640,11 +665,24 @@ async function initScene(block, tracks, state) {
     rimLight.color.copy(env.accent);
     scene.background.copy(env.bg);
     scene.fog.color.copy(env.bg);
+
+    // the wall's emitted colour: the mid tone flashing toward the accent band,
+    // brightness riding the bass — so the bounce on desk and vinyl breathes
+    wallGlowColor.copy(env.fg).lerp(env.accent, 0.3 + wallUniforms.uMid.value * 0.55);
+    wallGlow.color.copy(wallGlowColor);
+    wallGlow.intensity = 3.0 + wallUniforms.uBass.value * 7.0 + wallUniforms.uMid.value * 2.5;
+
     const spinning = state.playing || window.location.hash === '#spin';
     if (vinyl && spinAxis && spinning && !state.reducedMotion) {
       vinyl.rotateOnAxis(spinAxis, SPIN_SPEED * delta);
     }
-    renderer.render(scene, camera);
+
+    // focus tracks the device as the camera glides between rooms;
+    // aperture/maxblur come from the live Focus slider (0 = everything sharp)
+    bokeh.uniforms.focus.value = camera.position.distanceTo(lookTarget);
+    bokeh.uniforms.aperture.value = state.dofAmount * 0.008;
+    bokeh.uniforms.maxblur.value = state.dofAmount * 0.016;
+    composer.render(delta);
   }
   state.startRender = () => {
     if (state.rendering) return;
@@ -689,16 +727,30 @@ export default function decorate(block) {
   const dots = [...stage.querySelectorAll('.turntable-dot')];
   const audio = createAudioEngine();
 
+  const dofRange = stage.querySelector('.turntable-dof-range');
+  const dofValue = stage.querySelector('.turntable-dof-value');
+
+  const storedDofRaw = window.localStorage.getItem('trrrrdt-dof');
+  const storedDof = storedDofRaw === null ? NaN : Number(storedDofRaw);
   const state = {
     current: -1,
     playing: false,
     rendering: false,
+    dofAmount: Number.isFinite(storedDof) && storedDof >= 0 ? storedDof : 0.3,
     reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
     setEnvironment: () => {},
     getLevels: () => audio.getLevels(),
     startRender: () => {},
     stopRender: () => {},
   };
+
+  dofRange.value = String(Math.round(state.dofAmount * 100));
+  dofValue.textContent = `${Math.round(state.dofAmount * 100)}%`;
+  dofRange.addEventListener('input', () => {
+    state.dofAmount = Number(dofRange.value) / 100;
+    window.localStorage.setItem('trrrrdt-dof', String(state.dofAmount));
+    dofValue.textContent = `${dofRange.value}%`;
+  });
 
   function updateOverlay() {
     const track = tracks[state.current];

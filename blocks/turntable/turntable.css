@@ -205,6 +205,63 @@ main > .section:has(.turntable) > div {
   cursor: not-allowed;
 }
 
+/* --- depth-of-field tuning: equipment-panel slider --- */
+.turntable .turntable-dof {
+  position: absolute;
+  right: 20px;
+  bottom: 24px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.turntable .turntable-dof:hover,
+.turntable .turntable-dof:focus-within {
+  opacity: 1;
+}
+
+.turntable .turntable-dof-label {
+  font-family: var(--mono-font-family);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--light-color);
+  text-shadow: 0 1px 4px rgb(0 0 0 / 60%);
+}
+
+.turntable .turntable-dof-range {
+  appearance: none;
+  width: 120px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 30%);
+  cursor: pointer;
+}
+
+.turntable .turntable-dof-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--light-color);
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 50%);
+}
+
+.turntable .turntable-dof-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--light-color);
+  border: 2px solid var(--accent-color);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 50%);
+}
+
 /* --- feed position dots --- */
 .turntable .turntable-dots {
   position: absolute;
