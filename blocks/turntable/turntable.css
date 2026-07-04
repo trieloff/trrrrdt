@@ -16,6 +16,8 @@ main > .section:has(.turntable) {
   padding: 0;
   border-bottom: 0;
   background: none;
+  overflow: visible; /* the hero's overflow:hidden would break the sticky stage */
+  text-align: initial;
 }
 
 main > .section:has(.turntable)::before,
