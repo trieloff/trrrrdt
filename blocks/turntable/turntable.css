@@ -2,7 +2,31 @@
 
 /* the player page scroll-snaps between tracks */
 html:has(main .turntable) {
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
+}
+
+/* the player page is only the player — no site chrome */
+body:has(main .turntable) header,
+body:has(main .turntable) footer {
+  display: none;
+}
+
+main > .section:has(.turntable) {
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+  background: none;
+}
+
+main > .section:has(.turntable)::before,
+main > .section:has(.turntable)::after {
+  content: none;
+}
+
+main > .section:has(.turntable) > div {
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 .turntable {
@@ -125,6 +149,31 @@ html:has(main .turntable) {
   margin-top: 6px;
 }
 
+/* --- eject: one level up and out --- */
+.turntable .turntable-eject {
+  position: absolute;
+  top: 20px;
+  left: 24px;
+  z-index: 2;
+  padding: 8px 14px;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--light-color);
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.turntable .turntable-eject:hover,
+.turntable .turntable-eject:focus-visible {
+  background-color: rgb(255 255 255 / 12%);
+  color: var(--light-color);
+  text-decoration: none;
+}
+
 /* --- play control: printed on the faceplate --- */
 .turntable .turntable-play {
   position: absolute;
@@ -209,6 +258,11 @@ html:has(main .turntable) {
 
   .turntable .turntable-play {
     bottom: 36px;
+    left: 48px;
+  }
+
+  .turntable .turntable-eject {
+    top: 24px;
     left: 48px;
   }
 }

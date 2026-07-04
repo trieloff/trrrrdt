@@ -44,12 +44,22 @@ function wallpaperFromStyle(style) {
   const pattern = (h >>> 9) % 5;
   const speed = 0.4 + ((h >>> 13) % 100) / 90;
   const scale = 3 + ((h >>> 17) % 6);
+  // remix for an independent second draw: where you stand in the room
+  const h2 = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0;
+  const pose = {
+    camAzimuth: ((h2 % 200) / 200 - 0.5) * 1.0,
+    camHeight: 1.8 + (((h2 >>> 8) % 100) / 100) * 0.95,
+    camDist: 4.4 + (((h2 >>> 16) % 100) / 100) * 1.2,
+    lightAzimuth: (((h2 >>> 4) % 200) / 200 - 0.5) * 2.4,
+    lightHeight: 3.5 + (((h2 >>> 12) % 100) / 100) * 2.5,
+  };
   /* eslint-enable no-bitwise */
   return {
     hues: [hueA / 360, hueB / 360, hueC / 360],
     pattern,
     speed,
     scale,
+    pose,
   };
 }
 
@@ -86,6 +96,7 @@ function buildStage(tracks) {
       <p class="turntable-meta"></p>
     </div>
     <p class="turntable-status" aria-live="polite"></p>
+    <a class="turntable-eject" href="/">⏏ Eject</a>
     <button type="button" class="turntable-play" aria-pressed="false">Drop the needle</button>
     <div class="turntable-dots" role="presentation"></div>
   `;
@@ -337,7 +348,19 @@ async function initScene(block, tracks, state) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
   camera.position.set(0, 2.3, 4.8);
-  camera.lookAt(0, 0.7, 0);
+  const lookTarget = new THREE.Vector3(0, 0.7, 0);
+  const camPose = { az: 0, h: 2.3, d: 4.8 };
+  const camGoal = { az: 0, h: 2.3, d: 4.8 };
+  const lightTarget = new THREE.Vector3(-3, 5, 2);
+  const halfFov = Math.tan((camera.fov / 2) * (Math.PI / 180));
+  // pull back on narrow viewports so the device always fits the frame
+  function placeCamera() {
+    const fit = 1.75 / (halfFov * Math.min(camera.aspect, 1.75));
+    const d = Math.max(camPose.d, fit);
+    camera.position.set(Math.sin(camPose.az) * d, camPose.h, Math.cos(camPose.az) * d);
+    camera.lookAt(lookTarget);
+  }
+  placeCamera();
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -436,8 +459,16 @@ async function initScene(block, tracks, state) {
   state.setEnvironment = (track) => {
     if (track.wallpaper) {
       const {
-        hues, pattern, speed, scale,
+        hues, pattern, speed, scale, pose,
       } = track.wallpaper;
+      camGoal.az = pose.camAzimuth;
+      camGoal.h = pose.camHeight;
+      camGoal.d = pose.camDist;
+      lightTarget.set(
+        Math.sin(pose.lightAzimuth) * 4.5,
+        pose.lightHeight,
+        Math.cos(pose.lightAzimuth) * 4.5,
+      );
       target.bg.setHSL(hues[0], 0.55, 0.14);
       target.fg.setHSL(hues[1], 0.55, 0.34);
       target.accent.setHSL(hues[2], 0.85, 0.55);
@@ -451,12 +482,21 @@ async function initScene(block, tracks, state) {
       target.accent.set(track.room.glow);
       target.table.set(track.room.table);
       wallUniforms.uPattern.value = -1;
+      camGoal.az = 0;
+      camGoal.h = 2.3;
+      camGoal.d = 4.8;
+      lightTarget.set(-3, 5, 2);
     }
     if (state.reducedMotion) {
       env.bg.copy(target.bg);
       env.fg.copy(target.fg);
       env.accent.copy(target.accent);
       env.table.copy(target.table);
+      camPose.az = camGoal.az;
+      camPose.h = camGoal.h;
+      camPose.d = camGoal.d;
+      placeCamera();
+      keyLight.position.copy(lightTarget);
     }
   };
 
@@ -520,7 +560,8 @@ async function initScene(block, tracks, state) {
   }
 
   const scaledBox = new THREE.Box3().setFromObject(model);
-  camera.lookAt(0, (scaledBox.max.y - scaledBox.min.y) * 0.48, 0);
+  lookTarget.set(0, (scaledBox.max.y - scaledBox.min.y) * 0.48, 0);
+  camera.lookAt(lookTarget);
   loading.classList.add('turntable-done');
 
   // tap the device to play/pause
@@ -587,6 +628,14 @@ async function initScene(block, tracks, state) {
       wallUniforms.uTreble.value += (0.05 - wallUniforms.uTreble.value) * 0.05;
     }
 
+    if (!state.reducedMotion) {
+      camPose.az += (camGoal.az - camPose.az) * 0.045;
+      camPose.h += (camGoal.h - camPose.h) * 0.045;
+      camPose.d += (camGoal.d - camPose.d) * 0.045;
+      placeCamera();
+      keyLight.position.lerp(lightTarget, 0.045);
+    }
+
     tableMat.color.copy(env.table);
     rimLight.color.copy(env.accent);
     scene.background.copy(env.bg);
@@ -634,6 +683,9 @@ export default function decorate(block) {
     status: stage.querySelector('.turntable-status'),
   };
   const playBtn = stage.querySelector('.turntable-play');
+  const eject = stage.querySelector('.turntable-eject');
+  const parent = window.location.pathname.replace(/\/[^/]*\/?$/, '');
+  eject.href = parent || '/';
   const dots = [...stage.querySelectorAll('.turntable-dot')];
   const audio = createAudioEngine();
 
