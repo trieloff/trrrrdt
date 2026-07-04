@@ -6,8 +6,8 @@ const ENV_LERP = 0.05;
 const SPIN_SPEED = 2.2; // radians per second, ~33rpm feel
 
 /*
- * Room environments per artist, from the stardust audio-player briefing:
- * wallpaper (upper 2/3), table surface (lower 1/3), rim glow.
+ * Fallback room palettes per artist (briefing-derived) — used when a track
+ * has no style prompt to hash a wallpaper from.
  */
 const ROOMS = {
   'sylvaine-eternelle': { wall: 0x352b44, table: 0x6e5a80, glow: 0xb9a0e8 },
@@ -22,6 +22,37 @@ const ROOMS = {
   default: { wall: 0x1c1c1c, table: 0x3a3a3a, glow: 0xc9bfae },
 };
 
+/* djb2 — the style prompt is the seed; same prompt, same room, forever */
+function hashString(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i += 1) {
+    h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; // eslint-disable-line no-bitwise
+  }
+  return h;
+}
+
+/*
+ * Derive a wallpaper from a style prompt: background, foreground, accent
+ * hues plus a pattern and its motion parameters, all from the hash bits.
+ */
+function wallpaperFromStyle(style) {
+  /* eslint-disable no-bitwise */
+  const h = hashString(style.toLowerCase());
+  const hueA = h % 360;
+  const hueB = (hueA + 120 + ((h >>> 3) % 100)) % 360;
+  const hueC = (hueA + 180 + ((h >>> 7) % 80)) % 360;
+  const pattern = (h >>> 9) % 5;
+  const speed = 0.4 + ((h >>> 13) % 100) / 90;
+  const scale = 3 + ((h >>> 17) % 6);
+  /* eslint-enable no-bitwise */
+  return {
+    hues: [hueA / 360, hueB / 360, hueC / 360],
+    pattern,
+    speed,
+    scale,
+  };
+}
+
 function parseTracks(block) {
   const tracks = [];
   [...block.children].forEach((row) => {
@@ -29,11 +60,14 @@ function parseTracks(block) {
     const title = cells[0]?.textContent?.trim();
     if (!title) return;
     const artist = cells[1]?.textContent?.trim() || '';
+    const style = cells[4]?.textContent?.trim() || '';
     tracks.push({
       title,
       artist,
       meta: cells[2]?.textContent?.trim() || '',
       audio: cells[3]?.querySelector('a')?.href || '',
+      style,
+      wallpaper: style ? wallpaperFromStyle(style) : null,
       room: ROOMS[toClassName(artist)] || ROOMS.default,
     });
   });
@@ -69,9 +103,34 @@ function createAudioEngine() {
   players.forEach((p) => {
     p.preload = 'auto';
     p.loop = false;
+    // Suno's CDN sends ACAO:* — anonymous mode keeps Web Audio analysis legal
+    p.crossOrigin = 'anonymous';
   });
   let active = 0;
   let fadeFrame = null;
+  let analyser = null;
+  let freqData = null;
+  const levels = { bass: 0, mid: 0, treble: 0 };
+
+  function ensureAnalyser() {
+    if (analyser !== null) return;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.75;
+      players.forEach((p) => {
+        const source = ctx.createMediaElementSource(p);
+        source.connect(analyser);
+      });
+      analyser.connect(ctx.destination);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      if (ctx.state === 'suspended') ctx.resume();
+    } catch (e) {
+      analyser = false; // tried and failed — stay element-only, no analysis
+    }
+  }
 
   function fadeTo(inPlayer, outPlayer) {
     if (fadeFrame) cancelAnimationFrame(fadeFrame);
@@ -90,8 +149,15 @@ function createAudioEngine() {
     fadeFrame = requestAnimationFrame(step);
   }
 
+  function bandAverage(from, to) {
+    let sum = 0;
+    for (let i = from; i < to; i += 1) sum += freqData[i];
+    return sum / ((to - from) * 255);
+  }
+
   return {
     async play(src) {
+      ensureAnalyser();
       const next = players[1 - active];
       const prev = players[active];
       if (next.src !== src) next.src = src;
@@ -108,8 +174,108 @@ function createAudioEngine() {
         if (p === players[active]) callback();
       }));
     },
+    /* bass / mid / treble in 0..1, or null when analysis is unavailable */
+    getLevels() {
+      if (!analyser || !freqData) return null;
+      analyser.getByteFrequencyData(freqData);
+      // 128 bins over ~24kHz: bass <560Hz, mid <4.5kHz, treble above
+      levels.bass = bandAverage(1, 4);
+      levels.mid = bandAverage(4, 24);
+      levels.treble = bandAverage(24, 96);
+      return levels;
+    },
   };
 }
+
+/* psychedelic wallpaper — five patterns, colors and motion from the style hash */
+const WALLPAPER_VERTEX = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const WALLPAPER_FRAGMENT = `
+  precision highp float;
+  uniform float uTime;
+  uniform float uBass;
+  uniform float uMid;
+  uniform float uTreble;
+  uniform float uSpeed;
+  uniform float uScale;
+  uniform int uPattern;
+  uniform vec3 uColA;
+  uniform vec3 uColB;
+  uniform vec3 uColC;
+  varying vec2 vUv;
+
+  float wave(vec2 p, float t) {
+    // liquid stripes — tape warp
+    float x = p.x * uScale + sin(p.y * 2.5 + t) * (0.35 + uBass * 1.2);
+    return sin(x * 6.2831);
+  }
+
+  float rings(vec2 p, float t) {
+    float d = length(p - vec2(1.07, 0.5));
+    return sin(d * uScale * 6.0 - t * 2.0 - uBass * 4.0);
+  }
+
+  float plasma(vec2 p, float t) {
+    float v = sin(p.x * uScale + t);
+    v += sin((p.y * uScale + t) * 0.7);
+    v += sin((p.x + p.y) * uScale * 0.6 + t * 1.3 + uBass * 3.0);
+    v += sin(length(p - 0.5) * uScale * 1.5 - t);
+    return sin(v * 1.5708);
+  }
+
+  float moire(vec2 p, float t) {
+    float a = t * 0.08;
+    mat2 r1 = mat2(cos(a), -sin(a), sin(a), cos(a));
+    mat2 r2 = mat2(cos(-a * 1.3), -sin(-a * 1.3), sin(-a * 1.3), cos(-a * 1.3));
+    vec2 q1 = r1 * (p - 0.5) * (uScale * 2.0 + uBass * 3.0);
+    vec2 q2 = r2 * (p - 0.5) * (uScale * 2.0);
+    float c1 = step(0.0, sin(q1.x * 6.2831) * sin(q1.y * 6.2831));
+    float c2 = step(0.0, sin(q2.x * 6.2831) * sin(q2.y * 6.2831));
+    return c1 * (1.0 - c2) + c2 * (1.0 - c1);
+  }
+
+  float rays(vec2 p, float t) {
+    vec2 d = p - vec2(1.07, 0.42);
+    float ang = atan(d.y, d.x);
+    return sin(ang * uScale + t + uBass * 2.0 + length(d) * 3.0);
+  }
+
+  void main() {
+    // plane is ~30x14 units — square up the coordinate system
+    vec2 p = vUv * vec2(2.143, 1.0);
+    float t = uTime * uSpeed;
+    float v = 0.0;
+    if (uPattern == 0) v = wave(p, t);
+    else if (uPattern == 1) v = rings(p, t);
+    else if (uPattern == 2) v = plasma(p, t);
+    else if (uPattern == 3) v = moire(p, t) * 2.0 - 1.0;
+    else if (uPattern == 4) v = rays(p, t);
+
+    float m = smoothstep(-0.9, 0.9, v);
+    vec3 col = mix(uColA, uColB, m);
+
+    // accent band pulses with the mids
+    float band = smoothstep(0.82 - uMid * 0.35, 1.0, v);
+    col = mix(col, uColC, band * (0.4 + uMid * 0.6));
+
+    // treble sparkle — analog noise floor
+    float n = fract(sin(dot(vUv * (uTime + 1.0), vec2(12.9898, 78.233))) * 43758.5453);
+    col += (n - 0.5) * (0.03 + uTreble * 0.10);
+
+    // vignette so the device stays the subject
+    float vig = smoothstep(1.35, 0.3, length(vUv - vec2(0.5, 0.55)));
+    col *= mix(0.4, 1.0, vig);
+
+    if (uPattern < 0) col = uColA;
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
 
 async function initScene(block, tracks, state) {
   const THREE = await import('../../scripts/vendor/three.module.min.js');
@@ -142,7 +308,24 @@ async function initScene(block, tracks, state) {
   rimLight.position.set(0, 2, -3);
   scene.add(rimLight);
 
-  const wallMat = new THREE.MeshStandardMaterial({ roughness: 0.9 });
+  // wallpaper — the animated psychedelic wall
+  const wallUniforms = {
+    uTime: { value: 0 },
+    uBass: { value: 0 },
+    uMid: { value: 0 },
+    uTreble: { value: 0 },
+    uSpeed: { value: 1 },
+    uScale: { value: 5 },
+    uPattern: { value: -1 },
+    uColA: { value: new THREE.Color(0x1c1c1c) },
+    uColB: { value: new THREE.Color(0x2c2c2c) },
+    uColC: { value: new THREE.Color(0xd93025) },
+  };
+  const wallMat = new THREE.ShaderMaterial({
+    uniforms: wallUniforms,
+    vertexShader: WALLPAPER_VERTEX,
+    fragmentShader: WALLPAPER_FRAGMENT,
+  });
   const wall = new THREE.Mesh(new THREE.PlaneGeometry(30, 14), wallMat);
   wall.position.set(0, 7, -6);
   scene.add(wall);
@@ -154,26 +337,50 @@ async function initScene(block, tracks, state) {
   scene.add(table);
 
   scene.fog = new THREE.Fog(0x000000, 9, 26);
+  scene.background = new THREE.Color(0x1c1c1c);
 
-  // environment color state
+  // environment color state — lerped toward targets each frame
   const env = {
-    wall: new THREE.Color(tracks[0].room.wall),
-    table: new THREE.Color(tracks[0].room.table),
-    glow: new THREE.Color(tracks[0].room.glow),
+    bg: new THREE.Color(0x1c1c1c),
+    fg: new THREE.Color(0x2c2c2c),
+    accent: new THREE.Color(0xd93025),
+    table: new THREE.Color(0x3a3a3a),
+    speed: 1,
+    scale: 5,
   };
   const target = {
-    wall: new THREE.Color(tracks[0].room.wall),
-    table: new THREE.Color(tracks[0].room.table),
-    glow: new THREE.Color(tracks[0].room.glow),
+    bg: env.bg.clone(),
+    fg: env.fg.clone(),
+    accent: env.accent.clone(),
+    table: env.table.clone(),
+    speed: 1,
+    scale: 5,
   };
-  state.setRoom = (room) => {
-    target.wall.set(room.wall);
-    target.table.set(room.table);
-    target.glow.set(room.glow);
+
+  state.setEnvironment = (track) => {
+    if (track.wallpaper) {
+      const {
+        hues, pattern, speed, scale,
+      } = track.wallpaper;
+      target.bg.setHSL(hues[0], 0.55, 0.14);
+      target.fg.setHSL(hues[1], 0.55, 0.34);
+      target.accent.setHSL(hues[2], 0.85, 0.55);
+      target.table.setHSL(hues[0], 0.35, 0.20);
+      target.speed = speed;
+      target.scale = scale;
+      wallUniforms.uPattern.value = pattern;
+    } else {
+      target.bg.set(track.room.wall);
+      target.fg.set(track.room.wall).multiplyScalar(1.8);
+      target.accent.set(track.room.glow);
+      target.table.set(track.room.table);
+      wallUniforms.uPattern.value = -1;
+    }
     if (state.reducedMotion) {
-      env.wall.copy(target.wall);
+      env.bg.copy(target.bg);
+      env.fg.copy(target.fg);
+      env.accent.copy(target.accent);
       env.table.copy(target.table);
-      env.glow.copy(target.glow);
     }
   };
 
@@ -262,18 +469,44 @@ async function initScene(block, tracks, state) {
   resize();
 
   const clock = new THREE.Clock();
+  let elapsed = 0;
   function frame() {
     if (!state.rendering) return;
     requestAnimationFrame(frame);
     const delta = clock.getDelta();
-    env.wall.lerp(target.wall, ENV_LERP);
+    if (!state.reducedMotion) elapsed += delta;
+
+    env.bg.lerp(target.bg, ENV_LERP);
+    env.fg.lerp(target.fg, ENV_LERP);
+    env.accent.lerp(target.accent, ENV_LERP);
     env.table.lerp(target.table, ENV_LERP);
-    env.glow.lerp(target.glow, ENV_LERP);
-    wallMat.color.copy(env.wall);
+    env.speed += (target.speed - env.speed) * ENV_LERP;
+    env.scale += (target.scale - env.scale) * ENV_LERP;
+
+    wallUniforms.uTime.value = elapsed;
+    wallUniforms.uSpeed.value = env.speed;
+    wallUniforms.uScale.value = env.scale;
+    wallUniforms.uColA.value.copy(env.bg);
+    wallUniforms.uColB.value.copy(env.fg);
+    wallUniforms.uColC.value.copy(env.accent);
+
+    // audio drive: real analysis when available, a slow breathing LFO otherwise
+    const levels = state.playing ? state.getLevels() : null;
+    if (levels && !state.reducedMotion) {
+      wallUniforms.uBass.value += (levels.bass - wallUniforms.uBass.value) * 0.3;
+      wallUniforms.uMid.value += (levels.mid - wallUniforms.uMid.value) * 0.3;
+      wallUniforms.uTreble.value += (levels.treble - wallUniforms.uTreble.value) * 0.3;
+    } else if (!state.reducedMotion) {
+      const idle = (state.playing ? 0.22 : 0.08) + Math.sin(elapsed * 0.7) * 0.06;
+      wallUniforms.uBass.value += (idle - wallUniforms.uBass.value) * 0.05;
+      wallUniforms.uMid.value += (idle - wallUniforms.uMid.value) * 0.05;
+      wallUniforms.uTreble.value += (0.05 - wallUniforms.uTreble.value) * 0.05;
+    }
+
     tableMat.color.copy(env.table);
-    rimLight.color.copy(env.glow);
-    scene.background = env.wall;
-    scene.fog.color.copy(env.wall);
+    rimLight.color.copy(env.accent);
+    scene.background.copy(env.bg);
+    scene.fog.color.copy(env.bg);
     if (vinyl && spinAxis && state.playing && !state.reducedMotion) {
       vinyl.rotateOnAxis(spinAxis, SPIN_SPEED * delta);
     }
@@ -324,7 +557,8 @@ export default function decorate(block) {
     playing: false,
     rendering: false,
     reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    setRoom: () => {},
+    setEnvironment: () => {},
+    getLevels: () => audio.getLevels(),
     startRender: () => {},
     stopRender: () => {},
   };
@@ -347,7 +581,7 @@ export default function decorate(block) {
     if (i === state.current || !tracks[i]) return;
     state.current = i;
     const track = tracks[i];
-    state.setRoom(track.room);
+    state.setEnvironment(track);
     if ((autoplay || state.playing) && track.audio) {
       try {
         await audio.play(track.audio);
