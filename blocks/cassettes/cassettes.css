@@ -30,7 +30,6 @@
 
 .cassettes .cassette-shell {
   position: relative;
-  aspect-ratio: 10 / 6.3;
   border-radius: 10px 10px 6px 6px;
   padding: 10px 14px 8px;
   display: flex;
@@ -83,7 +82,7 @@
 
 /* --- reel window --- */
 .cassettes .cassette-window {
-  flex: 1;
+  aspect-ratio: 10 / 3.2;
   display: flex;
   align-items: center;
   justify-content: center;
