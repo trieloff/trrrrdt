@@ -927,6 +927,28 @@ function createAppleBackend(tokenEndpoint) {
     return (res && res.data) || res;
   }
 
+  // Apple Music song ids are storefront-specific: an id authored from the US
+  // catalog won't resolve for a listener whose account is (say) the German store,
+  // and setQueue throws NOT_FOUND. Bridge storefronts by the recording's ISRC,
+  // which is global. Cache the mapping so we only look a song up once.
+  const idCache = new Map();
+  async function resolveForStorefront(appleId, authoredSF, userSF) {
+    if (!userSF || userSF === authoredSF) return appleId;
+    const key = `${authoredSF}:${appleId}:${userSF}`;
+    if (idCache.has(key)) return idCache.get(key);
+    let resolved = appleId;
+    try {
+      const src = await catalog(`/v1/catalog/${authoredSF}/songs/${appleId}`);
+      const isrc = src?.data?.[0]?.attributes?.isrc;
+      if (isrc) {
+        const hit = await catalog(`/v1/catalog/${userSF}/songs`, { 'filter[isrc]': isrc });
+        resolved = hit?.data?.[0]?.id || appleId;
+      }
+    } catch (e) { /* not in the listener's store — keep the authored id and let it fail loudly */ }
+    idCache.set(key, resolved);
+    return resolved;
+  }
+
   return {
     configure,
     onEnded(cb) { listeners.ended = cb; },
@@ -938,7 +960,7 @@ function createAppleBackend(tokenEndpoint) {
     // must be called synchronously inside a user gesture — MusicKit opens a
     // sign-in popup and Safari blocks it otherwise
     authorize: () => (music ? music.authorize() : Promise.reject(new Error('not configured'))),
-    async play(appleId, { userGesture }) {
+    async play(appleId, { userGesture, storefront }) {
       const m = await configure();
       if (!m.isAuthorized) {
         if (!userGesture) {
@@ -948,7 +970,8 @@ function createAppleBackend(tokenEndpoint) {
         }
         await m.authorize();
       }
-      await m.setQueue({ songs: [appleId] });
+      const id = await resolveForStorefront(appleId, storefront || 'us', m.storefrontId);
+      await m.setQueue({ songs: [id] });
       await m.play();
       active = true;
     },
@@ -1087,7 +1110,7 @@ export default async function decorate(block) {
       // Let MusicKit own Apple playback: it plays the FULL track for authorized
       // subscribers and a preview otherwise, and drives ended→advance either way.
       // (We used to fall back to a 30s file-engine clip, which masked full playback.)
-      await apple.play(track.appleId, { userGesture });
+      await apple.play(track.appleId, { userGesture, storefront: track.storefront });
       return 'full';
     }
     if (apple) { apple.setActive(false); apple.pause(); }
