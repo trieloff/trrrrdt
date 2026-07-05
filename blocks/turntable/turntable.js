@@ -238,14 +238,15 @@ async function initScene(block, tracks, state) {
   const sleeveMat = new THREE.MeshStandardMaterial({
     color: 0x0e0e0e, roughness: 0.82, metalness: 0.0,
   });
-  const sleeve = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), sleeveMat);
+  // a 12" jacket ≈ the LP itself (measured disc Ø 1.63 scene units), a hair larger
+  const sleeve = new THREE.Mesh(new THREE.PlaneGeometry(1.68, 1.68), sleeveMat);
   // lying flat on the table, front-right of the device, casually angled
-  sleeve.position.set(1.3, 0.015, 0.8);
+  sleeve.position.set(1.55, 0.015, 0.95);
   sleeve.rotation.set(-Math.PI / 2, 0, 0.32);
   sleeve.castShadow = true;
   sleeve.receiveShadow = true;
   sleeve.visible = false;
-  sleeve.userData.focusSize = 1.2; // how tall it reads when the camera zooms in
+  sleeve.userData.focusSize = 1.68; // how tall it reads when the camera zooms in
   scene.add(sleeve);
 
   // the desk prop the camera is currently zoomed onto (cover or notes), or null;
