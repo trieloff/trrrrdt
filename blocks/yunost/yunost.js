@@ -12,25 +12,18 @@ const ENV_LERP = 0.05;
  * the "screen" is a plane placed over its front face. Values are fractions of
  * the scaled model box (tuned visually); a video/image texture rides on it.
  */
-const SCREEN = {
-  cx: -0.09, cy: 0.53, cz: 0.86, w: 0.62, h: 0.54, rx: 0, ry: 0, bulge: 0.05,
-};
-
-/* CRT tube: the picture plane bulges toward the viewer (convex glass). */
+/* The picture rides the model's actual screen-glass mesh (TVunost402_11), so the
+   shader is unlit and just does CRT feel: a subtle content bulge, scanlines,
+   static/snow and audio-driven brightness. The tube's real geometry gives the
+   rounded corners and curve. */
 const CRT_VERTEX = `
   varying vec2 vUv;
-  uniform float uBulge;
   void main() {
     vUv = uv;
-    vec3 p = position;
-    vec2 c = uv - 0.5;
-    p.z += uBulge * (0.25 - dot(c, c)); // centre bulges out
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `;
 
-/* Samples the channel texture through a barrel lens, rounds the corners so the
-   tube's shape crops the picture, and lays scanlines + static over it. */
 const CRT_FRAGMENT = `
   precision highp float;
   uniform sampler2D uTex;
@@ -41,20 +34,10 @@ const CRT_FRAGMENT = `
 
   float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 
-  // signed distance to a rounded rectangle
-  float sdRoundRect(vec2 p, vec2 b, float r) {
-    vec2 q = abs(p) - b + r;
-    return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
-  }
-
   void main() {
     vec2 uv = vUv - 0.5;
     float r2 = dot(uv, uv);
-    vec2 tuv = uv * (1.0 + 0.09 * r2) + 0.5;   // gentle barrel distortion
-
-    // rounded-corner tube mask
-    float d = sdRoundRect(uv, vec2(0.5, 0.5), 0.13);
-    float mask = smoothstep(0.006, -0.006, d);
+    vec2 tuv = uv * (1.0 + 0.06 * r2) + 0.5;   // subtle content bulge
 
     vec3 col;
     if (tuv.x < 0.0 || tuv.x > 1.0 || tuv.y < 0.0 || tuv.y > 1.0) col = vec3(0.02);
@@ -66,10 +49,10 @@ const CRT_FRAGMENT = `
     float n = hash(vUv * (fract(uTime) * 240.0 + 1.0));
     col += (n - 0.5) * (0.05 + uStatic * 0.7);               // static grain
     col = mix(col, vec3(n), uStatic * 0.85);                 // no-signal snow
-    float vig = smoothstep(0.78, 0.25, length(uv));          // tube vignette
-    col *= mix(0.62, 1.14, vig);
+    float vig = smoothstep(0.9, 0.3, length(uv));            // faint tube vignette
+    col *= mix(0.72, 1.12, vig);
 
-    gl_FragColor = vec4(col, mask);
+    gl_FragColor = vec4(col, 1.0);
   }
 `;
 
@@ -222,29 +205,39 @@ async function initScene(block, tracks, state) {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // the picture plane — a convex CRT tube. The ShaderMaterial rounds the corners
-  // (the tube shape crops the picture), barrel-distorts it and lays scanlines +
-  // static over it. depthTest off + high renderOrder so it draws over the baked
-  // tube; the geometry is subdivided so the vertex bulge reads as curved glass.
+  // the CRT material — assigned to the model's real screen-glass mesh after load
   const screenUniforms = {
     uTex: { value: null },
     uTime: { value: 0 },
     uStatic: { value: 1 }, // no-signal snow until a channel loads
     uLevel: { value: 0 },
-    uBulge: { value: SCREEN.bulge },
   };
   const screenMat = new THREE.ShaderMaterial({
     uniforms: screenUniforms,
     vertexShader: CRT_VERTEX,
     fragmentShader: CRT_FRAGMENT,
-    transparent: true,
-    depthTest: false,
     toneMapped: false,
   });
-  const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 32, 24), screenMat);
-  screenMesh.renderOrder = 10;
-  scene.add(screenMesh);
   let videoEl = null;
+
+  // fresh planar UVs on a mesh's two widest axes (the model ships one baked UV
+  // point, useless for an image) so the picture maps across the screen glass
+  function genPlanarUV(geo) {
+    geo.computeBoundingBox();
+    const bb = geo.boundingBox;
+    const s = bb.getSize(new THREE.Vector3());
+    const dims = [s.x, s.y, s.z];
+    const depth = dims.indexOf(Math.min(...dims));
+    const ax = [0, 1, 2].filter((a) => a !== depth); // the two in-plane axes
+    const p = geo.attributes.position;
+    const arr = new Float32Array(p.count * 2);
+    for (let i = 0; i < p.count; i += 1) {
+      const c = [p.getX(i), p.getY(i), p.getZ(i)];
+      arr[i * 2] = (c[ax[0]] - bb.min.getComponent(ax[0])) / s.getComponent(ax[0]);
+      arr[i * 2 + 1] = (c[ax[1]] - bb.min.getComponent(ax[1])) / s.getComponent(ax[1]);
+    }
+    geo.setAttribute('uv', new THREE.BufferAttribute(arr, 2));
+  }
 
   // environment colour state — lerped toward the current channel's wallpaper
   const env = {
@@ -329,13 +322,26 @@ async function initScene(block, tracks, state) {
     }, reject);
   });
   const model = gltf.scene;
+  let screenTarget = null;
   model.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
       if (child.material) child.material.envMapIntensity = 0.5;
+      // the tube glass is its own mesh — we texture that directly
+      if (child.name === 'TVunost402_11') screenTarget = child;
     }
   });
+  // fallback: the flattest wide mesh in the set is the screen glass
+  if (!screenTarget) {
+    let best = -1;
+    model.traverse((c) => {
+      if (!c.isMesh) return;
+      const s = new THREE.Box3().setFromObject(c).getSize(new THREE.Vector3());
+      const [thin, mid, wide] = [s.x, s.y, s.z].sort((a, b) => a - b);
+      if (mid > 100 && thin / wide < 0.25 && wide > best) { best = wide; screenTarget = c; }
+    });
+  }
   // scale to ~2 units, sit on the floor, centre on x/z
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
@@ -346,20 +352,20 @@ async function initScene(block, tracks, state) {
   scene.add(model);
   model.updateMatrixWorld(true);
 
-  // place the picture plane over the front face, from the SCREEN fractions
-  const fbox = new THREE.Box3().setFromObject(model);
-  const fsize = fbox.getSize(new THREE.Vector3());
-  const fcenter = fbox.getCenter(new THREE.Vector3());
-  screenMesh.scale.set(fsize.x * SCREEN.w, fsize.y * SCREEN.h, 1);
-  screenMesh.position.set(
-    fcenter.x + fsize.x * SCREEN.cx,
-    fbox.min.y + fsize.y * SCREEN.cy,
-    fbox.max.z * SCREEN.cz + 0.01,
-  );
-  screenMesh.rotation.set(SCREEN.rx, SCREEN.ry, 0);
-  lookTarget.set(0, fbox.min.y + fsize.y * SCREEN.cy, 0);
-  screenGlow.position.set(0, lookTarget.y, fbox.max.z + 0.3);
-  camGoal.h = lookTarget.y + 0.3; // slight sofa angle — just above screen centre
+  // map the picture onto the real screen-glass mesh — the image now rides the
+  // tube's actual shape (rounded corners, curve, depth), no floating plane
+  const scBox = new THREE.Box3();
+  if (screenTarget) {
+    genPlanarUV(screenTarget.geometry);
+    screenTarget.material = screenMat;
+    scBox.setFromObject(screenTarget);
+  } else {
+    scBox.copy(box);
+  }
+  const scCenter = scBox.getCenter(new THREE.Vector3());
+  lookTarget.set(0, scCenter.y, 0);
+  screenGlow.position.set(0, scCenter.y, scBox.max.z + 0.3);
+  camGoal.h = scCenter.y + 0.25;
   camPose.h = camGoal.h;
   placeCamera();
   loading.classList.add('yunost-done');
@@ -372,7 +378,7 @@ async function initScene(block, tracks, state) {
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    if (raycaster.intersectObjects([model, screenMesh], true).length) state.requestPlay();
+    if (raycaster.intersectObject(model, true).length) state.requestPlay();
   });
 
   function resize() {
