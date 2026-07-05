@@ -1,0 +1,250 @@
+/* Yunost-402 TV player — a channel deck. Each channel scroll-snaps full height;
+   the 3D set is pinned in the sticky stage. Sibling to the turntable block. */
+.yunost {
+  position: relative;
+}
+
+.yunost .yunost-feed {
+  position: relative;
+}
+
+.yunost .yunost-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: #080808;
+}
+
+.yunost .yunost-track {
+  height: 100svh;
+  scroll-snap-align: start;
+}
+
+.yunost .yunost-feed {
+  scroll-snap-type: y mandatory;
+}
+
+.yunost .yunost-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.yunost .yunost-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- loading --- */
+.yunost .yunost-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: #0a0a0a;
+  transition: opacity 0.6s;
+}
+
+.yunost .yunost-loading.yunost-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.yunost .yunost-spinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid var(--dark-color, #3a3a3a);
+  border-top-color: var(--accent-color, #d93025);
+  animation: yunost-spin 0.8s linear infinite;
+}
+
+@keyframes yunost-spin {
+  to { transform: rotate(360deg); }
+}
+
+.yunost .yunost-loading-label {
+  font-family: var(--mono-font-family, monospace);
+  font-size: var(--body-font-size-xs, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--border-color, #888);
+}
+
+/* --- channel card: top-right, CRT OSD --- */
+.yunost .yunost-card {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  z-index: 2;
+  max-width: min(70vw, 420px);
+  padding: 12px 16px;
+  text-align: right;
+  background: rgb(0 0 0 / 45%);
+  border-radius: 6px;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.yunost .yunost-card p { margin: 0; }
+
+.yunost .yunost-channel {
+  font-family: var(--mono-font-family, monospace);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--light-color, #fff);
+  opacity: 0.85;
+}
+
+.yunost .yunost-title {
+  font-family: var(--accent-font-family, serif);
+  font-weight: 600;
+  font-size: var(--heading-font-size-m, 24px);
+  line-height: 1.1;
+  color: var(--light-color, #fff);
+  margin-top: 4px;
+}
+
+.yunost .yunost-meta {
+  font-family: var(--mono-font-family, monospace);
+  font-size: var(--body-font-size-xs, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--border-color, #9a9a9a);
+  margin-top: 6px;
+}
+
+/* --- source badge (bottom-left, above the button) --- */
+.yunost .yunost-source {
+  position: absolute;
+  bottom: 76px;
+  left: 24px;
+  z-index: 2;
+  display: none;
+  margin: 0;
+  font-family: var(--mono-font-family, monospace);
+  font-size: var(--body-font-size-xs, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--light-color, #fff);
+  opacity: 0.8;
+}
+
+.yunost .yunost-source::before { content: '◍ '; }
+.yunost.yunost-apple .yunost-source { display: block; }
+
+/* --- play / eject --- */
+.yunost .yunost-play {
+  position: absolute;
+  bottom: 32px;
+  left: 24px;
+  z-index: 2;
+  margin: 0;
+  padding: 10px 18px;
+  font-family: var(--mono-font-family, monospace);
+  font-size: var(--body-font-size-xs, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--light-color, #fff);
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.yunost .yunost-play:hover,
+.yunost .yunost-play:focus-visible { background-color: rgb(255 255 255 / 12%); }
+.yunost .yunost-play:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.yunost.yunost-connect .yunost-play {
+  color: #fff;
+  background-color: #fa243c;
+  border-color: #fa243c;
+  font-weight: 700;
+  box-shadow: 0 2px 14px rgb(250 36 60 / 45%);
+}
+
+.yunost.yunost-connect .yunost-play:hover,
+.yunost.yunost-connect .yunost-play:focus-visible {
+  background-color: #ff3141;
+  border-color: #ff3141;
+}
+
+.yunost .yunost-eject {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 2;
+  padding: 8px 12px;
+  font-family: var(--mono-font-family, monospace);
+  font-size: var(--body-font-size-xs, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  color: var(--light-color, #fff);
+  opacity: 0.7;
+}
+
+.yunost .yunost-eject:hover,
+.yunost .yunost-eject:focus-visible { opacity: 1; }
+
+/* --- channel dots (right rail) --- */
+.yunost .yunost-dots {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transform: translateY(-50%);
+}
+
+.yunost .yunost-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: rgb(255 255 255 / 35%);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.yunost .yunost-dot-active {
+  background-color: var(--light-color, #fff);
+  transform: scale(1.6);
+}
+
+/* --- screen-reader status --- */
+.yunost .yunost-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  margin: 0;
+}
+
+/* --- no-WebGL fallback --- */
+.yunost.yunost-no-3d .yunost-canvas,
+.yunost.yunost-no-3d .yunost-loading { display: none; }
+
+.yunost.yunost-no-3d .yunost-stage {
+  background: linear-gradient(180deg, #141414 0%, #080808 100%);
+}
+
+@media (width >= 900px) {
+  .yunost .yunost-card { top: 40px; right: 48px; }
+  .yunost .yunost-play { bottom: 40px; left: 48px; }
+  .yunost .yunost-source { bottom: 84px; left: 48px; }
+  .yunost .yunost-eject { top: 28px; left: 48px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yunost .yunost-spinner { animation: none; }
+  .yunost .yunost-dot { transition: none; }
+}
