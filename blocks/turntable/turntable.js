@@ -851,12 +851,13 @@ export default async function decorate(block) {
     apple.onAuthChange(() => updateOverlay());
   }
 
-  // active track follows scroll
+  // active track follows scroll — rooted at the block, which is the scroll
+  // container (a position:fixed element the tracks scroll inside)
   const trackObserver = new IntersectionObserver((obsEntries) => {
     obsEntries.forEach((entry) => {
       if (entry.isIntersecting) setTrack(Number(entry.target.dataset.index), false);
     });
-  }, { threshold: 0.6 });
+  }, { root: block, threshold: 0.6 });
   feed.querySelectorAll('.turntable-track').forEach((t) => trackObserver.observe(t));
 
   // render only while on screen

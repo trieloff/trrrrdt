@@ -1,8 +1,13 @@
 /* turntable — full-viewport PS-F9 player, the device is the UI */
 
-/* the player page scroll-snaps between tracks */
-html:has(main .turntable) {
-  scroll-snap-type: y mandatory;
+/* The player owns the viewport and scrolls inside itself, so the document never
+   scrolls: on iOS that stops the browser chrome collapsing/expanding mid-scroll
+   (which used to leave a gap) and — with overscroll-behavior — the rubber-band. */
+html:has(main .turntable),
+body:has(main .turntable) {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* the player page is only the player — no site chrome */
@@ -32,8 +37,11 @@ main > .section:has(.turntable) > div {
 }
 
 .turntable {
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  position: fixed;
+  inset: 0;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: none;
   background-color: var(--text-color);
 }
 
@@ -45,15 +53,15 @@ main > .section:has(.turntable) > div {
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   margin-bottom: -100vh;
-  margin-bottom: -100svh;
+  margin-bottom: -100dvh;
   overflow: hidden;
 }
 
 .turntable .turntable-track {
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   scroll-snap-align: start;
   pointer-events: none;
 }

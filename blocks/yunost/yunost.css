@@ -1,9 +1,14 @@
 /* Yunost-402 TV player — a channel deck. Each channel scroll-snaps full height;
    the 3D set is pinned in the sticky stage. Sibling to the turntable block. */
 
-/* the player page scroll-snaps between channels */
-html:has(main .yunost) {
-  scroll-snap-type: y mandatory;
+/* The player owns the viewport and scrolls inside itself, so the document never
+   scrolls: on iOS that stops the browser chrome collapsing/expanding mid-scroll
+   (which used to leave a gap) and — with overscroll-behavior — the rubber-band. */
+html:has(main .yunost),
+body:has(main .yunost) {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 /* the player page is only the set — no site chrome */
@@ -33,9 +38,11 @@ main > .section:has(.yunost) > div {
 }
 
 .yunost {
-  position: relative;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
+  position: fixed;
+  inset: 0;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: none;
   background-color: #080808;
 }
 
@@ -47,16 +54,16 @@ main > .section:has(.yunost) > div {
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   margin-bottom: -100vh;
-  margin-bottom: -100svh;
+  margin-bottom: -100dvh;
   overflow: hidden;
   background: #080808;
 }
 
 .yunost .yunost-track {
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   scroll-snap-align: start;
   pointer-events: none;
 }
