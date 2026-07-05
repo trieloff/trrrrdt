@@ -244,8 +244,10 @@ async function initScene(block, tracks, state) {
   sleeve.userData.focusSize = 1.2; // how tall it reads when the camera zooms in
   scene.add(sleeve);
 
-  // the desk prop the camera is currently zoomed onto (cover or notes), or null
+  // the desk prop the camera is currently zoomed onto (cover or notes), or null;
+  // lastFocus keeps the target alive so the zoom-OUT can animate after it clears
   let focusObj = null;
+  let lastFocus = null;
 
   const sampleCanvas = document.createElement('canvas');
   let artworkToken = 0;
@@ -543,12 +545,14 @@ async function initScene(block, tracks, state) {
       keyLight.position.lerp(lightTarget, 0.045);
     }
 
-    // tapping a desk prop (cover or notes) blends the camera down onto it
+    // tapping a desk prop (cover or notes) blends the camera down onto it, and
+    // back out again when it clears — lastFocus keeps the target for the return
     if (state.reducedMotion) placeCamera();
+    if (focusObj) lastFocus = focusObj;
     focusBlend += ((focusObj ? 1 : 0) - focusBlend) * 0.06;
-    if (focusObj && focusBlend > 0.001) {
-      focusObj.getWorldPosition(pPos);
-      const fs = focusObj.userData.focusSize ?? focusObj.userData.paperSize?.h ?? 1;
+    if (lastFocus && focusBlend > 0.001) {
+      lastFocus.getWorldPosition(pPos);
+      const fs = lastFocus.userData.focusSize ?? lastFocus.userData.paperSize?.h ?? 1;
       pCam.set(pPos.x, pPos.y + fs * 1.55, pPos.z + fs * 0.5);
       camera.position.lerp(pCam, focusBlend);
       pLook.lerpVectors(lookTarget, pPos, focusBlend);
