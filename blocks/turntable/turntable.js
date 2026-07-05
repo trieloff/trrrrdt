@@ -1,4 +1,5 @@
 import { toClassName, getMetadata } from '../../scripts/aem.js';
+import PATTERNS from './patterns/index.js';
 
 const MODEL_PATH = '/models/psf9.glb';
 const FADE_MS = 400;
@@ -41,7 +42,7 @@ function wallpaperFromStyle(style) {
   const hueA = h % 360;
   const hueB = (hueA + 120 + ((h >>> 3) % 100)) % 360;
   const hueC = (hueA + 180 + ((h >>> 7) % 80)) % 360;
-  const pattern = (h >>> 9) % 5;
+  const pattern = (h >>> 9) % PATTERNS.length;
   const speed = 0.4 + ((h >>> 13) % 100) / 90;
   const scale = 3 + ((h >>> 17) % 6);
   // remix for an independent second draw: where you stand in the room
@@ -318,7 +319,13 @@ const WALLPAPER_VERTEX = `
   }
 `;
 
-const WALLPAPER_FRAGMENT = `
+/*
+ * Shared wallpaper fragment. Each pattern module (patterns/*.js) supplies a
+ * `float field(vec2 p, float t)`; this wrapper injects it at __FIELD__, then owns
+ * the colour mapping, the mid-driven accent band, treble sparkle, and vignette.
+ * One shader is compiled per pattern and they all share the same uniforms.
+ */
+const WALLPAPER_FRAGMENT_TEMPLATE = `
   precision highp float;
   uniform float uTime;
   uniform float uBass;
@@ -326,58 +333,18 @@ const WALLPAPER_FRAGMENT = `
   uniform float uTreble;
   uniform float uSpeed;
   uniform float uScale;
-  uniform int uPattern;
   uniform vec3 uColA;
   uniform vec3 uColB;
   uniform vec3 uColC;
   varying vec2 vUv;
 
-  float wave(vec2 p, float t) {
-    // liquid stripes — tape warp
-    float x = p.x * uScale + sin(p.y * 2.5 + t) * (0.35 + uBass * 1.2);
-    return sin(x * 6.2831);
-  }
-
-  float rings(vec2 p, float t) {
-    float d = length(p - vec2(1.07, 0.5));
-    return sin(d * uScale * 6.0 - t * 2.0 - uBass * 4.0);
-  }
-
-  float plasma(vec2 p, float t) {
-    float v = sin(p.x * uScale + t);
-    v += sin((p.y * uScale + t) * 0.7);
-    v += sin((p.x + p.y) * uScale * 0.6 + t * 1.3 + uBass * 3.0);
-    v += sin(length(p - 0.5) * uScale * 1.5 - t);
-    return sin(v * 1.5708);
-  }
-
-  float moire(vec2 p, float t) {
-    float a = t * 0.08;
-    mat2 r1 = mat2(cos(a), -sin(a), sin(a), cos(a));
-    mat2 r2 = mat2(cos(-a * 1.3), -sin(-a * 1.3), sin(-a * 1.3), cos(-a * 1.3));
-    vec2 q1 = r1 * (p - 0.5) * (uScale * 2.0 + uBass * 3.0);
-    vec2 q2 = r2 * (p - 0.5) * (uScale * 2.0);
-    float c1 = step(0.0, sin(q1.x * 6.2831) * sin(q1.y * 6.2831));
-    float c2 = step(0.0, sin(q2.x * 6.2831) * sin(q2.y * 6.2831));
-    return c1 * (1.0 - c2) + c2 * (1.0 - c1);
-  }
-
-  float rays(vec2 p, float t) {
-    vec2 d = p - vec2(1.07, 0.42);
-    float ang = atan(d.y, d.x);
-    return sin(ang * uScale + t + uBass * 2.0 + length(d) * 3.0);
-  }
+  __FIELD__
 
   void main() {
     // plane is ~30x14 units — square up the coordinate system
     vec2 p = vUv * vec2(2.143, 1.0);
     float t = uTime * uSpeed;
-    float v = 0.0;
-    if (uPattern == 0) v = wave(p, t);
-    else if (uPattern == 1) v = rings(p, t);
-    else if (uPattern == 2) v = plasma(p, t);
-    else if (uPattern == 3) v = moire(p, t) * 2.0 - 1.0;
-    else if (uPattern == 4) v = rays(p, t);
+    float v = field(p, t);
 
     float m = smoothstep(-0.9, 0.9, v);
     vec3 col = mix(uColA, uColB, m);
@@ -394,8 +361,18 @@ const WALLPAPER_FRAGMENT = `
     float vig = smoothstep(1.35, 0.3, length(vUv - vec2(0.5, 0.55)));
     col *= mix(0.4, 1.0, vig);
 
-    if (uPattern < 0) col = uColA;
     gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
+/* Fallback wall for tracks with no style prompt: a flat, vignetted room colour. */
+const WALLPAPER_SOLID_FRAGMENT = `
+  precision highp float;
+  uniform vec3 uColA;
+  varying vec2 vUv;
+  void main() {
+    float vig = smoothstep(1.35, 0.3, length(vUv - vec2(0.5, 0.55)));
+    gl_FragColor = vec4(uColA * mix(0.4, 1.0, vig), 1.0);
   }
 `;
 
@@ -479,17 +456,22 @@ async function initScene(block, tracks, state) {
     uTreble: { value: 0 },
     uSpeed: { value: 1 },
     uScale: { value: 5 },
-    uPattern: { value: -1 },
     uColA: { value: new THREE.Color(0x1c1c1c) },
     uColB: { value: new THREE.Color(0x2c2c2c) },
     uColC: { value: new THREE.Color(0xd93025) },
   };
-  const wallMat = new THREE.ShaderMaterial({
+  // one shader per pattern module — all share these uniforms, swapped per track
+  const patternMats = PATTERNS.map((pat) => new THREE.ShaderMaterial({
     uniforms: wallUniforms,
     vertexShader: WALLPAPER_VERTEX,
-    fragmentShader: WALLPAPER_FRAGMENT,
+    fragmentShader: WALLPAPER_FRAGMENT_TEMPLATE.replace('__FIELD__', pat.glsl),
+  }));
+  const solidMat = new THREE.ShaderMaterial({
+    uniforms: wallUniforms,
+    vertexShader: WALLPAPER_VERTEX,
+    fragmentShader: WALLPAPER_SOLID_FRAGMENT,
   });
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(30, 14), wallMat);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(30, 14), solidMat);
   wall.position.set(0, 7, -6);
   scene.add(wall);
 
@@ -556,13 +538,13 @@ async function initScene(block, tracks, state) {
       target.table.setHSL(hues[0], 0.30, 0.16);
       target.speed = speed;
       target.scale = scale;
-      wallUniforms.uPattern.value = pattern;
+      wall.material = patternMats[pattern] || solidMat;
     } else {
       target.bg.set(track.room.wall);
       target.fg.set(track.room.wall).multiplyScalar(1.8);
       target.accent.set(track.room.glow);
       target.table.set(track.room.table);
-      wallUniforms.uPattern.value = -1;
+      wall.material = solidMat;
       camGoal.az = 0;
       camGoal.h = 2.3;
       camGoal.d = 4.8;
@@ -681,7 +663,9 @@ async function initScene(block, tracks, state) {
     if (!state.rendering) return;
     requestAnimationFrame(frame);
     const delta = clock.getDelta();
-    if (!state.reducedMotion) elapsed += delta;
+    // reduced-motion freezes time entirely; an unfocused window crawls at 1/100
+    const timeScale = state.reducedMotion ? 0 : state.focusScale;
+    elapsed += delta * timeScale;
 
     env.bg.lerp(target.bg, ENV_LERP);
     env.fg.lerp(target.fg, ENV_LERP);
@@ -731,7 +715,7 @@ async function initScene(block, tracks, state) {
 
     const spinning = state.playing || window.location.hash === '#spin';
     if (vinyl && spinAxis && spinning && !state.reducedMotion) {
-      vinyl.rotateOnAxis(spinAxis, SPIN_SPEED * delta);
+      vinyl.rotateOnAxis(spinAxis, SPIN_SPEED * delta * state.focusScale);
     }
 
     // focus tracks the device as the camera glides between rooms;
@@ -791,7 +775,7 @@ function createAppleBackend(tokenEndpoint) {
   let configurePromise = null;
   let music = null;
   let active = false;
-  const listeners = { ended: () => {} };
+  const listeners = { ended: () => {}, authChange: () => {} };
 
   async function fetchToken() {
     const res = await fetch(tokenEndpoint, { headers: { accept: 'application/json' } });
@@ -830,6 +814,9 @@ function createAppleBackend(tokenEndpoint) {
         const S = window.MusicKit.PlaybackStates;
         if (active && (state === S.completed || state === S.ended)) listeners.ended();
       });
+      // fires when the listener signs in/out — lets the UI relabel the button
+      // from "Connect Apple Music" the instant authorization completes
+      music.addEventListener('authorizationStatusDidChange', () => listeners.authChange());
       return music;
     })();
     // a transient token/network failure shouldn't poison the whole session —
@@ -847,6 +834,7 @@ function createAppleBackend(tokenEndpoint) {
   return {
     configure,
     onEnded(cb) { listeners.ended = cb; },
+    onAuthChange(cb) { listeners.authChange = cb; },
     setActive(v) { active = v; },
     isActive: () => active,
     isConfigured: () => !!music,
@@ -869,11 +857,6 @@ function createAppleBackend(tokenEndpoint) {
       active = true;
     },
     pause() { if (music && active) music.pause(); },
-    async previewUrl(appleId, storefront) {
-      const body = await catalog(`/v1/catalog/${storefront}/songs/${appleId}`);
-      const song = body?.data?.[0];
-      return song?.attributes?.previews?.[0]?.url || '';
-    },
     async expand({ kind, id, storefront }) {
       const rel = kind === 'album' ? 'albums' : 'playlists';
       const body = await catalog(`/v1/catalog/${storefront}/${rel}/${id}`, { include: 'tracks', 'limit[tracks]': 100 });
@@ -962,6 +945,10 @@ export default async function decorate(block) {
     appleError: false,
     dofAmount: Number.isFinite(storedDof) && storedDof >= 0 ? storedDof : 0.2,
     reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    // 1 when the window is focused, 0.01 when it isn't — the visualizer nearly
+    // freezes (100× slower) while the listener is looking at another window,
+    // instead of churning the GPU on animation nobody can see
+    focusScale: document.hasFocus() ? 1 : 0.01,
     setEnvironment: () => {},
     // Apple's DRM stream is cross-origin, so no spectrum analysis there — fall
     // back to the idle LFO for Apple tracks; Suno tracks keep real analysis
@@ -995,23 +982,17 @@ export default async function decorate(block) {
     if (apple) apple.pause();
   }
 
-  // Route a track to the right backend. Returns the play mode ('full' | 'preview').
+  // Route a track to the right backend.
   // Throws { code: 'auth-required' } when an Apple track needs the listener to
   // connect and this wasn't a user gesture (so we can't open the auth popup).
   async function playTrack(track, userGesture) {
     if (track.source === 'apple' && apple) {
       file.pause();
-      try {
-        await apple.play(track.appleId, { userGesture });
-        return 'full';
-      } catch (e) {
-        apple.setActive(false);
-        if (e.code === 'auth-required') throw e;
-        // no subscription / playback error → drop to the 30s catalog preview
-        const preview = await apple.previewUrl(track.appleId, track.storefront).catch(() => '');
-        if (preview) { await file.play(preview); return 'preview'; }
-        throw e;
-      }
+      // Let MusicKit own Apple playback: it plays the FULL track for authorized
+      // subscribers and a preview otherwise, and drives ended→advance either way.
+      // (We used to fall back to a 30s file-engine clip, which masked full playback.)
+      await apple.play(track.appleId, { userGesture });
+      return 'full';
     }
     if (apple) { apple.setActive(false); apple.pause(); }
     await file.play(track.audio);
@@ -1030,19 +1011,15 @@ export default async function decorate(block) {
 
     // visible source badge for Apple tracks
     let source = '';
-    if (isApple) {
-      if (state.appleError) source = 'Apple Music unavailable';
-      else if (state.playing && state.mode === 'preview') source = 'Apple Music · 30s preview';
-      else source = 'Apple Music';
-    }
+    if (isApple) source = state.appleError ? 'Apple Music unavailable' : 'Apple Music';
     info.source.textContent = source;
 
     let status = '';
     if (state.playing) {
-      status = `${state.mode === 'preview' ? 'Preview' : 'Playing'}: ${track.title} by ${track.artist}`;
+      status = `Playing: ${track.title} by ${track.artist}`;
     } else if (isApple && state.appleError) {
       status = 'Apple Music unavailable right now';
-    } else if (isApple && apple && !apple.isAuthorized()) {
+    } else if (needsConnect) {
       status = 'Connect your Apple Music account to play the full song';
     }
     info.status.textContent = status;
@@ -1132,7 +1109,12 @@ export default async function decorate(block) {
     }
   };
   file.onEnded(advance);
-  if (apple) apple.onEnded(advance);
+  if (apple) {
+    apple.onEnded(advance);
+    // relabel the button ("Connect Apple Music" → play/pause) the moment the
+    // listener finishes signing in, without waiting for the next render
+    apple.onAuthChange(() => updateOverlay());
+  }
 
   // active track follows scroll
   const trackObserver = new IntersectionObserver((obsEntries) => {
@@ -1154,6 +1136,9 @@ export default async function decorate(block) {
     if (document.hidden) state.stopRender();
     else state.startRender();
   });
+  // a visible-but-unfocused window keeps rendering, but the visualizer crawls
+  window.addEventListener('blur', () => { state.focusScale = 0.01; });
+  window.addEventListener('focus', () => { state.focusScale = 1; });
 
   // deep-link: start on the track named in the URL hash (#song-slug or #N)
   function hashToIndex() {

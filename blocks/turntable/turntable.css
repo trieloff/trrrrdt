@@ -206,17 +206,19 @@ main > .section:has(.turntable) > div {
 }
 
 /* when an Apple track needs the listener to sign in, the play control becomes a
-   call to action rather than a printed marking */
+   call to action in Apple Music's brand red rather than a printed marking */
 .turntable.turntable-connect .turntable-play {
-  color: var(--background-color, #1c1c1c);
-  background-color: var(--light-color);
-  border-color: var(--light-color);
+  color: #fff;
+  background-color: #fa243c;
+  border-color: #fa243c;
   font-weight: 700;
+  box-shadow: 0 2px 14px rgb(250 36 60 / 45%);
 }
 
 .turntable.turntable-connect .turntable-play:hover,
 .turntable.turntable-connect .turntable-play:focus-visible {
-  background-color: rgb(255 255 255 / 85%);
+  background-color: #ff3141;
+  border-color: #ff3141;
 }
 
 /* --- source badge: which network the current track streams from --- */
