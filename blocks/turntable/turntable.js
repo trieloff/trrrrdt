@@ -108,9 +108,13 @@ function rowToEntry(cells) {
     return { kind: 'expand', apple };
   }
   const artist = cells[1]?.textContent?.trim() || '';
+  // cover art may sit in any cell as an <img> (DA content-addresses it, so the
+  // same asset can appear on the card, the hero, and here at no extra cost)
+  const image = [...cells].map((c) => c.querySelector('img')?.src).find(Boolean) || '';
   const partial = {
     title,
     artist,
+    image,
     meta: cells[2]?.textContent?.trim() || '',
     style: cells[4]?.textContent?.trim() || '',
     source: apple ? 'apple' : 'file',
@@ -519,6 +523,86 @@ async function initScene(block, tracks, state) {
     scale: 5,
   };
 
+  // a record sleeve propped on the table, showing the current track's cover art
+  const sleeveMat = new THREE.MeshStandardMaterial({
+    color: 0x0e0e0e, roughness: 0.82, metalness: 0.0,
+  });
+  const sleeve = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), sleeveMat);
+  // lying flat on the table, front-right of the device, casually angled
+  sleeve.position.set(1.3, 0.015, 0.8);
+  sleeve.rotation.set(-Math.PI / 2, 0, 0.32);
+  sleeve.castShadow = true;
+  sleeve.receiveShadow = true;
+  sleeve.visible = false;
+  scene.add(sleeve);
+
+  const sampleCanvas = document.createElement('canvas');
+  let artworkToken = 0;
+
+  /* Pull a palette from the cover: the average tone, plus the most vivid
+     mid-bright pixel as an accent. Returns null on a tainted (non-CORS) canvas. */
+  function samplePalette(img) {
+    try {
+      const S = 24;
+      sampleCanvas.width = S;
+      sampleCanvas.height = S;
+      const c = sampleCanvas.getContext('2d');
+      c.drawImage(img, 0, 0, S, S);
+      const { data } = c.getImageData(0, 0, S, S);
+      let ar = 0; let ag = 0; let ab = 0; let n = 0;
+      let best = null; let bestScore = -1;
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i]; const g = data[i + 1]; const b = data[i + 2];
+        ar += r; ag += g; ab += b; n += 1;
+        const mx = Math.max(r, g, b); const mn = Math.min(r, g, b);
+        const sat = mx === 0 ? 0 : (mx - mn) / mx;
+        const lum = (mx + mn) / 2;
+        const score = sat * (1 - Math.abs(lum - 150) / 150);
+        if (score > bestScore) { bestScore = score; best = [r, g, b]; }
+      }
+      return { avg: [ar / n, ag / n, ab / n], accent: best || [ar / n, ag / n, ab / n] };
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* Drive the room colours from the cover instead of the style hash. */
+  function applyPalette(pal) {
+    const toColor = (rgb) => new THREE.Color(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255);
+    const avg = toColor(pal.avg);
+    target.bg.copy(avg).multiplyScalar(0.42);
+    target.fg.copy(avg).multiplyScalar(1.15);
+    target.accent.copy(toColor(pal.accent));
+    target.table.copy(avg).multiplyScalar(0.55);
+    if (state.reducedMotion) {
+      env.bg.copy(target.bg);
+      env.fg.copy(target.fg);
+      env.accent.copy(target.accent);
+      env.table.copy(target.table);
+    }
+  }
+
+  function loadArtwork(url) {
+    artworkToken += 1;
+    const token = artworkToken;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      if (token !== artworkToken) return; // a newer track superseded this load
+      const tex = new THREE.Texture(img);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.needsUpdate = true;
+      sleeveMat.map = tex;
+      sleeveMat.color.set(0xffffff);
+      sleeveMat.needsUpdate = true;
+      sleeve.visible = true;
+      const pal = samplePalette(img);
+      if (pal) applyPalette(pal);
+    };
+    img.onerror = () => { if (token === artworkToken) sleeve.visible = false; };
+    img.src = url;
+  }
+
   state.setEnvironment = (track) => {
     if (track.wallpaper) {
       const {
@@ -549,6 +633,14 @@ async function initScene(block, tracks, state) {
       camGoal.h = 2.3;
       camGoal.d = 4.8;
       lightTarget.set(-3, 5, 2);
+    }
+    // cover art (when present) drives both the sleeve and the room palette,
+    // overriding the hash/room colours above once it loads
+    if (track.image) {
+      loadArtwork(track.image);
+    } else {
+      artworkToken += 1;
+      sleeve.visible = false;
     }
     if (state.reducedMotion) {
       env.bg.copy(target.bg);
@@ -750,9 +842,13 @@ function appleSongToTrack(song, storefront) {
   const a = song.attributes || {};
   const genre = (a.genreNames && a.genreNames[0]) || '';
   const dur = a.durationInMillis ? msToClock(a.durationInMillis) : '';
+  const image = a.artwork && a.artwork.url
+    ? a.artwork.url.replace('{w}', '600').replace('{h}', '600')
+    : '';
   return {
     title: a.name || 'Untitled',
     artist: a.artistName || '',
+    image,
     meta: [genre, dur].filter(Boolean).join(' · '),
     style: (a.genreNames && a.genreNames.join(', ')) || a.artistName || '',
     source: 'apple',
