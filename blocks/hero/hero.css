@@ -35,12 +35,19 @@ main > .section:first-of-type:has(.hero) > div {
 }
 
 .hero h1 {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
   color: var(--light-color);
-  font-size: var(--heading-font-size-xxl);
-  letter-spacing: 0.08em;
+  font-size: clamp(2.2rem, 6vw, var(--heading-font-size-xxl));
+  letter-spacing: 0.05em;
+
+  /* keep multi-script titles from breaking mid-word (e.g. チタン) — break at the
+     spaces around the separators instead, and balance the resulting lines */
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  text-wrap: balance;
 }
 
 .hero p {
@@ -92,9 +99,9 @@ main > .section:first-of-type:has(.hero) > div {
   z-index: 1;
   background: linear-gradient(
     to top,
-    rgb(0 0 0 / 86%) 0%,
-    rgb(0 0 0 / 62%) 60%,
-    rgb(0 0 0 / 70%) 100%
+    rgb(0 0 0 / 88%) 0%,
+    rgb(0 0 0 / 74%) 50%,
+    rgb(0 0 0 / 80%) 100%
   );
 }
 
@@ -112,17 +119,25 @@ main > .section:first-of-type:has(.hero) > div {
   z-index: 2;
 }
 
-/* the auto-hero's leading image arrives wrapped in a <p> that the global
-   first-section rule caps at 560px and centres; free it so the cover can fill */
-.hero p:has(picture) {
+/* the auto-hero nests the <h1> inside the leading picture's <p>, and that <p>
+   inherits the global first-section rule's 560px cap AND 0.75 opacity — clamping the
+   title's width and dimming it (a child can't beat a parent's opacity). Free it at a
+   specificity that beats `main > .section:first-of-type p`. */
+main > .section:first-of-type:has(.hero) p:has(picture) {
   max-width: none;
   margin: 0;
   position: static;
+  opacity: 1;
 }
 
-/* beat the global first-section h1's subtle red shadow with a real dark lift */
+/* beat the global first-section h1's subtle red shadow with a real dark halo, so
+   the cream title stays crisp over both dark metal and light-linen cover art */
 main > .section:first-of-type:has(.hero) h1 {
-  text-shadow: 0 2px 20px rgb(0 0 0 / 85%), 0 1px 3px rgb(0 0 0 / 70%);
+  text-shadow:
+    0 0 3px rgb(0 0 0 / 92%),
+    0 0 16px rgb(0 0 0 / 85%),
+    0 2px 5px rgb(0 0 0 / 92%),
+    0 4px 24px rgb(0 0 0 / 65%);
 }
 
 @media (width >= 900px) {
