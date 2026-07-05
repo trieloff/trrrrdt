@@ -195,6 +195,17 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // always serve over https — the origin guard below requires an https origin,
+    // and we don't want to depend on a zone-level "Always Use HTTPS" toggle
+    if (url.protocol === 'http:') {
+      url.protocol = 'https:';
+      url.port = '';
+      return new Response(`Moved permanently to ${url.href}`, {
+        status: 301,
+        headers: { location: url.href },
+      });
+    }
+
     // apex → www (env.CANONICAL_HOST, e.g. www.trrrrdt.studio)
     if (env.CANONICAL_HOST && url.hostname !== env.CANONICAL_HOST
       && url.hostname.endsWith(env.CANONICAL_HOST.replace(/^www\./, ''))) {
