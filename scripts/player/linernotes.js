@@ -5,14 +5,24 @@
  * the block lays on the desk. Clicking it blends the camera to a reading pose.
  */
 
-/* Find the liner-notes fragment path from a link in the block's section (or the
-   block itself) — either a `…/{name}-notes` page or a /fragments/ page. Returns
-   the pathname, or null. */
+/* Does this href point at a liner-notes fragment (`…-notes` or /fragments/)? */
+export function isNotesLink(href) {
+  try {
+    return /(-notes(?:$|[./?])|\/fragments\/)/.test(new URL(href, window.location).pathname);
+  } catch (e) { return false; }
+}
+
+/* The pathname of an href, or ''. */
+export function notesPathOf(href) {
+  try { return new URL(href, window.location).pathname; } catch (e) { return ''; }
+}
+
+/* Find the page-level liner-notes fragment path from a link in the block's
+   section (the fallback when a track carries none of its own). */
 export function findFragmentPath(block) {
   const scope = block.closest('.section') || block;
-  const a = scope.querySelector('a[href*="-notes"], a[href*="/fragments/"]');
-  if (!a) return null;
-  try { return new URL(a.href, window.location).pathname; } catch (e) { return null; }
+  const a = [...scope.querySelectorAll('a[href]')].find((el) => isNotesLink(el.href));
+  return a ? notesPathOf(a.href) : null;
 }
 
 async function loadNotes(path) {
@@ -116,21 +126,29 @@ export async function loadNotesCanvas(path) {
 }
 
 /*
- * Build the A4 paper mesh (notes on the front). Lies flat by default; the block
- * positions/rotates it onto the desk. `worldWidth` sizes it in scene units.
+ * Build the A4 paper mesh — blank and hidden until a canvas is set. Lies flat;
+ * the block positions/rotates it onto the desk. `worldWidth` sizes it.
  */
-export function createPaper(THREE, canvas, worldWidth = 0.72) {
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
+export function createPaper(THREE, worldWidth = 0.72) {
   const w = worldWidth;
   const h = w * Math.SQRT2;
   const mesh = new THREE.Mesh(
     new THREE.PlaneGeometry(w, h),
-    new THREE.MeshStandardMaterial({ map: tex, roughness: 0.92, metalness: 0 }),
+    new THREE.MeshStandardMaterial({ color: 0xf2e7cf, roughness: 0.92, metalness: 0 }),
   );
   mesh.castShadow = true;
   mesh.receiveShadow = true;
+  mesh.visible = false;
   mesh.userData.paperSize = { w, h };
   return mesh;
+}
+
+/* Skin the paper with a notes canvas (per song). Disposes the previous texture. */
+export function setPaperCanvas(THREE, paper, canvas) {
+  if (paper.material.map) paper.material.map.dispose();
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 8;
+  paper.material.map = tex;
+  paper.material.needsUpdate = true;
 }

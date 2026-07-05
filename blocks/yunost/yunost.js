@@ -3,7 +3,9 @@ import createAudioEngine from '../../scripts/player/audio.js';
 import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
-import { findFragmentPath, loadNotesCanvas, createPaper } from '../../scripts/player/linernotes.js';
+import {
+  findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
+} from '../../scripts/player/linernotes.js';
 
 const MODEL_PATH = '/models/yunost.glb';
 const ENV_LERP = 0.05;
@@ -71,6 +73,7 @@ function rowToEntry(cells) {
   const screen = img || mediaLink;
   // audio: an Apple link, or an mp3/audio link that isn't the screen media
   const audioLink = links.find((h) => h && (classifyAppleUrl(h) || /\.(mp3|m4a|aac|ogg|wav)(\?|$)/i.test(h)) && h !== mediaLink) || '';
+  const notes = links.find((h) => h && isNotesLink(h)); // per-channel liner notes
   const apple = classifyAppleUrl(audioLink);
   if (apple && (apple.kind === 'playlist' || apple.kind === 'album')) {
     return { kind: 'expand', apple };
@@ -88,6 +91,7 @@ function rowToEntry(cells) {
       appleId: apple ? apple.id : null,
       storefront: apple ? apple.storefront : 'us',
       audio: apple ? '' : audioLink,
+      notes: notes ? notesPathOf(notes) : '',
       // playable when there's an audio track OR a video that carries its own sound
       playable: !!(audioLink || apple || isVideo),
     },
@@ -325,6 +329,7 @@ async function initScene(block, tracks, state) {
       wall.material = solidMat;
     }
     setScreenTexture(track);
+    if (state.showNotes) state.showNotes(track);
     if (state.reducedMotion) {
       env.bg.copy(target.bg); env.fg.copy(target.fg); env.accent.copy(target.accent);
     }
@@ -388,25 +393,28 @@ async function initScene(block, tracks, state) {
   placeCamera();
   loading.classList.add('yunost-done');
 
-  // liner notes — an A4 sheet laid on the floor; click it and the camera eases
-  // down to read it, click again (or anywhere) to return
-  let paper = null;
-  let paperH = 0.99;
+  // liner notes — an A4 sheet on the floor, per channel. Built once, re-skinned
+  // when the channel changes; click it and the camera eases down to read it.
+  const paper = createPaper(THREE, 0.7);
+  const paperH = paper.userData.paperSize.h;
+  paper.rotation.set(-Math.PI / 2, 0, -0.14);
+  paper.position.set(0.95, 0.01, 1.35);
+  scene.add(paper);
   let readBlend = 0;
-  const notesPath = findFragmentPath(block);
+  const pageNotes = findFragmentPath(block); // fallback when a channel has none
+  const notesCache = new Map();
   const pPos = new THREE.Vector3();
   const pCam = new THREE.Vector3();
   const pLook = new THREE.Vector3();
-  if (notesPath) {
-    loadNotesCanvas(notesPath).then((canvas) => {
-      if (!canvas) return;
-      paper = createPaper(THREE, canvas, 0.7);
-      paperH = paper.userData.paperSize.h;
-      paper.rotation.set(-Math.PI / 2, 0, -0.14);
-      paper.position.set(0.95, 0.01, 1.35);
-      scene.add(paper);
-    });
-  }
+  state.showNotes = async (track) => {
+    const path = (track && track.notes) || pageNotes;
+    if (!path) { paper.visible = false; state.reading = false; return; }
+    if (!notesCache.has(path)) notesCache.set(path, await loadNotesCanvas(path));
+    const canvas = notesCache.get(path);
+    if (!canvas) { paper.visible = false; return; }
+    setPaperCanvas(THREE, paper, canvas);
+    paper.visible = true;
+  };
 
   // tap the set to play/pause; tap the sheet to read
   const raycaster = new THREE.Raycaster();
@@ -416,7 +424,7 @@ async function initScene(block, tracks, state) {
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    if (paper && raycaster.intersectObject(paper).length) {
+    if (paper.visible && raycaster.intersectObject(paper).length) {
       state.reading = !state.reading;
       return;
     }

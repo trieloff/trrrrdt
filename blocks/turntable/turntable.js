@@ -3,7 +3,9 @@ import createAudioEngine from '../../scripts/player/audio.js';
 import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
-import { findFragmentPath, loadNotesCanvas, createPaper } from '../../scripts/player/linernotes.js';
+import {
+  findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
+} from '../../scripts/player/linernotes.js';
 
 const MODEL_PATH = '/models/psf9.glb';
 const ENV_LERP = 0.05;
@@ -30,9 +32,9 @@ const ROOMS = {
    an <audio> src; plain rows keep the mp3 href. finalize() adds slug/wallpaper/room. */
 function rowToEntry(cells) {
   const title = cells[0]?.textContent?.trim() || '';
-  const link = cells[3]?.querySelector('a')?.href
-    || [...cells].map((c) => c.querySelector('a')?.href).find(Boolean)
-    || '';
+  const links = [...cells].map((c) => c.querySelector('a')?.href).filter(Boolean);
+  const notes = links.find(isNotesLink); // per-song liner notes, if any
+  const link = links.find((h) => h !== notes) || ''; // audio (mp3 / Apple)
   const apple = classifyAppleUrl(link);
   if (apple && (apple.kind === 'playlist' || apple.kind === 'album')) {
     return { kind: 'expand', apple };
@@ -51,6 +53,7 @@ function rowToEntry(cells) {
     appleId: apple ? apple.id : null,
     storefront: apple ? apple.storefront : 'us',
     audio: apple ? '' : link,
+    notes: notes ? notesPathOf(notes) : '',
     playable: apple ? true : !!link,
   };
   return { kind: 'track', track: partial };
@@ -357,6 +360,7 @@ async function initScene(block, tracks, state) {
       placeCamera();
       keyLight.position.copy(lightTarget);
     }
+    if (state.showNotes) state.showNotes(track);
   };
 
   // load the PS-F9
@@ -423,25 +427,29 @@ async function initScene(block, tracks, state) {
   camera.lookAt(lookTarget);
   loading.classList.add('turntable-done');
 
-  // liner notes — an A4 sheet laid on the desk; click it and the camera eases
-  // down to read it, click again (or anywhere) to return
-  let paper = null;
-  let paperH = 0.99;
+  // liner notes — an A4 sheet on the desk, per song. Built once, re-skinned when
+  // the current track changes; click it and the camera eases down to read it,
+  // click again (or anywhere) to return.
+  const paper = createPaper(THREE, 0.72);
+  const paperH = paper.userData.paperSize.h;
+  paper.rotation.set(-Math.PI / 2, 0, 0.16);
+  paper.position.set(0.9, 0.02, 1.3);
+  scene.add(paper);
   let readBlend = 0;
-  const notesPath = findFragmentPath(block);
+  const pageNotes = findFragmentPath(block); // fallback when a track has none
+  const notesCache = new Map();
   const pPos = new THREE.Vector3();
   const pCam = new THREE.Vector3();
   const pLook = new THREE.Vector3();
-  if (notesPath) {
-    loadNotesCanvas(notesPath).then((canvas) => {
-      if (!canvas) return;
-      paper = createPaper(THREE, canvas, 0.72);
-      paperH = paper.userData.paperSize.h;
-      paper.rotation.set(-Math.PI / 2, 0, 0.16);
-      paper.position.set(0.9, 0.02, 1.3);
-      scene.add(paper);
-    });
-  }
+  state.showNotes = async (track) => {
+    const path = (track && track.notes) || pageNotes;
+    if (!path) { paper.visible = false; state.reading = false; return; }
+    if (!notesCache.has(path)) notesCache.set(path, await loadNotesCanvas(path));
+    const canvas = notesCache.get(path);
+    if (!canvas) { paper.visible = false; return; }
+    setPaperCanvas(THREE, paper, canvas);
+    paper.visible = true;
+  };
 
   // tap the device to play/pause; tap the sheet to read
   const raycaster = new THREE.Raycaster();
@@ -454,7 +462,7 @@ async function initScene(block, tracks, state) {
   };
   renderer.domElement.addEventListener('pointerdown', (e) => {
     setPointer(e);
-    if (paper && raycaster.intersectObject(paper).length) {
+    if (paper.visible && raycaster.intersectObject(paper).length) {
       state.reading = !state.reading;
       return;
     }
@@ -464,7 +472,7 @@ async function initScene(block, tracks, state) {
   renderer.domElement.addEventListener('pointermove', (e) => {
     setPointer(e);
     const over = raycaster.intersectObject(model, true).length > 0
-      || (paper && raycaster.intersectObject(paper).length > 0);
+      || (paper.visible && raycaster.intersectObject(paper).length > 0);
     renderer.domElement.style.cursor = over ? 'pointer' : 'default';
   });
 
