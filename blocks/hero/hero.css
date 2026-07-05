@@ -4,6 +4,27 @@
   padding: 0;
 }
 
+/* when the auto-hero is the first section, let the hero block own it rather than
+   layer under the global first-section band (scan-lines, centring, 560px cap) */
+main > .section:first-of-type:has(.hero) {
+  padding: 0;
+  background: none;
+  border-bottom: 0;
+  overflow: visible;
+  text-align: initial;
+}
+
+main > .section:first-of-type:has(.hero)::before,
+main > .section:first-of-type:has(.hero)::after {
+  content: none;
+}
+
+main > .section:first-of-type:has(.hero) > div {
+  max-width: none;
+  padding: 0;
+  z-index: auto;
+}
+
 .hero {
   position: relative;
   padding: 48px 24px;
@@ -17,7 +38,7 @@
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-  color: var(--background-color);
+  color: var(--light-color);
   font-size: var(--heading-font-size-xxl);
   letter-spacing: 0.08em;
 }
@@ -50,16 +71,58 @@
 
 .hero picture {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   inset: 0;
-  object-fit: cover;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
 }
 
-.hero img {
+.hero picture img {
   object-fit: cover;
   width: 100%;
   height: 100%;
+}
+
+/* scrim so the light text stays readable over cover art */
+.hero:has(picture)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 86%) 0%,
+    rgb(0 0 0 / 62%) 60%,
+    rgb(0 0 0 / 70%) 100%
+  );
+}
+
+.hero:has(picture) {
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.hero h1,
+.hero p,
+.hero .button-wrapper {
+  position: relative;
+  z-index: 2;
+}
+
+/* the auto-hero's leading image arrives wrapped in a <p> that the global
+   first-section rule caps at 560px and centres; free it so the cover can fill */
+.hero p:has(picture) {
+  max-width: none;
+  margin: 0;
+  position: static;
+}
+
+/* beat the global first-section h1's subtle red shadow with a real dark lift */
+main > .section:first-of-type:has(.hero) h1 {
+  text-shadow: 0 2px 20px rgb(0 0 0 / 85%), 0 1px 3px rgb(0 0 0 / 70%);
 }
 
 @media (width >= 900px) {

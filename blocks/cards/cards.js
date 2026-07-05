@@ -6,10 +6,13 @@ export default function decorate(block) {
     const li = document.createElement('li');
     let hasImage = false;
     [...row.children].forEach((col) => {
-      const isEmpty = !col.hasChildNodes()
-        || (col.children.length === 1 && !col.firstElementChild.textContent.trim());
+      // a cell holding cover art (EDS ingestion delivers a bare <img>, not a
+      // <picture>) is never "empty" even though it has no text
+      const media = col.querySelector('picture, img');
+      const isEmpty = !media && (!col.hasChildNodes()
+        || (col.children.length === 1 && !col.firstElementChild.textContent.trim()));
       if (isEmpty) return;
-      if (col.querySelector('picture')) {
+      if (media) {
         col.className = 'cards-card-image';
         hasImage = true;
       } else {
