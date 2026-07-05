@@ -56,6 +56,34 @@ export default function decorate(block) {
       art.alt = '';
       art.loading = 'lazy';
       shell.querySelector('.cassette-label').prepend(art);
+
+      // invert the body from the cover's dominant tone: a dark cover gets an
+      // ivory body, a light cover a black one (same-origin art keeps the
+      // sampling canvas untainted; on failure we keep the alternating default)
+      const probe = new Image();
+      probe.crossOrigin = 'anonymous';
+      probe.addEventListener('load', () => {
+        let lum;
+        try {
+          const c = document.createElement('canvas');
+          c.width = 8;
+          c.height = 8;
+          const cx = c.getContext('2d');
+          cx.drawImage(probe, 0, 0, 8, 8);
+          const d = cx.getImageData(0, 0, 8, 8).data;
+          let sum = 0;
+          for (let j = 0; j < d.length; j += 4) {
+            sum += 0.2126 * d[j] + 0.7152 * d[j + 1] + 0.0722 * d[j + 2];
+          }
+          lum = sum / (d.length / 4);
+        } catch (e) {
+          return;
+        }
+        const dark = lum < 128;
+        li.style.setProperty('--cassette-color', dark ? 'var(--cassette-ivory)' : 'var(--cassette-black)');
+        li.style.setProperty('--cassette-ink', dark ? 'var(--text-color)' : 'var(--light-color)');
+      });
+      probe.src = cover.src;
     }
 
     if (link) {

@@ -9,17 +9,24 @@
   gap: 22px;
 }
 
-.cassettes > ul > li {
-  position: relative;
+/* black & ivory bodies: alternating with no cover, inverted from the cover's
+   dominant tone (set inline by the JS) when a cassette carries art */
+.cassettes {
+  --cassette-black: #17130e;
+  --cassette-ivory: #eae1ce;
 }
 
-/* per-track colour via nth-child */
-.cassettes > ul > li:nth-child(6n+1) { --cassette-color: var(--accent-color); }
-.cassettes > ul > li:nth-child(6n+2) { --cassette-color: var(--accent-mustard); }
-.cassettes > ul > li:nth-child(6n+3) { --cassette-color: var(--accent-teal); }
-.cassettes > ul > li:nth-child(6n+4) { --cassette-color: var(--accent-mint); }
-.cassettes > ul > li:nth-child(6n+5) { --cassette-color: var(--accent-coral); }
-.cassettes > ul > li:nth-child(6n+6) { --cassette-color: var(--smoke-color); }
+.cassettes > ul > li {
+  position: relative;
+
+  --cassette-color: var(--cassette-ivory);
+  --cassette-ink: var(--text-color);
+}
+
+.cassettes > ul > li:nth-child(2n) {
+  --cassette-color: var(--cassette-black);
+  --cassette-ink: var(--light-color);
+}
 
 .cassettes .cassette-link {
   display: block;
@@ -111,14 +118,13 @@
   align-items: center;
   padding: 1.5cqw 3.4cqw;
   background-color: var(--cassette-color, var(--smoke-color));
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 30%), transparent 75%);
-  color: rgb(255 255 255 / 92%);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 18%), transparent 75%);
+  color: var(--cassette-ink, rgb(255 255 255 / 92%));
   font-family: var(--mono-font-family);
   font-size: 2.7cqw;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  text-shadow: 0 1px 1px rgb(0 0 0 / 35%);
 }
 
 .cassettes .cassette-title {
@@ -259,6 +265,10 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+
+  /* the label shows only a wide band of the square cover — anchor it to the top,
+     where the focal point sits, keeping it clear of the title/scrim below */
+  object-position: center top;
 }
 
 .cassettes .cassette-has-art .cassette-label {

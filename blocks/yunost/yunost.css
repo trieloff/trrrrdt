@@ -6,6 +6,7 @@
 
 .yunost .yunost-feed {
   position: relative;
+  scroll-snap-type: y mandatory;
 }
 
 .yunost .yunost-stage {
@@ -19,10 +20,6 @@
 .yunost .yunost-track {
   height: 100svh;
   scroll-snap-align: start;
-}
-
-.yunost .yunost-feed {
-  scroll-snap-type: y mandatory;
 }
 
 .yunost .yunost-canvas {
@@ -160,7 +157,11 @@
 
 .yunost .yunost-play:hover,
 .yunost .yunost-play:focus-visible { background-color: rgb(255 255 255 / 12%); }
-.yunost .yunost-play:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.yunost .yunost-play:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
 .yunost.yunost-connect .yunost-play {
   color: #fff;
@@ -238,10 +239,25 @@
 }
 
 @media (width >= 900px) {
-  .yunost .yunost-card { top: 40px; right: 48px; }
-  .yunost .yunost-play { bottom: 40px; left: 48px; }
-  .yunost .yunost-source { bottom: 84px; left: 48px; }
-  .yunost .yunost-eject { top: 28px; left: 48px; }
+  .yunost .yunost-card {
+    top: 40px;
+    right: 48px;
+  }
+
+  .yunost .yunost-play {
+    bottom: 40px;
+    left: 48px;
+  }
+
+  .yunost .yunost-source {
+    bottom: 84px;
+    left: 48px;
+  }
+
+  .yunost .yunost-eject {
+    top: 28px;
+    left: 48px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -166,7 +166,9 @@ async function initScene(block, tracks, state) {
   // the picture plane — image or video texture rides here, over the tube face.
   // depthTest off + high renderOrder so it always draws on top of the (single-
   // mesh) tube glass; sized to the tube opening so it doesn't spill over the bezel
-  const screenMat = new THREE.MeshBasicMaterial({ color: 0x0a0a0a, toneMapped: false, depthTest: false });
+  const screenMat = new THREE.MeshBasicMaterial({
+    color: 0x0a0a0a, toneMapped: false, depthTest: false,
+  });
   const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), screenMat);
   screenMesh.renderOrder = 10;
   scene.add(screenMesh);
