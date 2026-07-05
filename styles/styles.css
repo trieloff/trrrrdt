@@ -459,3 +459,92 @@ main .section.dark h2,
 main .section.dark h3 {
   color: var(--light-color);
 }
+
+/* --- liner-notes / fragment pages: a standalone parchment sheet, no site chrome
+   (these are normally shown on the players' 3D desk) --- */
+/* stylelint-disable no-descending-specificity -- intentional page-level overrides */
+body.liner-notes-page {
+  background-color: #241d16;
+}
+
+body.liner-notes-page header,
+body.liner-notes-page footer {
+  display: none;
+}
+
+body.liner-notes-page main {
+  max-width: 720px;
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: clamp(56px, 9vw, 96px) clamp(28px, 6vw, 64px);
+  background-color: #f2e7cf;
+  color: #221810;
+  box-shadow: 0 24px 90px rgb(0 0 0 / 55%);
+}
+
+/* neutralise the hero treatment the first section would otherwise get */
+body.liner-notes-page main > .section,
+body.liner-notes-page main > .section:first-of-type {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #221810;
+  text-align: left;
+  overflow: visible;
+}
+
+body.liner-notes-page main > .section::before,
+body.liner-notes-page main > .section::after,
+body.liner-notes-page main > .section:first-of-type::before,
+body.liner-notes-page main > .section:first-of-type::after {
+  content: none;
+}
+
+body.liner-notes-page main > .section > div {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+body.liner-notes-page main h1,
+body.liner-notes-page main > .section:first-of-type h1 {
+  margin: 0 0 0.4em;
+  font-family: var(--accent-font-family);
+  font-weight: 600;
+  font-size: clamp(40px, 8vw, 64px);
+  line-height: 1.03;
+  color: #221810;
+  text-shadow: none;
+}
+
+body.liner-notes-page main h1::before {
+  content: 'LINER NOTES';
+  display: block;
+  margin-bottom: 1.1em;
+  font-family: var(--mono-font-family);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #8a6a34;
+}
+
+body.liner-notes-page main h2 {
+  margin: 1.8em 0 0.5em;
+  font-family: var(--heading-font-family);
+  font-weight: 600;
+  font-size: clamp(20px, 3.5vw, 26px);
+  color: #221810;
+}
+
+body.liner-notes-page main p,
+body.liner-notes-page main > .section:first-of-type p {
+  max-width: none;
+  margin: 0 0 1em;
+  font-family: var(--mono-font-family);
+  font-size: 16px;
+  line-height: 1.7;
+  color: #3a2c1a;
+  opacity: 1;
+}
+/* stylelint-enable no-descending-specificity */

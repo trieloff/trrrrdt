@@ -132,6 +132,11 @@ export function decorateMain(main) {
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  // liner-notes / fragment pages render as a bare parchment sheet, not a full
+  // site page (they're normally shown on the players' 3D desk sheet)
+  if (/(-notes(?:$|[./?])|\/fragments\/)/.test(window.location.pathname)) {
+    document.body.classList.add('liner-notes-page');
+  }
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');
   if (main) {
