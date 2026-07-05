@@ -1,8 +1,10 @@
 import { toClassName, getMetadata } from '../../scripts/aem.js';
-import PATTERNS from './patterns/index.js';
+import createAudioEngine from '../../scripts/player/audio.js';
+import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
+import { wallpaperFromStyle, buildWallpaper } from '../../scripts/player/visualizer.js';
+import { slugify, resolveEntries } from '../../scripts/player/content.js';
 
 const MODEL_PATH = '/models/psf9.glb';
-const FADE_MS = 400;
 const ENV_LERP = 0.05;
 const SPIN_SPEED = 2.2; // radians per second, ~33rpm feel
 
@@ -22,79 +24,6 @@ const ROOMS = {
   'itzik-kagan': { wall: 0x3d1030, table: 0xd98a2b, glow: 0xff4fa0 },
   default: { wall: 0x1c1c1c, table: 0x3a3a3a, glow: 0xc9bfae },
 };
-
-/* djb2 — the style prompt is the seed; same prompt, same room, forever */
-function hashString(str) {
-  let h = 5381;
-  for (let i = 0; i < str.length; i += 1) {
-    h = ((h << 5) + h + str.charCodeAt(i)) >>> 0; // eslint-disable-line no-bitwise
-  }
-  return h;
-}
-
-/*
- * Derive a wallpaper from a style prompt: background, foreground, accent
- * hues plus a pattern and its motion parameters, all from the hash bits.
- */
-function wallpaperFromStyle(style) {
-  /* eslint-disable no-bitwise */
-  const h = hashString(style.toLowerCase());
-  const hueA = h % 360;
-  const hueB = (hueA + 120 + ((h >>> 3) % 100)) % 360;
-  const hueC = (hueA + 180 + ((h >>> 7) % 80)) % 360;
-  const pattern = (h >>> 9) % PATTERNS.length;
-  const speed = 0.4 + ((h >>> 13) % 100) / 90;
-  const scale = 3 + ((h >>> 17) % 6);
-  // remix for an independent second draw: where you stand in the room
-  const h2 = Math.imul(h ^ (h >>> 15), 2246822519) >>> 0;
-  const pose = {
-    camAzimuth: ((h2 % 200) / 200 - 0.5) * 1.0,
-    camHeight: 1.8 + (((h2 >>> 8) % 100) / 100) * 0.95,
-    camDist: 4.4 + (((h2 >>> 16) % 100) / 100) * 1.2,
-    lightAzimuth: (((h2 >>> 4) % 200) / 200 - 0.5) * 2.4,
-    lightHeight: 3.5 + (((h2 >>> 12) % 100) / 100) * 2.5,
-  };
-  /* eslint-enable no-bitwise */
-  return {
-    hues: [hueA / 360, hueB / 360, hueC / 360],
-    pattern,
-    speed,
-    scale,
-    pose,
-  };
-}
-
-/* URL-safe slug from a title — ASCII survives, diacritics strip, Cyrillic/CJK
-   drop out (the romanised part usually remains); empty falls back to track-N */
-function slugify(str) {
-  return str
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
-/* Recognise an Apple Music web link and pull the catalog id + kind out of it.
-   Songs:    music.apple.com/{sf}/song/{slug}/{id}
-             music.apple.com/{sf}/album/{slug}/{albumId}?i={songId}
-   Playlists music.apple.com/{sf}/playlist/{slug}/{pl.xxxx}
-   Albums    music.apple.com/{sf}/album/{slug}/{albumId}   (no ?i — whole album) */
-function classifyAppleUrl(href) {
-  let u;
-  try { u = new URL(href); } catch (e) { return null; }
-  if (!/(^|\.)music\.apple\.com$/.test(u.hostname)) return null;
-  const parts = u.pathname.split('/').filter(Boolean);
-  const storefront = /^[a-z]{2}$/.test(parts[0] || '') ? parts[0] : 'us';
-  const type = parts[1];
-  const last = parts[parts.length - 1] || '';
-  const songParam = u.searchParams.get('i');
-  if (songParam) return { kind: 'song', id: songParam, storefront };
-  if (type === 'song') return { kind: 'song', id: last, storefront };
-  if (type === 'playlist') return { kind: 'playlist', id: last, storefront };
-  if (type === 'album') return { kind: 'album', id: last, storefront };
-  return null;
-}
 
 /* Build a partial track from a block row. Apple rows carry an appleId instead of
    an <audio> src; plain rows keep the mp3 href. finalize() adds slug/wallpaper/room. */
@@ -175,95 +104,6 @@ function buildStage(tracks) {
   return stage;
 }
 
-function createAudioEngine() {
-  const players = [new Audio(), new Audio()];
-  players.forEach((p) => {
-    p.preload = 'auto';
-    p.loop = false;
-    // Suno's CDN sends ACAO:* — anonymous mode keeps Web Audio analysis legal
-    p.crossOrigin = 'anonymous';
-  });
-  let active = 0;
-  let fadeFrame = null;
-  let analyser = null;
-  let freqData = null;
-  const levels = { bass: 0, mid: 0, treble: 0 };
-
-  function ensureAnalyser() {
-    if (analyser !== null) return;
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      const ctx = new Ctx();
-      analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.75;
-      players.forEach((p) => {
-        const source = ctx.createMediaElementSource(p);
-        source.connect(analyser);
-      });
-      analyser.connect(ctx.destination);
-      freqData = new Uint8Array(analyser.frequencyBinCount);
-      if (ctx.state === 'suspended') ctx.resume();
-    } catch (e) {
-      analyser = false; // tried and failed — stay element-only, no analysis
-    }
-  }
-
-  function fadeTo(inPlayer, outPlayer) {
-    if (fadeFrame) cancelAnimationFrame(fadeFrame);
-    const start = performance.now();
-    function step(now) {
-      const t = Math.min((now - start) / FADE_MS, 1);
-      inPlayer.volume = t;
-      outPlayer.volume = 1 - t;
-      if (t < 1) {
-        fadeFrame = requestAnimationFrame(step);
-      } else {
-        outPlayer.pause();
-        fadeFrame = null;
-      }
-    }
-    fadeFrame = requestAnimationFrame(step);
-  }
-
-  function bandAverage(from, to) {
-    let sum = 0;
-    for (let i = from; i < to; i += 1) sum += freqData[i];
-    return sum / ((to - from) * 255);
-  }
-
-  return {
-    async play(src) {
-      ensureAnalyser();
-      const next = players[1 - active];
-      const prev = players[active];
-      if (next.src !== src) next.src = src;
-      next.volume = 0;
-      await next.play();
-      active = 1 - active;
-      fadeTo(next, prev);
-    },
-    pause() {
-      players.forEach((p) => p.pause());
-    },
-    onEnded(callback) {
-      players.forEach((p) => p.addEventListener('ended', () => {
-        if (p === players[active]) callback();
-      }));
-    },
-    /* bass / mid / treble in 0..1, or null when analysis is unavailable */
-    getLevels() {
-      if (!analyser || !freqData) return null;
-      analyser.getByteFrequencyData(freqData);
-      // 128 bins over ~24kHz: bass <560Hz, mid <4.5kHz, treble above
-      levels.bass = bandAverage(1, 4);
-      levels.mid = bandAverage(4, 24);
-      levels.treble = bandAverage(24, 96);
-      return levels;
-    },
-  };
-}
-
 /*
  * Procedural desk grain — long wandering streaks plus speckle, drawn once
  * on a canvas. Grayscale so the room palette tints it via material.color.
@@ -313,72 +153,6 @@ function makeDeskGrain() {
   }
   return canvas;
 }
-
-/* psychedelic wallpaper — five patterns, colors and motion from the style hash */
-const WALLPAPER_VERTEX = `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-/*
- * Shared wallpaper fragment. Each pattern module (patterns/*.js) supplies a
- * `float field(vec2 p, float t)`; this wrapper injects it at __FIELD__, then owns
- * the colour mapping, the mid-driven accent band, treble sparkle, and vignette.
- * One shader is compiled per pattern and they all share the same uniforms.
- */
-const WALLPAPER_FRAGMENT_TEMPLATE = `
-  precision highp float;
-  uniform float uTime;
-  uniform float uBass;
-  uniform float uMid;
-  uniform float uTreble;
-  uniform float uSpeed;
-  uniform float uScale;
-  uniform vec3 uColA;
-  uniform vec3 uColB;
-  uniform vec3 uColC;
-  varying vec2 vUv;
-
-  __FIELD__
-
-  void main() {
-    // plane is ~30x14 units — square up the coordinate system
-    vec2 p = vUv * vec2(2.143, 1.0);
-    float t = uTime * uSpeed;
-    float v = field(p, t);
-
-    float m = smoothstep(-0.9, 0.9, v);
-    vec3 col = mix(uColA, uColB, m);
-
-    // accent band pulses with the mids
-    float band = smoothstep(0.82 - uMid * 0.35, 1.0, v);
-    col = mix(col, uColC, band * (0.4 + uMid * 0.6));
-
-    // treble sparkle — analog noise floor
-    float n = fract(sin(dot(vUv * (uTime + 1.0), vec2(12.9898, 78.233))) * 43758.5453);
-    col += (n - 0.5) * (0.03 + uTreble * 0.10);
-
-    // vignette so the device stays the subject
-    float vig = smoothstep(1.35, 0.3, length(vUv - vec2(0.5, 0.55)));
-    col *= mix(0.4, 1.0, vig);
-
-    gl_FragColor = vec4(col, 1.0);
-  }
-`;
-
-/* Fallback wall for tracks with no style prompt: a flat, vignetted room colour. */
-const WALLPAPER_SOLID_FRAGMENT = `
-  precision highp float;
-  uniform vec3 uColA;
-  varying vec2 vUv;
-  void main() {
-    float vig = smoothstep(1.35, 0.3, length(vUv - vec2(0.5, 0.55)));
-    gl_FragColor = vec4(uColA * mix(0.4, 1.0, vig), 1.0);
-  }
-`;
 
 async function initScene(block, tracks, state) {
   const THREE = await import('../../scripts/vendor/three.module.min.js');
@@ -452,29 +226,8 @@ async function initScene(block, tracks, state) {
   scene.add(wallGlow);
   const wallGlowColor = new THREE.Color(0xd93025);
 
-  // wallpaper — the animated psychedelic wall
-  const wallUniforms = {
-    uTime: { value: 0 },
-    uBass: { value: 0 },
-    uMid: { value: 0 },
-    uTreble: { value: 0 },
-    uSpeed: { value: 1 },
-    uScale: { value: 5 },
-    uColA: { value: new THREE.Color(0x1c1c1c) },
-    uColB: { value: new THREE.Color(0x2c2c2c) },
-    uColC: { value: new THREE.Color(0xd93025) },
-  };
-  // one shader per pattern module — all share these uniforms, swapped per track
-  const patternMats = PATTERNS.map((pat) => new THREE.ShaderMaterial({
-    uniforms: wallUniforms,
-    vertexShader: WALLPAPER_VERTEX,
-    fragmentShader: WALLPAPER_FRAGMENT_TEMPLATE.replace('__FIELD__', pat.glsl),
-  }));
-  const solidMat = new THREE.ShaderMaterial({
-    uniforms: wallUniforms,
-    vertexShader: WALLPAPER_VERTEX,
-    fragmentShader: WALLPAPER_SOLID_FRAGMENT,
-  });
+  // wallpaper — the shared animated psychedelic wall (one shader per pattern)
+  const { uniforms: wallUniforms, patternMats, solidMat } = buildWallpaper(THREE);
   const wall = new THREE.Mesh(new THREE.PlaneGeometry(30, 14), solidMat);
   wall.position.set(0, 7, -6);
   scene.add(wall);
@@ -831,39 +584,7 @@ async function initScene(block, tracks, state) {
   state.startRender();
 }
 
-const MUSICKIT_SRC = 'https://js-cdn.music.apple.com/musickit/v3/musickit.js';
-
-function msToClock(ms) {
-  const s = Math.round(ms / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
 /* Apple artwork is a URL template with {w}/{h} placeholders; fill in a square. */
-function appleArtworkUrl(artwork, size = 600) {
-  return artwork && artwork.url
-    ? artwork.url.replace('{w}', size).replace('{h}', size).replace('{c}', 'bb').replace('{f}', 'jpg')
-    : '';
-}
-
-function appleSongToTrack(song, storefront) {
-  const a = song.attributes || {};
-  const genre = (a.genreNames && a.genreNames[0]) || '';
-  const dur = a.durationInMillis ? msToClock(a.durationInMillis) : '';
-  const image = appleArtworkUrl(a.artwork);
-  return {
-    title: a.name || 'Untitled',
-    artist: a.artistName || '',
-    image,
-    meta: [genre, dur].filter(Boolean).join(' · '),
-    style: (a.genreNames && a.genreNames.join(', ')) || a.artistName || '',
-    source: 'apple',
-    appleId: song.id,
-    storefront,
-    audio: '',
-    playable: true,
-  };
-}
-
 /*
  * The Apple Music side of the player. Wraps MusicKit v3, which is loaded lazily
  * from Apple's CDN the first time an Apple track is touched (a pure-Suno deck
@@ -872,174 +593,12 @@ function appleSongToTrack(song, storefront) {
  * by authorizing once. Full playback needs an active Apple Music subscription —
  * when that's missing we fall back to the 30-second catalog preview.
  */
-function createAppleBackend(tokenEndpoint) {
-  let configurePromise = null;
-  let music = null;
-  let active = false;
-  const listeners = { ended: () => {}, authChange: () => {} };
-
-  async function fetchToken() {
-    const res = await fetch(tokenEndpoint, { headers: { accept: 'application/json' } });
-    if (!res.ok) throw new Error(`apple token ${res.status}`);
-    const data = await res.json();
-    if (!data.token) throw new Error('apple token missing');
-    return data.token;
-  }
-
-  function loadScript() {
-    return new Promise((resolve, reject) => {
-      if (window.MusicKit) { resolve(); return; }
-      let s = document.querySelector('script[data-musickit]');
-      if (!s) {
-        s = document.createElement('script');
-        s.src = MUSICKIT_SRC;
-        s.async = true;
-        s.dataset.musickit = '';
-        document.head.append(s);
-      }
-      document.addEventListener('musickitloaded', () => resolve(), { once: true });
-      s.addEventListener('error', () => reject(new Error('musickit failed to load')));
-    });
-  }
-
-  function configure() {
-    if (configurePromise) return configurePromise;
-    configurePromise = (async () => {
-      await loadScript();
-      const token = await fetchToken();
-      music = await window.MusicKit.configure({
-        developerToken: token,
-        app: { name: 'TRRRRDT Records', build: '1.0' },
-      }) || window.MusicKit.getInstance();
-      music.addEventListener('playbackStateDidChange', ({ state }) => {
-        const S = window.MusicKit.PlaybackStates;
-        if (active && (state === S.completed || state === S.ended)) listeners.ended();
-      });
-      // fires when the listener signs in/out — lets the UI relabel the button
-      // from "Connect Apple Music" the instant authorization completes
-      music.addEventListener('authorizationStatusDidChange', () => listeners.authChange());
-      return music;
-    })();
-    // a transient token/network failure shouldn't poison the whole session —
-    // drop the cached rejection so the next interaction can retry
-    configurePromise.catch(() => { configurePromise = null; });
-    return configurePromise;
-  }
-
-  async function catalog(path, params) {
-    const m = await configure();
-    const res = await m.api.music(path, params);
-    return (res && res.data) || res;
-  }
-
-  // Apple Music song ids are storefront-specific: an id authored from the US
-  // catalog won't resolve for a listener whose account is (say) the German store,
-  // and setQueue throws NOT_FOUND. Bridge storefronts by the recording's ISRC,
-  // which is global. Cache the mapping so we only look a song up once.
-  const idCache = new Map();
-  async function resolveForStorefront(appleId, authoredSF, userSF) {
-    if (!userSF || userSF === authoredSF) return appleId;
-    const key = `${authoredSF}:${appleId}:${userSF}`;
-    if (idCache.has(key)) return idCache.get(key);
-    let resolved = appleId;
-    try {
-      const src = await catalog(`/v1/catalog/${authoredSF}/songs/${appleId}`);
-      const isrc = src?.data?.[0]?.attributes?.isrc;
-      if (isrc) {
-        const hit = await catalog(`/v1/catalog/${userSF}/songs`, { 'filter[isrc]': isrc });
-        resolved = hit?.data?.[0]?.id || appleId;
-      }
-    } catch (e) { /* not in the listener's store — keep the authored id and let it fail loudly */ }
-    idCache.set(key, resolved);
-    return resolved;
-  }
-
-  return {
-    configure,
-    onEnded(cb) { listeners.ended = cb; },
-    onAuthChange(cb) { listeners.authChange = cb; },
-    setActive(v) { active = v; },
-    isActive: () => active,
-    isConfigured: () => !!music,
-    isAuthorized: () => !!(music && music.isAuthorized),
-    // must be called synchronously inside a user gesture — MusicKit opens a
-    // sign-in popup and Safari blocks it otherwise
-    authorize: () => (music ? music.authorize() : Promise.reject(new Error('not configured'))),
-    async play(appleId, { userGesture, storefront }) {
-      const m = await configure();
-      if (!m.isAuthorized) {
-        if (!userGesture) {
-          const e = new Error('authorization required');
-          e.code = 'auth-required';
-          throw e;
-        }
-        await m.authorize();
-      }
-      const id = await resolveForStorefront(appleId, storefront || 'us', m.storefrontId);
-      await m.setQueue({ songs: [id] });
-      await m.play();
-      active = true;
-    },
-    pause() { if (music && active) music.pause(); },
-    // Batch-fetch album covers for a set of song ids in one storefront.
-    // Returns { [songId]: coverUrl }. Covers are identical across storefronts,
-    // so we can use the authored ids/storefront — no per-listener resolution.
-    async artwork(ids, storefront) {
-      if (!ids.length) return {};
-      const body = await catalog(`/v1/catalog/${storefront}/songs`, { ids: ids.join(',') });
-      const map = {};
-      (body?.data || []).forEach((s) => {
-        const url = appleArtworkUrl(s.attributes && s.attributes.artwork);
-        if (url) map[s.id] = url;
-      });
-      return map;
-    },
-    async expand({ kind, id, storefront }) {
-      const rel = kind === 'album' ? 'albums' : 'playlists';
-      const body = await catalog(`/v1/catalog/${storefront}/${rel}/${id}`, { include: 'tracks', 'limit[tracks]': 100 });
-      const tracks = body?.data?.[0]?.relationships?.tracks?.data || [];
-      return tracks
-        .filter((s) => s.type === 'songs')
-        .map((s) => appleSongToTrack(s, storefront));
-    },
-  };
-}
-
 /* Turn parsed entries into the final ordered track list, expanding any Apple
    playlist/album references via the catalog API. Expansion failures drop that
    entry rather than breaking the whole deck. */
-async function resolveEntries(entries, apple) {
-  const resolved = await Promise.all(entries.map(async (e) => {
-    if (e.kind === 'track') return [e.track];
-    if (!apple) return [];
-    try { return await apple.expand(e.apple); } catch (err) { return []; }
-  }));
-  return resolved.flat().map((t, i) => finalize(t, i));
-}
-
 /* Fill in cover art for Apple tracks that don't already carry an image (authored
    per-song rows). One batched catalog call per storefront; failures are silent.
    Resolves to true if any track gained an image. */
-async function hydrateArtwork(tracks, apple) {
-  if (!apple) return false;
-  const bySF = new Map();
-  tracks.forEach((t) => {
-    if (t.source === 'apple' && t.appleId && !t.image) {
-      if (!bySF.has(t.storefront)) bySF.set(t.storefront, []);
-      bySF.get(t.storefront).push(t);
-    }
-  });
-  if (!bySF.size) return false;
-  let changed = false;
-  await Promise.all([...bySF.entries()].map(async ([sf, list]) => {
-    try {
-      const map = await apple.artwork(list.map((t) => t.appleId), sf);
-      list.forEach((t) => { if (map[t.appleId]) { t.image = map[t.appleId]; changed = true; } });
-    } catch (e) { /* leave those tracks without a cover */ }
-  }));
-  return changed;
-}
-
 export default async function decorate(block) {
   const entries = parseEntries(block);
   if (!entries.length) return;
@@ -1050,7 +609,7 @@ export default async function decorate(block) {
 
   const needsExpand = entries.some((e) => e.kind === 'expand');
   if (needsExpand) block.classList.add('turntable-resolving');
-  const tracks = await resolveEntries(entries, apple);
+  const tracks = await resolveEntries(entries, apple, finalize);
   block.classList.remove('turntable-resolving');
   if (!tracks.length) { block.textContent = ''; return; }
 
