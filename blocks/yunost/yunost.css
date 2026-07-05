@@ -3,10 +3,16 @@
 
 /* The player owns the viewport and scrolls inside itself, so the document never
    scrolls: on iOS that stops the browser chrome collapsing/expanding mid-scroll
-   (which used to leave a gap) and — with overscroll-behavior — the rubber-band. */
-html:has(main .yunost),
+   (which used to leave a gap) and — with overscroll-behavior — the rubber-band.
+   iOS ignores overflow:hidden on the body, so the body is pinned with
+   position:fixed; the player (below) is the only thing that scrolls. */
+html:has(main .yunost) {
+  overflow: hidden;
+}
+
 body:has(main .yunost) {
-  height: 100%;
+  position: fixed;
+  inset: 0;
   overflow: hidden;
   overscroll-behavior: none;
 }
