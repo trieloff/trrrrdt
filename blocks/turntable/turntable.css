@@ -205,6 +205,41 @@ main > .section:has(.turntable) > div {
   cursor: not-allowed;
 }
 
+/* when an Apple track needs the listener to sign in, the play control becomes a
+   call to action rather than a printed marking */
+.turntable.turntable-connect .turntable-play {
+  color: var(--background-color, #1c1c1c);
+  background-color: var(--light-color);
+  border-color: var(--light-color);
+  font-weight: 700;
+}
+
+.turntable.turntable-connect .turntable-play:hover,
+.turntable.turntable-connect .turntable-play:focus-visible {
+  background-color: rgb(255 255 255 / 85%);
+}
+
+/* --- source badge: which network the current track streams from --- */
+.turntable .turntable-source {
+  display: none;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--light-color);
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+.turntable .turntable-source::before {
+  content: '◍ ';
+  opacity: 0.9;
+}
+
+.turntable.turntable-apple .turntable-source {
+  display: block;
+}
+
 /* --- depth-of-field tuning: equipment-panel slider --- */
 .turntable .turntable-dof {
   position: absolute;

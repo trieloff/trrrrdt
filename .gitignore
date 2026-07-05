@@ -15,4 +15,9 @@ helix-importer-ui
 
 .hlx/.da-token.json
 
+# worker secrets & wrangler state
+worker/.dev.vars
+worker/.wrangler
+.wrangler
+
 content

@@ -1,0 +1,23 @@
+name = "trrrrdt"
+main = "index.mjs"
+compatibility_date = "2025-05-07"
+account_id = "155ec15a52a18a14801e04b019da5e5a" # AEM Demo
+workers_dev = true # keep the *.workers.dev URL for local/dev testing of /tools/apple-token
+
+# Production domain: the worker fronts www.trrrrdt.studio and proxies to the AEM
+# Edge Delivery origin. custom_domain = true auto-provisions the proxied DNS
+# record + edge certificate for each hostname. The apex (trrrrdt.studio) reaches
+# the worker and 301s to www via CANONICAL_HOST.
+routes = [
+  { pattern = "www.trrrrdt.studio", custom_domain = true },
+  { pattern = "trrrrdt.studio", custom_domain = true },
+]
+
+[vars]
+ORIGIN_HOSTNAME = "main--trrrrdt--trieloff.aem.live"
+CANONICAL_HOST = "www.trrrrdt.studio"
+
+# Secrets (set with `wrangler secret put <NAME>` — never commit these):
+#   APPLE_MUSIC_PRIVATE_KEY   the full contents of AuthKey_XXXXXXXXXX.p8 (PEM, incl. BEGIN/END lines)
+#   APPLE_MUSIC_KEY_ID        the 10-char Key ID for that key
+#   APPLE_MUSIC_TEAM_ID       your Apple Developer Team ID (the MusicKit identifier's team)
