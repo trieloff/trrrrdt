@@ -838,13 +838,18 @@ function msToClock(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+/* Apple artwork is a URL template with {w}/{h} placeholders; fill in a square. */
+function appleArtworkUrl(artwork, size = 600) {
+  return artwork && artwork.url
+    ? artwork.url.replace('{w}', size).replace('{h}', size).replace('{c}', 'bb').replace('{f}', 'jpg')
+    : '';
+}
+
 function appleSongToTrack(song, storefront) {
   const a = song.attributes || {};
   const genre = (a.genreNames && a.genreNames[0]) || '';
   const dur = a.durationInMillis ? msToClock(a.durationInMillis) : '';
-  const image = a.artwork && a.artwork.url
-    ? a.artwork.url.replace('{w}', '600').replace('{h}', '600')
-    : '';
+  const image = appleArtworkUrl(a.artwork);
   return {
     title: a.name || 'Untitled',
     artist: a.artistName || '',
@@ -976,6 +981,19 @@ function createAppleBackend(tokenEndpoint) {
       active = true;
     },
     pause() { if (music && active) music.pause(); },
+    // Batch-fetch album covers for a set of song ids in one storefront.
+    // Returns { [songId]: coverUrl }. Covers are identical across storefronts,
+    // so we can use the authored ids/storefront — no per-listener resolution.
+    async artwork(ids, storefront) {
+      if (!ids.length) return {};
+      const body = await catalog(`/v1/catalog/${storefront}/songs`, { ids: ids.join(',') });
+      const map = {};
+      (body?.data || []).forEach((s) => {
+        const url = appleArtworkUrl(s.attributes && s.attributes.artwork);
+        if (url) map[s.id] = url;
+      });
+      return map;
+    },
     async expand({ kind, id, storefront }) {
       const rel = kind === 'album' ? 'albums' : 'playlists';
       const body = await catalog(`/v1/catalog/${storefront}/${rel}/${id}`, { include: 'tracks', 'limit[tracks]': 100 });
@@ -997,6 +1015,29 @@ async function resolveEntries(entries, apple) {
     try { return await apple.expand(e.apple); } catch (err) { return []; }
   }));
   return resolved.flat().map((t, i) => finalize(t, i));
+}
+
+/* Fill in cover art for Apple tracks that don't already carry an image (authored
+   per-song rows). One batched catalog call per storefront; failures are silent.
+   Resolves to true if any track gained an image. */
+async function hydrateArtwork(tracks, apple) {
+  if (!apple) return false;
+  const bySF = new Map();
+  tracks.forEach((t) => {
+    if (t.source === 'apple' && t.appleId && !t.image) {
+      if (!bySF.has(t.storefront)) bySF.set(t.storefront, []);
+      bySF.get(t.storefront).push(t);
+    }
+  });
+  if (!bySF.size) return false;
+  let changed = false;
+  await Promise.all([...bySF.entries()].map(async ([sf, list]) => {
+    try {
+      const map = await apple.artwork(list.map((t) => t.appleId), sf);
+      list.forEach((t) => { if (map[t.appleId]) { t.image = map[t.appleId]; changed = true; } });
+    } catch (e) { /* leave those tracks without a cover */ }
+  }));
+  return changed;
 }
 
 export default async function decorate(block) {
@@ -1285,5 +1326,14 @@ export default async function decorate(block) {
     initScene(block, tracks, state).catch(() => block.classList.add('turntable-no-3d'));
   } catch (e) {
     block.classList.add('turntable-no-3d');
+  }
+
+  // pull Apple Music cover art in the background (authored song rows carry no
+  // <img>); when it lands, refresh the current track so its sleeve + palette
+  // load without having blocked first paint
+  if (apple) {
+    hydrateArtwork(tracks, apple).then((changed) => {
+      if (changed) state.setEnvironment(tracks[state.current]);
+    });
   }
 }
