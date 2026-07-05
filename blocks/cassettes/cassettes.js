@@ -3,7 +3,8 @@
  * Expected content per row:
  *   col 1: title text (song/album name)
  *   col 2: subtitle / genre / description (optional)
- * An <a> in either cell turns the whole cassette into a link.
+ *   any col: an <img> cover — printed onto the cassette's paper label (optional)
+ * An <a> in any cell turns the whole cassette into a link.
  *
  * @param {Element} block
  */
@@ -14,7 +15,8 @@ export default function decorate(block) {
     const cols = [...row.children];
     const title = cols[0]?.textContent?.trim() || '';
     const subtitle = cols[1]?.textContent?.trim() || '';
-    const link = cols[0]?.querySelector('a') || cols[1]?.querySelector('a');
+    const cover = cols.map((c) => c.querySelector('img')).find(Boolean);
+    const link = cols.map((c) => c.querySelector('a')).find(Boolean);
 
     const li = document.createElement('li');
     li.className = 'cassette';
@@ -44,6 +46,17 @@ export default function decorate(block) {
     shell.querySelector('.cassette-title').textContent = title;
     shell.querySelector('.cassette-subtitle').textContent = subtitle;
     if (!subtitle) shell.querySelector('.cassette-subtitle').remove();
+
+    // print the cover onto the paper label, if the row carries one
+    if (cover) {
+      shell.classList.add('cassette-has-art');
+      const art = document.createElement('img');
+      art.className = 'cassette-art';
+      art.src = cover.src;
+      art.alt = '';
+      art.loading = 'lazy';
+      shell.querySelector('.cassette-label').prepend(art);
+    }
 
     if (link) {
       const a = document.createElement('a');

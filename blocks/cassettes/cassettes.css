@@ -251,6 +251,52 @@
   border-radius: 1cqw;
 }
 
+/* --- cover art printed onto the paper label --- */
+.cassettes .cassette-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cassettes .cassette-has-art .cassette-label {
+  background: none;
+}
+
+/* scrim at the foot so the title stays legible over the art */
+.cassettes .cassette-has-art .cassette-label::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 88%) 0%,
+    rgb(0 0 0 / 30%) 42%,
+    rgb(0 0 0 / 0%) 68%
+  );
+}
+
+.cassettes .cassette-has-art .cassette-label-head,
+.cassettes .cassette-has-art .cassette-title,
+.cassettes .cassette-has-art .cassette-subtitle {
+  position: relative;
+  z-index: 2;
+}
+
+/* art fills the label; title/subtitle sit at the foot over the scrim */
+.cassettes .cassette-has-art .cassette-title {
+  margin-top: auto;
+  border-bottom-color: rgb(255 255 255 / 22%);
+  color: var(--light-color);
+}
+
+.cassettes .cassette-has-art .cassette-subtitle {
+  color: rgb(255 255 255 / 85%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cassettes .cassette-shell:hover .cassette-reel,
   .cassettes .cassette-link:hover .cassette-reel {
