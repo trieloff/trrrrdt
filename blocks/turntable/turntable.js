@@ -241,7 +241,11 @@ async function initScene(block, tracks, state) {
   sleeve.castShadow = true;
   sleeve.receiveShadow = true;
   sleeve.visible = false;
+  sleeve.userData.focusSize = 1.2; // how tall it reads when the camera zooms in
   scene.add(sleeve);
+
+  // the desk prop the camera is currently zoomed onto (cover or notes), or null
+  let focusObj = null;
 
   const sampleCanvas = document.createElement('canvas');
   let artworkToken = 0;
@@ -348,6 +352,7 @@ async function initScene(block, tracks, state) {
     } else {
       artworkToken += 1;
       sleeve.visible = false;
+      if (focusObj === sleeve) focusObj = null;
     }
     if (state.reducedMotion) {
       env.bg.copy(target.bg);
@@ -431,11 +436,11 @@ async function initScene(block, tracks, state) {
   // the current track changes; click it and the camera eases down to read it,
   // click again (or anywhere) to return.
   const paper = createPaper(THREE, 0.72);
-  const paperH = paper.userData.paperSize.h;
-  paper.rotation.set(-Math.PI / 2, 0, 0.16);
-  paper.position.set(0.9, 0.02, 1.3);
+  // front-left of the device, so it sits beside the cover sleeve (front-right)
+  paper.rotation.set(-Math.PI / 2, 0, -0.16);
+  paper.position.set(-1.05, 0.02, 1.15);
   scene.add(paper);
-  let readBlend = 0;
+  let focusBlend = 0;
   const pageNotes = findFragmentPath(block); // fallback when a track has none
   const notesCache = new Map();
   const pPos = new THREE.Vector3();
@@ -443,10 +448,11 @@ async function initScene(block, tracks, state) {
   const pLook = new THREE.Vector3();
   state.showNotes = async (track) => {
     const path = (track && track.notes) || pageNotes;
-    if (!path) { paper.visible = false; state.reading = false; return; }
+    const hide = () => { paper.visible = false; if (focusObj === paper) focusObj = null; };
+    if (!path) { hide(); return; }
     if (!notesCache.has(path)) notesCache.set(path, await loadNotesCanvas(path));
     const canvas = notesCache.get(path);
-    if (!canvas) { paper.visible = false; return; }
+    if (!canvas) { hide(); return; }
     setPaperCanvas(THREE, paper, canvas);
     paper.visible = true;
   };
@@ -463,16 +469,21 @@ async function initScene(block, tracks, state) {
   renderer.domElement.addEventListener('pointerdown', (e) => {
     setPointer(e);
     if (paper.visible && raycaster.intersectObject(paper).length) {
-      state.reading = !state.reading;
+      focusObj = focusObj === paper ? null : paper;
       return;
     }
-    if (state.reading) { state.reading = false; return; }
+    if (sleeve.visible && raycaster.intersectObject(sleeve).length) {
+      focusObj = focusObj === sleeve ? null : sleeve;
+      return;
+    }
+    if (focusObj) { focusObj = null; return; }
     if (raycaster.intersectObject(model, true).length) state.requestPlay();
   });
   renderer.domElement.addEventListener('pointermove', (e) => {
     setPointer(e);
     const over = raycaster.intersectObject(model, true).length > 0
-      || (paper.visible && raycaster.intersectObject(paper).length > 0);
+      || (paper.visible && raycaster.intersectObject(paper).length > 0)
+      || (sleeve.visible && raycaster.intersectObject(sleeve).length > 0);
     renderer.domElement.style.cursor = over ? 'pointer' : 'default';
   });
 
@@ -532,14 +543,15 @@ async function initScene(block, tracks, state) {
       keyLight.position.lerp(lightTarget, 0.045);
     }
 
-    // reading the liner sheet: blend the camera down onto the paper and back
+    // tapping a desk prop (cover or notes) blends the camera down onto it
     if (state.reducedMotion) placeCamera();
-    readBlend += ((state.reading ? 1 : 0) - readBlend) * 0.06;
-    if (paper && readBlend > 0.001) {
-      paper.getWorldPosition(pPos);
-      pCam.set(pPos.x, pPos.y + paperH * 1.55, pPos.z + paperH * 0.5);
-      camera.position.lerp(pCam, readBlend);
-      pLook.lerpVectors(lookTarget, pPos, readBlend);
+    focusBlend += ((focusObj ? 1 : 0) - focusBlend) * 0.06;
+    if (focusObj && focusBlend > 0.001) {
+      focusObj.getWorldPosition(pPos);
+      const fs = focusObj.userData.focusSize ?? focusObj.userData.paperSize?.h ?? 1;
+      pCam.set(pPos.x, pPos.y + fs * 1.55, pPos.z + fs * 0.5);
+      camera.position.lerp(pCam, focusBlend);
+      pLook.lerpVectors(lookTarget, pPos, focusBlend);
       camera.lookAt(pLook);
     }
 
