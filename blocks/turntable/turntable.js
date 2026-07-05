@@ -6,6 +6,9 @@ import { slugify, resolveEntries } from '../../scripts/player/content.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
 } from '../../scripts/player/linernotes.js';
+import {
+  physicalScale, A4_MM, LP12_MM, LP12_JACKET_MM,
+} from '../../scripts/player/scale.js';
 
 const MODEL_PATH = '/models/psf9.glb';
 const ENV_LERP = 0.05;
@@ -238,15 +241,15 @@ async function initScene(block, tracks, state) {
   const sleeveMat = new THREE.MeshStandardMaterial({
     color: 0x0e0e0e, roughness: 0.82, metalness: 0.0,
   });
-  // a 12" jacket ≈ the LP itself (measured disc Ø 1.63 scene units), a hair larger
-  const sleeve = new THREE.Mesh(new THREE.PlaneGeometry(1.68, 1.68), sleeveMat);
+  // the album jacket — sized to a real 12" sleeve once the LP scale is known
+  // (below); a unit placeholder for now, invisible until a cover loads
+  const sleeve = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), sleeveMat);
   // lying flat on the table, front-right of the device, casually angled
   sleeve.position.set(1.55, 0.015, 0.95);
   sleeve.rotation.set(-Math.PI / 2, 0, 0.32);
   sleeve.castShadow = true;
   sleeve.receiveShadow = true;
   sleeve.visible = false;
-  sleeve.userData.focusSize = 1.68; // how tall it reads when the camera zooms in
   scene.add(sleeve);
 
   // the desk prop the camera is currently zoomed onto (cover or notes), or null;
@@ -411,6 +414,7 @@ async function initScene(block, tracks, state) {
   // group vinyl meshes under a pivot, spin around the disc normal
   let vinyl = null;
   let spinAxis = null;
+  let discDiameterUnits = 0;
   if (vinylMeshes.length) {
     // measure the disc from the grooves mesh alone so the label can't bias it,
     // in LOCAL geometry space — the disc leans, so its true center and normal
@@ -432,7 +436,21 @@ async function initScene(block, tracks, state) {
     vinyl.position.copy(vinylCenter);
     scene.add(vinyl);
     vinylMeshes.forEach((m) => vinyl.attach(m));
+    // the disc's true diameter in scene units (its two wide axes, unaffected by
+    // the lean) — the anchor for the scene's physical (mm) scale
+    const wide = dims.filter((_, i) => i !== thin);
+    discDiameterUnits = Math.max(...wide) * disc.getWorldScale(new THREE.Vector3()).x;
   }
+
+  // anchor scene units to the real world via the LP (a 12" record), so props can
+  // be sized in millimetres. Fall back to the measured Ø 1.63 if no disc is found.
+  const world = physicalScale(discDiameterUnits || 1.63, LP12_MM);
+
+  // size the album jacket to a real 12" record sleeve
+  const jacket = world.mmToUnits(LP12_JACKET_MM);
+  sleeve.geometry.dispose();
+  sleeve.geometry = new THREE.PlaneGeometry(jacket, jacket);
+  sleeve.userData.focusSize = jacket;
 
   const scaledBox = new THREE.Box3().setFromObject(model);
   lookTarget.set(0, (scaledBox.max.y - scaledBox.min.y) * 0.48, 0);
@@ -442,10 +460,12 @@ async function initScene(block, tracks, state) {
   // liner notes — an A4 sheet on the desk, per song. Built once, re-skinned when
   // the current track changes; click it and the camera eases down to read it,
   // click again (or anywhere) to return.
-  const paper = createPaper(THREE, 0.72);
-  // front-left of the device, so it sits beside the cover sleeve (front-right)
+  // a real A4 sheet (its √2 ratio is baked into createPaper)
+  const paper = createPaper(THREE, world.mmToUnits(A4_MM.w));
+  // front-left of the device, so it sits beside the cover sleeve (front-right);
+  // pulled back so the full A4 stays in frame, clear of the play controls
   paper.rotation.set(-Math.PI / 2, 0, -0.16);
-  paper.position.set(-1.05, 0.02, 1.15);
+  paper.position.set(-1.12, 0.02, 0.78);
   scene.add(paper);
   let focusBlend = 0;
   const pageNotes = findFragmentPath(block); // fallback when a track has none
