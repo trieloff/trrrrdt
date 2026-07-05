@@ -3,6 +3,7 @@ import createAudioEngine from '../../scripts/player/audio.js';
 import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
+import { findFragmentPath, loadNotesCanvas, createPaper } from '../../scripts/player/linernotes.js';
 
 const MODEL_PATH = '/models/psf9.glb';
 const ENV_LERP = 0.05;
@@ -422,22 +423,48 @@ async function initScene(block, tracks, state) {
   camera.lookAt(lookTarget);
   loading.classList.add('turntable-done');
 
-  // tap the device to play/pause
+  // liner notes — an A4 sheet laid on the desk; click it and the camera eases
+  // down to read it, click again (or anywhere) to return
+  let paper = null;
+  let paperH = 0.99;
+  let readBlend = 0;
+  const notesPath = findFragmentPath(block);
+  const pPos = new THREE.Vector3();
+  const pCam = new THREE.Vector3();
+  const pLook = new THREE.Vector3();
+  if (notesPath) {
+    loadNotesCanvas(notesPath).then((canvas) => {
+      if (!canvas) return;
+      paper = createPaper(THREE, canvas, 0.72);
+      paperH = paper.userData.paperSize.h;
+      paper.rotation.set(-Math.PI / 2, 0, 0.16);
+      paper.position.set(0.9, 0.02, 1.3);
+      scene.add(paper);
+    });
+  }
+
+  // tap the device to play/pause; tap the sheet to read
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-  renderer.domElement.addEventListener('pointerdown', (e) => {
+  const setPointer = (e) => {
     const rect = renderer.domElement.getBoundingClientRect();
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
+  };
+  renderer.domElement.addEventListener('pointerdown', (e) => {
+    setPointer(e);
+    if (paper && raycaster.intersectObject(paper).length) {
+      state.reading = !state.reading;
+      return;
+    }
+    if (state.reading) { state.reading = false; return; }
     if (raycaster.intersectObject(model, true).length) state.requestPlay();
   });
   renderer.domElement.addEventListener('pointermove', (e) => {
-    const rect = renderer.domElement.getBoundingClientRect();
-    pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-    pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-    raycaster.setFromCamera(pointer, camera);
-    const over = raycaster.intersectObject(model, true).length > 0;
+    setPointer(e);
+    const over = raycaster.intersectObject(model, true).length > 0
+      || (paper && raycaster.intersectObject(paper).length > 0);
     renderer.domElement.style.cursor = over ? 'pointer' : 'default';
   });
 
@@ -495,6 +522,17 @@ async function initScene(block, tracks, state) {
       camPose.d += (camGoal.d - camPose.d) * 0.045;
       placeCamera();
       keyLight.position.lerp(lightTarget, 0.045);
+    }
+
+    // reading the liner sheet: blend the camera down onto the paper and back
+    if (state.reducedMotion) placeCamera();
+    readBlend += ((state.reading ? 1 : 0) - readBlend) * 0.06;
+    if (paper && readBlend > 0.001) {
+      paper.getWorldPosition(pPos);
+      pCam.set(pPos.x, pPos.y + paperH * 1.55, pPos.z + paperH * 0.5);
+      camera.position.lerp(pCam, readBlend);
+      pLook.lerpVectors(lookTarget, pPos, readBlend);
+      camera.lookAt(pLook);
     }
 
     tableMat.color.copy(env.table);

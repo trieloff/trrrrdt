@@ -3,6 +3,7 @@ import createAudioEngine from '../../scripts/player/audio.js';
 import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
+import { findFragmentPath, loadNotesCanvas, createPaper } from '../../scripts/player/linernotes.js';
 
 const MODEL_PATH = '/models/yunost.glb';
 const ENV_LERP = 0.05;
@@ -387,7 +388,27 @@ async function initScene(block, tracks, state) {
   placeCamera();
   loading.classList.add('yunost-done');
 
-  // tap the set to play/pause
+  // liner notes — an A4 sheet laid on the floor; click it and the camera eases
+  // down to read it, click again (or anywhere) to return
+  let paper = null;
+  let paperH = 0.99;
+  let readBlend = 0;
+  const notesPath = findFragmentPath(block);
+  const pPos = new THREE.Vector3();
+  const pCam = new THREE.Vector3();
+  const pLook = new THREE.Vector3();
+  if (notesPath) {
+    loadNotesCanvas(notesPath).then((canvas) => {
+      if (!canvas) return;
+      paper = createPaper(THREE, canvas, 0.7);
+      paperH = paper.userData.paperSize.h;
+      paper.rotation.set(-Math.PI / 2, 0, -0.14);
+      paper.position.set(0.95, 0.01, 1.35);
+      scene.add(paper);
+    });
+  }
+
+  // tap the set to play/pause; tap the sheet to read
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
   renderer.domElement.addEventListener('pointerdown', (e) => {
@@ -395,6 +416,11 @@ async function initScene(block, tracks, state) {
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
+    if (paper && raycaster.intersectObject(paper).length) {
+      state.reading = !state.reading;
+      return;
+    }
+    if (state.reading) { state.reading = false; return; }
     if (raycaster.intersectObject(model, true).length) state.requestPlay();
   });
 
@@ -463,7 +489,17 @@ async function initScene(block, tracks, state) {
     camDrift.az += (dAz * amp - camDrift.az) * 0.04;
     camDrift.h += (dH * amp - camDrift.h) * 0.04;
     camDrift.d += (dD * amp - camDrift.d) * 0.04;
-    if (!state.reducedMotion) placeCamera();
+    placeCamera();
+
+    // reading the liner sheet: blend the camera down onto the paper and back
+    readBlend += ((state.reading ? 1 : 0) - readBlend) * 0.06;
+    if (paper && readBlend > 0.001) {
+      paper.getWorldPosition(pPos);
+      pCam.set(pPos.x, pPos.y + paperH * 1.55, pPos.z + paperH * 0.5);
+      camera.position.lerp(pCam, readBlend);
+      pLook.lerpVectors(lookTarget, pPos, readBlend);
+      camera.lookAt(pLook);
+    }
 
     renderer.render(scene, camera);
   }

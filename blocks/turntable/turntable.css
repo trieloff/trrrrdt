@@ -372,3 +372,11 @@ main > .section:has(.turntable) > div {
     transition: none;
   }
 }
+
+/* the liner-notes link/fragment feeds the 3D sheet — keep it out of flow.
+   Placed last so it doesn't trip no-descending-specificity. */
+main > .section:has(.turntable) .fragment,
+main > .section:has(.turntable) p:has(a[href*="-notes"]),
+main > .section:has(.turntable) p:has(a[href*="/fragments/"]) {
+  display: none;
+}

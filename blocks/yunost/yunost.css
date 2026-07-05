@@ -303,3 +303,11 @@ main > .section:has(.yunost) > div {
   .yunost .yunost-spinner { animation: none; }
   .yunost .yunost-dot { transition: none; }
 }
+
+/* the liner-notes link/fragment feeds the 3D sheet — keep it out of flow.
+   Placed last so it doesn't trip no-descending-specificity. */
+main > .section:has(.yunost) .fragment,
+main > .section:has(.yunost) p:has(a[href*="-notes"]),
+main > .section:has(.yunost) p:has(a[href*="/fragments/"]) {
+  display: none;
+}
