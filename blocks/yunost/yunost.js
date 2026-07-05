@@ -6,6 +6,7 @@ import { slugify, resolveEntries } from '../../scripts/player/content.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
 } from '../../scripts/player/linernotes.js';
+import { physicalScale, A5_MM, YUNOST_402_HEIGHT_MM } from '../../scripts/player/scale.js';
 
 const MODEL_PATH = '/models/yunost.glb';
 const ENV_LERP = 0.05;
@@ -399,12 +400,16 @@ async function initScene(block, tracks, state) {
   placeCamera();
   loading.classList.add('yunost-done');
 
-  // liner notes — an A4 sheet on the floor, per channel. Built once, re-skinned
-  // when the channel changes; click it and the camera eases down to read it.
-  const paper = createPaper(THREE, 0.7);
+  // liner notes — a real A5 sheet on the floor, per channel. Anchor scene units
+  // to the TV's cabinet height, so the sheet is a true A5 beside the little set.
+  // Built once, re-skinned per channel; click it to read (camera eases down).
+  const cabinetHeight = box.getSize(new THREE.Vector3()).y;
+  const paperWidth = physicalScale(cabinetHeight, YUNOST_402_HEIGHT_MM).mmToUnits(A5_MM.w);
+  const paper = createPaper(THREE, paperWidth);
   const paperH = paper.userData.paperSize.h;
-  paper.rotation.set(-Math.PI / 2, 0, -0.14);
-  paper.position.set(0.95, 0.01, 1.35);
+  // on the floor to the right of the set, angled; pulled back so most of it shows
+  paper.rotation.set(-Math.PI / 2, 0, -0.2);
+  paper.position.set(0.82, 0.01, 0.5);
   scene.add(paper);
   let readBlend = 0;
   const pageNotes = findFragmentPath(block); // fallback when a channel has none

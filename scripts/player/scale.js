@@ -7,8 +7,10 @@
  */
 
 export const A4_MM = { w: 210, h: 297 }; // ISO 216 A4 sheet
+export const A5_MM = { w: 148, h: 210 }; // ISO 216 A5 sheet (half of A4)
 export const LP12_MM = 302; // 12-inch vinyl record, actual disc diameter
 export const LP12_JACKET_MM = 314; // its cardboard jacket (disc + ~6mm margin)
+export const YUNOST_402_HEIGHT_MM = 205; // Юность-402: cabinet height (portable set, est.)
 
 /*
  * Build converters from one anchor: `refSceneUnits` of scene geometry is known
