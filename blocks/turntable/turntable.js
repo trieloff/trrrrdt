@@ -31,7 +31,11 @@ const ROOMS = {
 /* Build a partial track from a block row. Apple rows carry an appleId instead of
    an <audio> src; plain rows keep the mp3 href. finalize() adds slug/wallpaper/room. */
 function rowToEntry(cells) {
-  const title = cells[0]?.textContent?.trim() || '';
+  // the title is the first cell's text, but skip any liner-notes link an author
+  // tucked into the same cell (otherwise it corrupts the title and its slug)
+  const cell0 = cells[0];
+  const titleP = cell0 && [...cell0.querySelectorAll('p')].find((p) => !p.querySelector('a'));
+  const title = (titleP?.textContent || cell0?.textContent || '').trim();
   const links = [...cells].map((c) => c.querySelector('a')?.href).filter(Boolean);
   const notes = links.find(isNotesLink); // per-song liner notes, if any
   const link = links.find((h) => h !== notes) || ''; // audio (mp3 / Apple)

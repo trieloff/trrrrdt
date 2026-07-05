@@ -64,7 +64,11 @@ const CRT_FRAGMENT = `
    is either its own track (Suno/Apple) or, if none is authored and the screen is
    a video, the video's own sound. */
 function rowToEntry(cells) {
-  const title = cells[0]?.textContent?.trim() || '';
+  // the title is the first cell's text, but skip any liner-notes link an author
+  // tucked into the same cell (otherwise it corrupts the title and its slug)
+  const cell0 = cells[0];
+  const titleP = cell0 && [...cell0.querySelectorAll('p')].find((p) => !p.querySelector('a'));
+  const title = (titleP?.textContent || cell0?.textContent || '').trim();
   const links = [...cells].map((c) => c.querySelector('a')?.href);
   const img = [...cells].map((c) => c.querySelector('img')?.src).find(Boolean) || '';
   // screen media: an <img>, or a link that looks like a video/image file
