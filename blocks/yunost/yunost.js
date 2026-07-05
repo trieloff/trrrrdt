@@ -293,7 +293,7 @@ async function initScene(block, tracks, state) {
       // decorative CRT video: always muted so it autoplays + loops regardless of the audio
       videoEl.muted = true;
       videoEl.playsInline = true;
-      videoEl.play().catch(() => {}); // muted autoplay is allowed without a gesture
+      if (state.playing) videoEl.play().catch(() => {}); // only run while the set is switched on
       const tex = new THREE.VideoTexture(videoEl);
       tex.colorSpace = THREE.SRGBColorSpace;
       screenUniforms.uTex.value = tex;
@@ -586,21 +586,21 @@ export default async function decorate(block) {
   function pauseAll() {
     file.pause();
     if (apple) apple.pause();
-    // keep the CRT video looping (decorative) — only silence it (own-sound videos)
-    if (state.videoEl) { state.videoEl.muted = true; state.videoMuted = true; }
+    // switching off stops the picture too — pause the CRT video
+    if (state.videoEl) state.videoEl.pause();
   }
 
   // returns 'audio' | 'video' — what actually produced sound
   async function playTrack(track, userGesture) {
     if (track.source === 'apple' && apple) {
       file.pause();
-      if (state.videoEl) state.videoEl.muted = true;
+      if (state.videoEl) { state.videoEl.muted = true; state.videoEl.play().catch(() => {}); }
       await apple.play(track.appleId, { userGesture, storefront: track.storefront });
       return 'audio';
     }
     if (apple) { apple.setActive(false); apple.pause(); }
     if (track.audio) {
-      if (state.videoEl) state.videoEl.muted = true;
+      if (state.videoEl) { state.videoEl.muted = true; state.videoEl.play().catch(() => {}); }
       await file.play(track.audio);
       return 'audio';
     }
