@@ -1,7 +1,42 @@
 /* Yunost-402 TV player — a channel deck. Each channel scroll-snaps full height;
    the 3D set is pinned in the sticky stage. Sibling to the turntable block. */
+
+/* the player page scroll-snaps between channels */
+html:has(main .yunost) {
+  scroll-snap-type: y mandatory;
+}
+
+/* the player page is only the set — no site chrome */
+body:has(main .yunost) header,
+body:has(main .yunost) footer {
+  display: none;
+}
+
+main > .section:has(.yunost) {
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+  background: none;
+  overflow: visible; /* keep the sticky stage from being clipped */
+  text-align: initial;
+}
+
+main > .section:has(.yunost)::before,
+main > .section:has(.yunost)::after {
+  content: none;
+}
+
+main > .section:has(.yunost) > div {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 .yunost {
   position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  background-color: #080808;
 }
 
 .yunost .yunost-feed {

@@ -13,8 +13,65 @@ const ENV_LERP = 0.05;
  * the scaled model box (tuned visually); a video/image texture rides on it.
  */
 const SCREEN = {
-  cx: -0.09, cy: 0.53, cz: 0.9, w: 0.58, h: 0.5, rx: 0, ry: 0,
+  cx: -0.09, cy: 0.53, cz: 0.86, w: 0.62, h: 0.54, rx: 0, ry: 0, bulge: 0.05,
 };
+
+/* CRT tube: the picture plane bulges toward the viewer (convex glass). */
+const CRT_VERTEX = `
+  varying vec2 vUv;
+  uniform float uBulge;
+  void main() {
+    vUv = uv;
+    vec3 p = position;
+    vec2 c = uv - 0.5;
+    p.z += uBulge * (0.25 - dot(c, c)); // centre bulges out
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+  }
+`;
+
+/* Samples the channel texture through a barrel lens, rounds the corners so the
+   tube's shape crops the picture, and lays scanlines + static over it. */
+const CRT_FRAGMENT = `
+  precision highp float;
+  uniform sampler2D uTex;
+  uniform float uTime;
+  uniform float uStatic;   // 0 = clean picture, 1 = pure snow (no signal)
+  uniform float uLevel;    // audio energy 0..1, brightens the tube
+  varying vec2 vUv;
+
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+
+  // signed distance to a rounded rectangle
+  float sdRoundRect(vec2 p, vec2 b, float r) {
+    vec2 q = abs(p) - b + r;
+    return min(max(q.x, q.y), 0.0) + length(max(q, 0.0)) - r;
+  }
+
+  void main() {
+    vec2 uv = vUv - 0.5;
+    float r2 = dot(uv, uv);
+    vec2 tuv = uv * (1.0 + 0.09 * r2) + 0.5;   // gentle barrel distortion
+
+    // rounded-corner tube mask
+    float d = sdRoundRect(uv, vec2(0.5, 0.5), 0.13);
+    float mask = smoothstep(0.006, -0.006, d);
+
+    vec3 col;
+    if (tuv.x < 0.0 || tuv.x > 1.0 || tuv.y < 0.0 || tuv.y > 1.0) col = vec3(0.02);
+    else col = texture2D(uTex, tuv).rgb;
+
+    col *= 1.02 + 0.3 * uLevel;                              // brightness rides the audio
+    col *= 0.82 + 0.18 * sin(vUv.y * 620.0);                 // scanlines
+    col *= 0.97 + 0.03 * sin(vUv.y * 5.0 - uTime * 1.7);     // slow roll bar
+    float n = hash(vUv * (fract(uTime) * 240.0 + 1.0));
+    col += (n - 0.5) * (0.05 + uStatic * 0.7);               // static grain
+    col = mix(col, vec3(n), uStatic * 0.85);                 // no-signal snow
+    float vig = smoothstep(0.78, 0.25, length(uv));          // tube vignette
+    col *= mix(0.62, 1.14, vig);
+
+    gl_FragColor = vec4(col, mask);
+  }
+`;
 
 /* A channel is one row: title, meta, screen media (image|video), optional audio
    track, style prompt for the wallpaper. The picture is on the tube; the audio
@@ -114,11 +171,13 @@ async function initScene(block, tracks, state) {
   const lookTarget = new THREE.Vector3(0, 0.8, 0);
   const camPose = { az: 0, h: 1.5, d: 3.4 };
   const camGoal = { az: 0, h: 1.5, d: 3.4 };
+  const camDrift = { az: 0, h: 0, d: 0 }; // subtle handheld sway while on air
   const halfFov = Math.tan((camera.fov / 2) * (Math.PI / 180));
   function placeCamera() {
     const fit = 1.25 / (halfFov * Math.min(camera.aspect, 1.75));
-    const d = Math.max(camPose.d, fit);
-    camera.position.set(Math.sin(camPose.az) * d, camPose.h, Math.cos(camPose.az) * d);
+    const d = Math.max(camPose.d, fit) + camDrift.d;
+    const az = camPose.az + camDrift.az;
+    camera.position.set(Math.sin(az) * d, camPose.h + camDrift.h, Math.cos(az) * d);
     camera.lookAt(lookTarget);
   }
   placeCamera();
@@ -163,13 +222,26 @@ async function initScene(block, tracks, state) {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  // the picture plane — image or video texture rides here, over the tube face.
-  // depthTest off + high renderOrder so it always draws on top of the (single-
-  // mesh) tube glass; sized to the tube opening so it doesn't spill over the bezel
-  const screenMat = new THREE.MeshBasicMaterial({
-    color: 0x0a0a0a, toneMapped: false, depthTest: false,
+  // the picture plane — a convex CRT tube. The ShaderMaterial rounds the corners
+  // (the tube shape crops the picture), barrel-distorts it and lays scanlines +
+  // static over it. depthTest off + high renderOrder so it draws over the baked
+  // tube; the geometry is subdivided so the vertex bulge reads as curved glass.
+  const screenUniforms = {
+    uTex: { value: null },
+    uTime: { value: 0 },
+    uStatic: { value: 1 }, // no-signal snow until a channel loads
+    uLevel: { value: 0 },
+    uBulge: { value: SCREEN.bulge },
+  };
+  const screenMat = new THREE.ShaderMaterial({
+    uniforms: screenUniforms,
+    vertexShader: CRT_VERTEX,
+    fragmentShader: CRT_FRAGMENT,
+    transparent: true,
+    depthTest: false,
+    toneMapped: false,
   });
-  const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), screenMat);
+  const screenMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 32, 24), screenMat);
   screenMesh.renderOrder = 10;
   scene.add(screenMesh);
   let videoEl = null;
@@ -190,22 +262,21 @@ async function initScene(block, tracks, state) {
   function setScreenTexture(track) {
     // tear down any playing video texture
     if (videoEl) { videoEl.pause(); videoEl.src = ''; videoEl = null; }
-    screenMat.map = null;
-    screenMat.color.set(0x0a0a0a);
+    screenUniforms.uTex.value = null;
+    screenUniforms.uStatic.value = 1; // snow until the picture arrives
     const src = track.screen || track.image; // Apple artwork fills in after hydrate
-    if (!src) { screenMat.needsUpdate = true; return; }
+    if (!src) { state.videoEl = null; return; }
     if (track.screenIsVideo && track.screen) {
       videoEl = document.createElement('video');
       videoEl.src = src;
       videoEl.crossOrigin = 'anonymous';
-      videoEl.loop = !track.playable || track.source !== 'video';
+      videoEl.loop = true;
       videoEl.muted = state.videoMuted;
       videoEl.playsInline = true;
       const tex = new THREE.VideoTexture(videoEl);
       tex.colorSpace = THREE.SRGBColorSpace;
-      screenMat.map = tex;
-      screenMat.color.set(0xffffff);
-      screenMat.needsUpdate = true;
+      screenUniforms.uTex.value = tex;
+      screenUniforms.uStatic.value = 0.04;
       state.videoEl = videoEl;
     } else {
       artworkToken += 1;
@@ -217,9 +288,8 @@ async function initScene(block, tracks, state) {
         const tex = new THREE.Texture(img);
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.needsUpdate = true;
-        screenMat.map = tex;
-        screenMat.color.set(0xffffff);
-        screenMat.needsUpdate = true;
+        screenUniforms.uTex.value = tex;
+        screenUniforms.uStatic.value = 0.04; // faint always-on grain
       };
       img.src = src;
       state.videoEl = null;
@@ -356,6 +426,21 @@ async function initScene(block, tracks, state) {
     flicker = 1 + Math.sin(elapsed * 3.7) * 0.03 + Math.sin(elapsed * 7.1) * 0.02;
     screenGlow.color.copy(env.accent);
     screenGlow.intensity = (1.2 + wallUniforms.uBass.value * 2.2) * flicker;
+
+    // drive the tube: scanline/static time + brightness riding the audio
+    screenUniforms.uTime.value = elapsed;
+    const energy = (wallUniforms.uBass.value + wallUniforms.uMid.value) * 0.5;
+    screenUniforms.uLevel.value += (energy - screenUniforms.uLevel.value) * 0.2;
+
+    // subtle handheld camera sway while on air (settles to still when paused)
+    const amp = state.playing && !state.reducedMotion ? 1 : 0;
+    const dAz = Math.sin(elapsed * 0.13) * 0.035 + Math.sin(elapsed * 0.31) * 0.015;
+    const dH = Math.sin(elapsed * 0.19) * 0.05 + Math.sin(elapsed * 0.43) * 0.02;
+    const dD = Math.sin(elapsed * 0.11) * 0.12;
+    camDrift.az += (dAz * amp - camDrift.az) * 0.04;
+    camDrift.h += (dH * amp - camDrift.h) * 0.04;
+    camDrift.d += (dD * amp - camDrift.d) * 0.04;
+    if (!state.reducedMotion) placeCamera();
 
     renderer.render(scene, camera);
   }
