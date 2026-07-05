@@ -6,20 +6,24 @@
 
 .yunost .yunost-feed {
   position: relative;
-  scroll-snap-type: y mandatory;
 }
 
 .yunost .yunost-stage {
   position: sticky;
   top: 0;
+  height: 100vh;
   height: 100svh;
+  margin-bottom: -100vh;
+  margin-bottom: -100svh;
   overflow: hidden;
   background: #080808;
 }
 
 .yunost .yunost-track {
+  height: 100vh;
   height: 100svh;
   scroll-snap-align: start;
+  pointer-events: none;
 }
 
 .yunost .yunost-canvas {
