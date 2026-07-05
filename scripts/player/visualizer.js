@@ -138,3 +138,54 @@ export function buildWallpaper(THREE) {
   });
   return { uniforms, patternMats, solidMat };
 }
+
+/*
+ * Procedural desk/table grain — long wandering streaks plus speckle, drawn once
+ * on a canvas. Grayscale so the room palette can tint it via material.color.
+ * Shared by the turntable's desk and the yunost's floor.
+ */
+export function makeDeskGrain() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#b0a89c';
+  ctx.fillRect(0, 0, size, size);
+  for (let i = 0; i < 320; i += 1) {
+    const y0 = Math.random() * size;
+    const amp = 1.5 + Math.random() * 3;
+    const period = 90 + Math.random() * 260;
+    const alpha = 0.05 + Math.random() * 0.09;
+    const shade = Math.random() > 0.42 ? 30 : 235;
+    ctx.strokeStyle = `rgba(${shade}, ${shade}, ${shade}, ${alpha})`;
+    ctx.lineWidth = 0.6 + Math.random() * 2.2;
+    ctx.beginPath();
+    for (let x = 0; x <= size; x += 8) {
+      const y = y0 + Math.sin(((x / period) + i) * Math.PI * 2) * amp;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  // occasional knots
+  for (let i = 0; i < 3; i += 1) {
+    const kx = Math.random() * size;
+    const ky = Math.random() * size;
+    const kr = 3 + Math.random() * 9;
+    const grad = ctx.createRadialGradient(kx, ky, 1, kx, ky, kr);
+    grad.addColorStop(0, 'rgba(40, 36, 30, 0.5)');
+    grad.addColorStop(1, 'rgba(40, 36, 30, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(kx, ky, kr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // fine speckle
+  for (let i = 0; i < 5000; i += 1) {
+    const v = Math.floor(Math.random() * 70);
+    ctx.fillStyle = `rgba(${v}, ${v}, ${v}, 0.05)`;
+    ctx.fillRect(Math.random() * size, Math.random() * size, 1.4, 1.4);
+  }
+  return canvas;
+}

@@ -1,7 +1,7 @@
 import { getMetadata } from '../../scripts/aem.js';
 import createAudioEngine from '../../scripts/player/audio.js';
 import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
-import { wallpaperFromStyle, buildWallpaper } from '../../scripts/player/visualizer.js';
+import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
 
 const MODEL_PATH = '/models/yunost.glb';
@@ -196,9 +196,26 @@ async function initScene(block, tracks, state) {
   wall.position.set(0, 6, -6);
   scene.add(wall);
 
-  // floor
+  // wooden desk — the same procedural grain as the turntable's Sony deck,
+  // tinted dark and warm for the dim TV room
+  const deskCanvas = makeDeskGrain();
+  const deskMap = new THREE.CanvasTexture(deskCanvas);
+  deskMap.colorSpace = THREE.SRGBColorSpace;
+  deskMap.wrapS = THREE.RepeatWrapping;
+  deskMap.wrapT = THREE.RepeatWrapping;
+  deskMap.repeat.set(9, 9);
+  deskMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const deskBump = new THREE.CanvasTexture(deskCanvas);
+  deskBump.wrapS = THREE.RepeatWrapping;
+  deskBump.wrapT = THREE.RepeatWrapping;
+  deskBump.repeat.set(9, 9);
   const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x140d07, roughness: 0.7, metalness: 0.05,
+    map: deskMap,
+    bumpMap: deskBump,
+    bumpScale: 0.5,
+    color: 0x3a2a1b,
+    roughness: 0.66,
+    metalness: 0.06,
   });
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), floorMat);
   floor.rotation.x = -Math.PI / 2;
