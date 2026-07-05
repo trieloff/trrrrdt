@@ -1,0 +1,109 @@
+/* feature — a spotlighted featured release: cover art on a dark stage + copy */
+.feature {
+  margin: 8px 0;
+  padding: 32px 24px;
+  color: var(--light-color);
+  background:
+    radial-gradient(130% 130% at 16% 22%, rgb(217 48 37 / 22%), transparent 55%),
+    var(--text-color);
+  border-radius: var(--radius-card);
+  box-shadow: var(--bevel-light);
+  overflow: hidden;
+}
+
+.feature > div {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  align-items: flex-start;
+}
+
+.feature .feature-art {
+  width: 100%;
+  max-width: 300px;
+  align-self: center;
+}
+
+.feature .feature-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: 0 20px 55px rgb(0 0 0 / 60%), 0 0 0 1px rgb(255 255 255 / 8%);
+}
+
+.feature .feature-body {
+  width: 100%;
+}
+
+.feature .feature-body h2 {
+  margin: 0 0 10px;
+  color: var(--light-color);
+  font-size: var(--heading-font-size-l);
+  line-height: 1.04;
+  letter-spacing: 0.02em;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+.feature .feature-body p {
+  color: rgb(245 230 211 / 74%);
+  max-width: 48ch;
+}
+
+/* the line immediately after the title = the multilingual subtitle */
+.feature .feature-body h2 + p {
+  margin: 0 0 16px;
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-size: var(--heading-font-size-xs);
+  letter-spacing: 0.04em;
+  color: var(--accent-warm);
+}
+
+.feature .feature-body .feature-eyebrow {
+  margin: 0 0 12px;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+}
+
+.feature .feature-body .button-wrapper {
+  display: inline-block;
+  margin: 12px 12px 0 0;
+}
+
+.feature a.button.secondary {
+  border-color: rgb(245 230 211 / 40%);
+  color: var(--light-color);
+}
+
+.feature a.button.secondary:hover {
+  border-color: var(--light-color);
+  background-color: rgb(255 255 255 / 10%);
+  color: var(--light-color);
+}
+
+@media (width >= 900px) {
+  .feature {
+    padding: 52px 48px;
+  }
+
+  .feature > div {
+    flex-direction: row;
+    gap: 52px;
+    align-items: center;
+  }
+
+  .feature .feature-art {
+    flex: 0 0 auto;
+    max-width: 360px;
+  }
+
+  .feature .feature-body h2 {
+    font-size: var(--heading-font-size-xl);
+  }
+}
