@@ -63,9 +63,20 @@ function wallpaperFromStyle(style) {
   };
 }
 
+/* URL-safe slug from a title — ASCII survives, diacritics strip, Cyrillic/CJK
+   drop out (the romanised part usually remains); empty falls back to track-N */
+function slugify(str) {
+  return str
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function parseTracks(block) {
   const tracks = [];
-  [...block.children].forEach((row) => {
+  [...block.children].forEach((row, i) => {
     const cells = [...row.children];
     const title = cells[0]?.textContent?.trim();
     if (!title) return;
@@ -77,6 +88,7 @@ function parseTracks(block) {
       meta: cells[2]?.textContent?.trim() || '',
       audio: cells[3]?.querySelector('a')?.href || '',
       style,
+      slug: slugify(title) || `track-${i + 1}`,
       wallpaper: style ? wallpaperFromStyle(style) : null,
       room: ROOMS[toClassName(artist)] || ROOMS.default,
     });
@@ -693,6 +705,8 @@ async function initScene(block, tracks, state) {
   state.stopRender = () => {
     state.rendering = false;
   };
+  // apply the (possibly deep-linked) current track's room now the scene exists
+  state.setEnvironment(tracks[Math.max(0, state.current)]);
   state.startRender();
 }
 
@@ -709,6 +723,7 @@ export default function decorate(block) {
     const item = document.createElement('div');
     item.className = 'turntable-track';
     item.dataset.index = i;
+    item.id = track.slug;
     item.setAttribute('aria-label', `${track.title} — ${track.artist}`);
     feed.append(item);
   });
@@ -777,6 +792,10 @@ export default function decorate(block) {
     if (i === state.current || !tracks[i]) return;
     state.current = i;
     const track = tracks[i];
+    // keep the URL on the current song so it's shareable (no scroll, no reload)
+    if (window.location.hash !== `#${track.slug}` && window.location.hash !== '#spin') {
+      window.history.replaceState(null, '', `#${track.slug}`);
+    }
     state.setEnvironment(track);
     if ((autoplay || state.playing) && track.audio) {
       try {
@@ -849,7 +868,22 @@ export default function decorate(block) {
     else state.startRender();
   });
 
-  setTrack(0, false);
+  // deep-link: start on the track named in the URL hash (#song-slug or #N)
+  function hashToIndex() {
+    const h = decodeURIComponent((window.location.hash || '').replace(/^#/, '')).toLowerCase();
+    if (!h || h === 'spin') return 0;
+    const bySlug = tracks.findIndex((t) => t.slug === h);
+    if (bySlug >= 0) return bySlug;
+    const n = Number(h);
+    if (Number.isInteger(n) && n >= 1 && n <= tracks.length) return n - 1;
+    return 0;
+  }
+  const startIndex = hashToIndex();
+  if (startIndex > 0) {
+    const el = feed.querySelector(`.turntable-track[data-index="${startIndex}"]`);
+    if (el) el.scrollIntoView({ behavior: 'auto' });
+  }
+  setTrack(startIndex, false);
 
   // 3D is progressive enhancement: without WebGL the overlay still plays audio
   try {
