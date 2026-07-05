@@ -653,7 +653,7 @@ async function initScene(block, tracks, state) {
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    if (raycaster.intersectObject(model, true).length) state.togglePlay();
+    if (raycaster.intersectObject(model, true).length) state.requestPlay();
   });
   renderer.domElement.addEventListener('pointermove', (e) => {
     const rect = renderer.domElement.getBoundingClientRect();
@@ -849,7 +849,11 @@ function createAppleBackend(tokenEndpoint) {
     onEnded(cb) { listeners.ended = cb; },
     setActive(v) { active = v; },
     isActive: () => active,
+    isConfigured: () => !!music,
     isAuthorized: () => !!(music && music.isAuthorized),
+    // must be called synchronously inside a user gesture — MusicKit opens a
+    // sign-in popup and Safari blocks it otherwise
+    authorize: () => (music ? music.authorize() : Promise.reject(new Error('not configured'))),
     async play(appleId, { userGesture }) {
       const m = await configure();
       if (!m.isAuthorized) {
@@ -935,6 +939,12 @@ export default async function decorate(block) {
   eject.href = parent || '/';
   const dots = [...stage.querySelectorAll('.turntable-dot')];
   const file = createAudioEngine();
+
+  // Pre-warm MusicKit (load SDK + configure with the dev token) as soon as the
+  // page has any Apple track, so that when the listener clicks "Connect Apple
+  // Music" we can call authorize() synchronously inside the gesture — otherwise
+  // the async config work makes Safari treat the sign-in popup as unsolicited.
+  if (apple) apple.configure().catch(() => {});
 
   const isLocalDev = ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const dof = stage.querySelector('.turntable-dof');
@@ -1093,7 +1103,25 @@ export default async function decorate(block) {
     updateOverlay();
   };
 
-  playBtn.addEventListener('click', () => state.togglePlay());
+  // Entry point for every user-initiated play (button click or device tap). If
+  // the current Apple track needs authorization and MusicKit is already
+  // configured, open the sign-in popup *synchronously* here — inside the gesture
+  // — so Safari doesn't block it; then start playback. Everything else defers to
+  // togglePlay.
+  state.requestPlay = () => {
+    const track = tracks[state.current];
+    if (track?.source === 'apple' && apple && !state.playing
+      && apple.isConfigured() && !apple.isAuthorized()) {
+      playBtn.textContent = 'Connecting…';
+      apple.authorize()
+        .then(() => state.togglePlay())
+        .catch(() => updateOverlay()); // popup dismissed/denied → back to Connect
+      return;
+    }
+    state.togglePlay();
+  };
+
+  playBtn.addEventListener('click', () => state.requestPlay());
   const advance = () => {
     const next = feed.querySelector(`.turntable-track[data-index="${state.current + 1}"]`);
     if (next) {
