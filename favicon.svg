@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="TRRRRDT Records">
+  <defs>
+    <radialGradient id="vinyl" cx="42%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#2c2c2c"/>
+      <stop offset="55%" stop-color="#1c1c1c"/>
+      <stop offset="100%" stop-color="#0e0e0e"/>
+    </radialGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8eddc"/>
+      <stop offset="100%" stop-color="#efdabf"/>
+    </linearGradient>
+  </defs>
+
+  <!-- warm cream tile so the mark stays visible on any tab colour -->
+  <rect width="64" height="64" rx="13" fill="url(#tile)"/>
+
+  <!-- vinyl disc -->
+  <circle cx="32" cy="32" r="26.5" fill="url(#vinyl)"/>
+
+  <!-- grooves -->
+  <g fill="none" stroke="#3a3a3a" stroke-width="0.9" opacity="0.8">
+    <circle cx="32" cy="32" r="23.5"/>
+    <circle cx="32" cy="32" r="20.5"/>
+    <circle cx="32" cy="32" r="17.5"/>
+  </g>
+
+  <!-- red 45 label with a warm rim -->
+  <circle cx="32" cy="32" r="10.5" fill="#d93025"/>
+  <circle cx="32" cy="32" r="10.5" fill="none" stroke="#e67e22" stroke-width="1.6"/>
+
+  <!-- spindle hole -->
+  <circle cx="32" cy="32" r="2.1" fill="#f5e6d3"/>
+
+  <!-- specular gloss sweep -->
+  <path d="M11.8 24.7 A21.5 21.5 0 0 1 24.7 11.8" fill="none" stroke="#ffffff" stroke-opacity="0.42" stroke-width="2.6" stroke-linecap="round"/>
+</svg>
