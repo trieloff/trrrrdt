@@ -14,19 +14,13 @@ import * as offline from '../../scripts/player/offline.js';
 
 const MODEL_PATH = '/models/tp1.glb';
 
-function makeLeatherMaps(THREE, renderer) {
+function makeLeatherColorMap(THREE, renderer) {
   const colorCanvas = document.createElement('canvas');
-  const bumpCanvas = document.createElement('canvas');
-  [colorCanvas, bumpCanvas].forEach((canvas) => {
-    canvas.width = 512;
-    canvas.height = 128;
-  });
+  colorCanvas.width = 512;
+  colorCanvas.height = 128;
   const colorCtx = colorCanvas.getContext('2d');
-  const bumpCtx = bumpCanvas.getContext('2d');
   colorCtx.fillStyle = '#583b29';
   colorCtx.fillRect(0, 0, colorCanvas.width, colorCanvas.height);
-  bumpCtx.fillStyle = '#808080';
-  bumpCtx.fillRect(0, 0, bumpCanvas.width, bumpCanvas.height);
 
   // Deterministic, elongated grain: enough surface relief to stop the handle
   // reading as smooth plastic without adding another downloaded asset.
@@ -41,9 +35,7 @@ function makeLeatherMaps(THREE, renderer) {
     const width = 8 + random() * 30;
     const shade = Math.round(48 + random() * 126);
     colorCtx.fillStyle = `rgb(${shade} ${Math.round(shade * 0.66)} ${Math.round(shade * 0.4)})`;
-    bumpCtx.fillStyle = `rgb(${shade} ${shade} ${shade})`;
     colorCtx.fillRect(x, 0, width, colorCanvas.height);
-    bumpCtx.fillRect(x, 0, width, bumpCanvas.height);
   }
   for (let i = 0; i < 42; i += 1) {
     const x = random() * colorCanvas.width;
@@ -51,14 +43,10 @@ function makeLeatherMaps(THREE, renderer) {
     const radiusX = 10 + random() * 42;
     const radiusY = 4 + random() * 14;
     const shade = Math.round(48 + random() * 130);
-    [colorCtx, bumpCtx].forEach((ctx) => {
-      ctx.beginPath();
-      ctx.ellipse(x, y, radiusX, radiusY, random() * 0.35, 0, Math.PI * 2);
-    });
+    colorCtx.beginPath();
+    colorCtx.ellipse(x, y, radiusX, radiusY, random() * 0.35, 0, Math.PI * 2);
     colorCtx.fillStyle = `rgb(${shade} ${Math.round(shade * 0.66)} ${Math.round(shade * 0.4)})`;
-    bumpCtx.fillStyle = `rgb(${shade} ${shade} ${shade})`;
     colorCtx.fill();
-    bumpCtx.fill();
   }
   for (let i = 0; i < 90; i += 1) {
     const x = random() * colorCanvas.width;
@@ -69,35 +57,28 @@ function makeLeatherMaps(THREE, renderer) {
     const endY = y + (random() - 0.5) * 8;
     const width = 1.2 + random() * 5.4;
     const shade = Math.round(42 + random() * 136);
-    [colorCtx, bumpCtx].forEach((ctx) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.bezierCurveTo(
-        x + length * 0.32,
-        cp1y,
-        x + length * 0.68,
-        cp2y,
-        x + length,
-        endY,
-      );
-      ctx.lineWidth = width;
-    });
+    colorCtx.beginPath();
+    colorCtx.moveTo(x, y);
+    colorCtx.bezierCurveTo(
+      x + length * 0.32,
+      cp1y,
+      x + length * 0.68,
+      cp2y,
+      x + length,
+      endY,
+    );
+    colorCtx.lineWidth = width;
     colorCtx.strokeStyle = `rgb(${shade} ${Math.round(shade * 0.68)} ${Math.round(shade * 0.43)})`;
-    bumpCtx.strokeStyle = `rgb(${shade} ${shade} ${shade})`;
     colorCtx.stroke();
-    bumpCtx.stroke();
   }
 
   const colorMap = new THREE.CanvasTexture(colorCanvas);
   colorMap.colorSpace = THREE.SRGBColorSpace;
-  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
-  [colorMap, bumpMap].forEach((texture) => {
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(1, 1);
-    texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  });
-  return { colorMap, bumpMap };
+  colorMap.flipY = false;
+  colorMap.wrapS = THREE.RepeatWrapping;
+  colorMap.wrapT = THREE.RepeatWrapping;
+  colorMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  return colorMap;
 }
 
 function findGrilleHoleCenters(THREE, mesh) {
@@ -365,7 +346,13 @@ async function initScene(block, state) {
   // The 3DS conversion truncated several source material names to
   // "/Plastic_Simple_". Classify the known CAD parts explicitly so meter marks,
   // dial rings, controls, and the two body tones keep their intended identities.
-  const leatherMaps = makeLeatherMaps(THREE, renderer);
+  const leatherColorMap = makeLeatherColorMap(THREE, renderer);
+  const leatherNormalMap = await new THREE.TextureLoader()
+    .loadAsync('/blocks/tp1/leather-normal.jpg');
+  leatherNormalMap.flipY = false;
+  leatherNormalMap.wrapS = THREE.RepeatWrapping;
+  leatherNormalMap.wrapT = THREE.RepeatWrapping;
+  leatherNormalMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const plastic = (color, {
     roughness = 0.58,
     clearcoat = 0.04,
@@ -425,9 +412,9 @@ async function initScene(block, state) {
       color: 0xffffff,
       roughness: 0.5,
       metalness: 0,
-      map: leatherMaps.colorMap,
-      bumpMap: leatherMaps.bumpMap,
-      bumpScale: 0.022,
+      map: leatherColorMap,
+      normalMap: leatherNormalMap,
+      normalScale: new THREE.Vector2(0.55, 0.55),
       clearcoat: 0.1,
       clearcoatRoughness: 0.42,
       envMapIntensity: 0.85,
@@ -593,10 +580,10 @@ export default async function decorate(block) {
         <div class="tp1-list" role="list"></div>
         <p class="tp1-empty" hidden>Nothing saved yet. Anywhere on the site, tap <b>Save offline</b> on a song, a player, or an artist to keep it here — then it plays with no connection.</p>
       </section>
-      <footer class="tp1-now">
+      <div class="tp1-now">
         <button class="tp1-play" type="button" disabled>Play</button>
         <div class="tp1-now-title"></div>
-      </footer>
+      </div>
     </div>
   `;
   block.append(stage);
