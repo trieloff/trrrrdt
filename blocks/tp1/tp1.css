@@ -420,6 +420,11 @@ main > .section:has(.tp1) > div {
   display: none;
 }
 
+/* with no 3D, give the crate the room the model would have taken */
+.tp1.tp1-no-3d .tp1-crate {
+  max-height: 82vh;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tp1 .tp1-song-eq i {
     animation: none;

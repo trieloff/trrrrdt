@@ -263,8 +263,15 @@ async function initScene(block, state) {
     camera.lookAt(lookTarget);
   }
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  // cap the pixel ratio harder on phones — a full-DPR heavy scene trips the iOS
+  // WebContent memory limit and blanks the tab
+  const dprCap = window.innerWidth < 700 ? 1.5 : 2;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, dprCap));
+  renderer.domElement.addEventListener('webglcontextlost', (e) => {
+    e.preventDefault();
+    block.classList.add('tp1-no-3d');
+  }, false);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.9;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -347,12 +354,16 @@ async function initScene(block, state) {
   // "/Plastic_Simple_". Classify the known CAD parts explicitly so meter marks,
   // dial rings, controls, and the two body tones keep their intended identities.
   const leatherColorMap = makeLeatherColorMap(THREE, renderer);
+  // a missing normal map must not take down the whole scene
   const leatherNormalMap = await new THREE.TextureLoader()
-    .loadAsync('/blocks/tp1/leather-normal.jpg');
-  leatherNormalMap.flipY = false;
-  leatherNormalMap.wrapS = THREE.RepeatWrapping;
-  leatherNormalMap.wrapT = THREE.RepeatWrapping;
-  leatherNormalMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    .loadAsync('/blocks/tp1/leather-normal.jpg')
+    .catch(() => null);
+  if (leatherNormalMap) {
+    leatherNormalMap.flipY = false;
+    leatherNormalMap.wrapS = THREE.RepeatWrapping;
+    leatherNormalMap.wrapT = THREE.RepeatWrapping;
+    leatherNormalMap.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  }
   const plastic = (color, {
     roughness = 0.58,
     clearcoat = 0.04,
@@ -766,11 +777,17 @@ export default async function decorate(block) {
   updateNet();
   refresh();
 
-  try {
-    const probe = document.createElement('canvas');
-    if (!probe.getContext('webgl2') && !probe.getContext('webgl')) throw new Error('no webgl');
-    await initScene(block, state);
-  } catch (e) {
-    block.classList.add('tp1-no-3d');
-  }
+  // The crate (the offline library) is the point. Paint it first, then boot the 3D
+  // as a deferred, isolated enhancement — a WebGL failure or an iOS memory-pressure
+  // kill of the scene must never blank the library.
+  const boot3d = () => {
+    try {
+      const probe = document.createElement('canvas');
+      if (!probe.getContext('webgl2') && !probe.getContext('webgl')) throw new Error('no webgl');
+      initScene(block, state).catch(() => block.classList.add('tp1-no-3d'));
+    } catch (e) {
+      block.classList.add('tp1-no-3d');
+    }
+  };
+  requestAnimationFrame(() => requestAnimationFrame(boot3d));
 }
