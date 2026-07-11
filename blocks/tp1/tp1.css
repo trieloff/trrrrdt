@@ -379,6 +379,35 @@ main > .section:has(.tp1) > div {
   cursor: default;
 }
 
+/* previous / next skip — round outline buttons flanking Play */
+.tp1 .tp1-skip {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  background: transparent;
+  color: #cfc8ba;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tp1 .tp1-skip:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.tp1 .tp1-skip:hover:not(:disabled),
+.tp1 .tp1-skip:focus-visible:not(:disabled) {
+  background: rgb(255 255 255 / 10%);
+  color: #fff;
+}
+
 .tp1 .tp1-now-title {
   flex: 1 1 auto;
   min-width: 0;

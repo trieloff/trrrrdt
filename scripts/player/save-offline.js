@@ -152,7 +152,10 @@ export function createSaveAllButton(getSongs, { label = 'Save all offline' } = {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'save-offline save-offline-all';
-  btn.innerHTML = '<span class="save-offline-icon" aria-hidden="true"></span><span class="save-offline-label"></span>';
+  // hidden until sync() confirms there's more than nothing to save — otherwise it
+  // flashes as an empty icon-only pill while the player pages are being resolved
+  btn.hidden = true;
+  btn.innerHTML = `<span class="save-offline-icon" aria-hidden="true"></span><span class="save-offline-label">${label}</span>`;
   const setText = (t) => { btn.querySelector('.save-offline-label').textContent = t; };
   let busy = false;
 
@@ -221,14 +224,25 @@ export function songsFromPlayerPage(pagePath) {
       const songs = [];
       // each track is a row of cells: title, artist, meta·duration, audio, style, cover
       [...block.children].forEach((row) => {
-        const cells = [...row.children].map((c) => c.textContent.trim());
-        const audio = row.querySelector('a[href]')?.getAttribute('href') || '';
-        if (!/\.mp3(\?|$)/i.test(audio) && !/cdn1\.suno\.ai/.test(audio)) return;
+        const cellEls = [...row.children];
+        const cells = cellEls.map((c) => c.textContent.trim());
+        // the audio link isn't always first — rows often lead with a per-song
+        // liner-notes link — so pick the anchor that is actually an mp3 / Suno track
+        const hrefs = [...row.querySelectorAll('a[href]')].map((a) => a.getAttribute('href') || '');
+        const audio = hrefs.find((h) => /\.mp3(\?|$)/i.test(h) || /cdn1\.suno\.ai/.test(h)) || '';
+        if (!audio) return;
+        // the title is the title cell's paragraph that ISN'T a link — a "Liner
+        // notes" link tucked into the same cell would otherwise corrupt the title
+        // (and its slug, breaking the match to a cassette's #slug link), exactly
+        // as the turntable's own rowToEntry guards against
+        const cell0 = cellEls[0];
+        const titleP = cell0 && [...cell0.querySelectorAll('p')].find((para) => !para.querySelector('a'));
+        const title = (titleP?.textContent || cells[0] || '').trim();
         const cover = row.querySelector('img')?.getAttribute('src') || '';
         const durMatch = (cells[2] || '').match(/(\d+:\d{2})\s*$/);
         songs.push({
           url: audio,
-          title: cells[0] || 'Untitled',
+          title: title || 'Untitled',
           artist: cells[1] || '',
           meta: cells[2] || '',
           duration: durMatch ? durMatch[1] : '',

@@ -139,7 +139,9 @@ function buildStage(tracks) {
     <p class="yunost-source" aria-hidden="true"></p>
     <p class="yunost-status" aria-live="polite"></p>
     <a class="yunost-eject" href="/">⏏ Off</a>
-    <button type="button" class="yunost-play" aria-pressed="false">Tune in</button>
+    <div class="yunost-controls">
+      <button type="button" class="yunost-play" aria-pressed="false">Tune in</button>
+    </div>
     <div class="yunost-dots" role="presentation"></div>
   `;
   const dots = stage.querySelector('.yunost-dots');
@@ -622,8 +624,9 @@ export default async function decorate(block) {
       duration: (t.meta.match(/(\d+:\d{2})\s*$/) || [])[1] || '',
       source: 'suno',
     };
-  });
-  stage.querySelector('.yunost-card').append(saveOffline.el);
+  }, { compact: false });
+  // sits on the same row as "Tune in", styled to match — as on the Sony page
+  stage.querySelector('.yunost-controls').append(saveOffline.el);
 
   const file = createAudioEngine();
 

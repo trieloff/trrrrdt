@@ -186,12 +186,17 @@ header nav .nav-sections ul {
   list-style: none;
   padding-left: 0;
   font-family: var(--mono-font-family);
-  font-size: var(--body-font-size-xs);
+
+  /* larger + tappable in the mobile drop menu; the desktop bar pins this back to
+     xs below so its horizontal row is unchanged */
+  font-size: var(--heading-font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 header nav .nav-sections ul > li > a:any-link {
+  display: inline-block;
+  padding: 0.35em 0;
   color: var(--dark-color);
   transition: color 0.2s;
 }
@@ -254,6 +259,11 @@ header nav .nav-sections ul > li > ul > li {
     display: flex;
     gap: 24px;
     margin: 0;
+    font-size: var(--body-font-size-xs);
+  }
+
+  header nav .nav-sections ul > li > a:any-link {
+    padding: 0;
   }
 
   header nav .nav-sections .default-content-wrapper > ul > li {

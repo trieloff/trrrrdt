@@ -188,12 +188,19 @@ main > .section:has(.yunost) > div {
 .yunost .yunost-source::before { content: '◍ '; }
 .yunost.yunost-apple .yunost-source { display: block; }
 
-/* --- play / eject --- */
-.yunost .yunost-play {
+/* --- play + save controls: bottom-left, one row --- */
+.yunost .yunost-controls {
   position: absolute;
   bottom: 32px;
   left: 24px;
   z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.yunost .yunost-play {
   margin: 0;
   padding: 10px 18px;
   font-family: var(--mono-font-family, monospace);
@@ -209,6 +216,27 @@ main > .section:has(.yunost) > div {
 
 .yunost .yunost-play:hover,
 .yunost .yunost-play:focus-visible { background-color: rgb(255 255 255 / 12%); }
+
+/* the "Save offline" control shares the "Tune in" look (a squared marking, not
+   the default pill), keeping its green "saved" tint — same as the Sony page */
+.yunost .yunost-controls .save-offline {
+  margin: 0;
+  padding: 10px 18px;
+  font-size: var(--body-font-size-xs, 11px);
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+  opacity: 1;
+}
+
+.yunost .yunost-controls .save-offline:not(.is-saved) {
+  color: var(--light-color, #fff);
+  border-color: rgb(255 255 255 / 40%);
+}
+
+.yunost .yunost-controls .save-offline:not(.is-saved):hover,
+.yunost .yunost-controls .save-offline:not(.is-saved):focus-visible {
+  background-color: rgb(255 255 255 / 12%);
+}
 
 .yunost .yunost-play:disabled {
   opacity: 0.4;
@@ -296,7 +324,7 @@ main > .section:has(.yunost) > div {
     right: 48px;
   }
 
-  .yunost .yunost-play {
+  .yunost .yunost-controls {
     bottom: 40px;
     left: 48px;
   }

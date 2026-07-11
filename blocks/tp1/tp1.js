@@ -592,7 +592,9 @@ export default async function decorate(block) {
         <p class="tp1-empty" hidden>Nothing saved yet. Anywhere on the site, tap <b>Save offline</b> on a song, a player, or an artist to keep it here — then it plays with no connection.</p>
       </section>
       <div class="tp1-now">
+        <button class="tp1-skip tp1-prev" type="button" disabled aria-label="Previous song">◀◀</button>
         <button class="tp1-play" type="button" disabled>Play</button>
+        <button class="tp1-skip tp1-next" type="button" disabled aria-label="Next song">▶▶</button>
         <div class="tp1-now-title"></div>
       </div>
     </div>
@@ -606,6 +608,8 @@ export default async function decorate(block) {
   const netDot = stage.querySelector('.tp1-net-dot');
   const netLabel = stage.querySelector('.tp1-net-label');
   const playBtn = stage.querySelector('.tp1-play');
+  const prevBtn = stage.querySelector('.tp1-prev');
+  const nextBtn = stage.querySelector('.tp1-next');
   const nowTitle = stage.querySelector('.tp1-now-title');
 
   const state = {
@@ -680,6 +684,10 @@ export default async function decorate(block) {
     nowTitle.textContent = cur ? `${cur.title} — ${cur.artist}` : '';
     playBtn.textContent = state.playing ? 'Pause' : 'Play';
     playBtn.disabled = state.songs.length === 0;
+    // prev/next skip within the crate; disabled at the ends (and with no current song)
+    const idx = state.songs.findIndex((s) => s.id === state.current);
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx < 0 || idx >= state.songs.length - 1;
     block.classList.toggle('tp1-is-playing', state.playing);
   }
 
@@ -761,6 +769,9 @@ export default async function decorate(block) {
     else playSong(id);
   });
   playBtn.addEventListener('click', () => togglePlay());
+  // prev/next are only enabled when a valid neighbour exists, so advance() lands safely
+  prevBtn.addEventListener('click', () => advance(-1));
+  nextBtn.addEventListener('click', () => advance(1));
   state.audio.onEnded(() => advance(1));
   if ('mediaSession' in navigator) {
     try {
