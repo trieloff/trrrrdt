@@ -553,7 +553,10 @@ export default async function decorate(block) {
     const item = document.createElement('div');
     item.className = 'yunost-track';
     item.dataset.index = i;
-    item.id = track.slug;
+    // deliberately NO id=slug: deep-linking is done entirely in JS (hashToIndex +
+    // data-index). Giving the panel an id matching the URL hash lets the browser's
+    // native fragment scroller fight our scroll-snap container, re-snapping back to
+    // the pinned track on every progressive layout shift so you can't scroll past it.
     item.setAttribute('aria-label', track.title);
     feed.append(item);
   });
@@ -747,8 +750,21 @@ export default async function decorate(block) {
   }
   const startIndex = hashToIndex();
   if (startIndex > 0) {
-    const el = feed.querySelector(`.yunost-track[data-index="${startIndex}"]`);
-    if (el) el.scrollIntoView({ behavior: 'auto' });
+    // Only scroll once the block's CSS has applied — the channel is exactly as tall as
+    // the (position:fixed, full-viewport) scroll container. scrollIntoView on a
+    // half-laid-out block either no-ops (stuck on channel 0) or lands on the wrong one.
+    let tries = 0;
+    const land = () => {
+      const el = feed.querySelector(`.yunost-track[data-index="${startIndex}"]`);
+      const h = el ? el.getBoundingClientRect().height : 0;
+      if (h && block.clientHeight && Math.abs(h - block.clientHeight) <= 2) {
+        el.scrollIntoView({ behavior: 'auto' });
+      } else if (tries < 60) {
+        tries += 1;
+        requestAnimationFrame(land);
+      }
+    };
+    requestAnimationFrame(land);
   }
   setTrack(startIndex, false);
 
