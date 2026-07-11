@@ -1,0 +1,155 @@
+html:has(main .varmblixt),
+body:has(main .varmblixt) {
+  overflow: hidden;
+}
+
+body:has(main .varmblixt) header,
+body:has(main .varmblixt) footer {
+  display: none;
+}
+
+main > .section:has(.varmblixt) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #e4dfd5;
+  text-align: start;
+}
+
+main > .section:has(.varmblixt)::before,
+main > .section:has(.varmblixt)::after {
+  content: none;
+}
+
+main > .section:has(.varmblixt) > div {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+main .varmblixt {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  color: #292722;
+  background: #eeeae2;
+  isolation: isolate;
+}
+
+main .varmblixt .varmblixt-viewport,
+main .varmblixt .varmblixt-viewport canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+main .varmblixt .varmblixt-viewport canvas {
+  cursor: grab;
+  touch-action: none;
+}
+
+main .varmblixt.varmblixt-dragging .varmblixt-viewport canvas {
+  cursor: grabbing;
+}
+
+main .varmblixt .varmblixt-copy {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: clamp(1.5rem, 5vw, 4.5rem);
+  inset-inline-start: clamp(1.25rem, 6vw, 5.5rem);
+  width: min(34rem, calc(100% - 2.5rem));
+  pointer-events: none;
+}
+
+main .varmblixt .varmblixt-kicker {
+  margin: 0 0 0.75rem;
+  color: #786f62;
+  font-family: var(--fixed-font-family, monospace);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+main .varmblixt .varmblixt-copy h1 {
+  max-width: 10ch;
+  margin: 0;
+  color: #292722;
+  font-family: var(--heading-font-family);
+  font-size: clamp(2.5rem, 8vw, 6.5rem);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+}
+
+main .varmblixt .varmblixt-copy > p:last-child {
+  max-width: 34ch;
+  margin: 1.2rem 0 0;
+  color: #69645b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+main .varmblixt .varmblixt-control {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 1.25rem;
+  inset-block-end: 1.25rem;
+  display: grid;
+  grid-template-columns: auto minmax(8rem, 16rem);
+  align-items: center;
+  justify-content: end;
+  gap: 0.9rem;
+  color: #625d55;
+  font-family: var(--fixed-font-family, monospace);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+main .varmblixt .varmblixt-intensity {
+  width: 100%;
+  accent-color: #4c4942;
+  cursor: pointer;
+}
+
+main .varmblixt .varmblixt-loading {
+  position: absolute;
+  z-index: 3;
+  inset: 50% auto auto 50%;
+  margin: 0;
+  color: #746e64;
+  font-family: var(--fixed-font-family, monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%);
+  transition: opacity 300ms ease;
+}
+
+main .varmblixt.varmblixt-ready .varmblixt-loading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+main .varmblixt.varmblixt-error .varmblixt-loading {
+  width: min(28rem, calc(100% - 3rem));
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (width >= 600px) {
+  main .varmblixt .varmblixt-control {
+    inset-inline: auto clamp(1.5rem, 4vw, 4rem);
+    inset-block-end: clamp(1.5rem, 4vw, 3rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main .varmblixt .varmblixt-loading {
+    transition: none;
+  }
+}
