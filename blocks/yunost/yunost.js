@@ -428,11 +428,12 @@ async function initScene(block, tracks, state) {
   paper.position.set(0.15, 0.02, 1.85);
   scene.add(paper);
 
-  // a VARMBLIXT glass-donut lamp set back on the desk, behind the little TV and
-  // off to one side — it peeks past the set's shoulder and backlights it with a
-  // warm amber glow against the cooler CRT light
+  // a VARMBLIXT glass-donut lamp set well back on the desk, behind the little TV
+  // and off to one side — it peeks past the set's shoulder and backlights it with
+  // a warm amber glow against the cooler CRT light. Pushed a real ~50cm further
+  // back (via the scene's mm scale) so it clears the tube with room to spare.
   const lamp = createLamp(THREE, { mmToUnits: world.mmToUnits });
-  lamp.group.position.set(1.2, 0, -1.6);
+  lamp.group.position.set(1.2, 0, -1.6 - world.mmToUnits(500));
   scene.add(lamp.group);
   let readBlend = 0;
   const pageNotes = findFragmentPath(block); // fallback when a channel has none
