@@ -162,8 +162,11 @@ async function initScene(block, tracks, state) {
 
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
   const lookTarget = new THREE.Vector3(0, 0.8, 0);
-  const camPose = { az: 0, h: 1.5, d: 3.4 };
-  const camGoal = { az: 0, h: 1.5, d: 3.4 };
+  // d pulled back from a tight crop so the whole set sits on a visible desk —
+  // that foreground desk is where the A5 liner sheet lies (a flat sheet can't show
+  // in a face-on shot that fills the frame). fit() still overrides on narrow screens.
+  const camPose = { az: 0, h: 1.5, d: 4.75 };
+  const camGoal = { az: 0, h: 1.5, d: 4.75 };
   const camDrift = { az: 0, h: 0, d: 0 }; // subtle handheld sway while on air
   const halfFov = Math.tan((camera.fov / 2) * (Math.PI / 180));
   function placeCamera() {
@@ -395,21 +398,22 @@ async function initScene(block, tracks, state) {
   const scCenter = scBox.getCenter(new THREE.Vector3());
   lookTarget.set(0, scCenter.y, 0);
   screenGlow.position.set(0, scCenter.y, scBox.max.z + 0.3);
-  camGoal.h = scCenter.y + 0.25;
+  camGoal.h = scCenter.y + 0.32;
   camPose.h = camGoal.h;
   placeCamera();
   loading.classList.add('yunost-done');
 
-  // liner notes — a real A5 sheet on the floor, per channel. Anchor scene units
-  // to the TV's cabinet height, so the sheet is a true A5 beside the little set.
+  // liner notes — a real A5 sheet on the desk, per channel. Anchor scene units
+  // to the TV's cabinet height, so the sheet is a true A5 in front of the little set.
   // Built once, re-skinned per channel; click it to read (camera eases down).
   const cabinetHeight = box.getSize(new THREE.Vector3()).y;
   const paperWidth = physicalScale(cabinetHeight, YUNOST_402_HEIGHT_MM).mmToUnits(A5_MM.w);
   const paper = createPaper(THREE, paperWidth);
   const paperH = paper.userData.paperSize.h;
-  // on the floor to the right of the set, angled; pulled back so most of it shows
-  paper.rotation.set(-Math.PI / 2, 0, -0.2);
-  paper.position.set(0.82, 0.01, 0.5);
+  // lies flat on the desk, front-centre of the set, angled a touch so it reads as
+  // a sheet set down rather than a UI panel; clear of the play controls
+  paper.rotation.set(-Math.PI / 2, 0, -0.15);
+  paper.position.set(0.2, 0.02, 0.85);
   scene.add(paper);
   let readBlend = 0;
   const pageNotes = findFragmentPath(block); // fallback when a channel has none
