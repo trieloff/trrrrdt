@@ -18,9 +18,23 @@
 
 .cassettes > ul > li {
   position: relative;
+  display: flex;
+  flex-direction: column;
 
   --cassette-color: var(--cassette-ivory);
   --cassette-ink: var(--text-color);
+}
+
+/* "save offline" sits under each cassette, outside the play link */
+.cassettes > ul > li > .cassette-save {
+  align-self: center;
+  margin-top: 0.7rem;
+  color: var(--text-color);
+}
+
+.cassettes-save-all {
+  margin: 0 0 1.4rem;
+  color: var(--text-color);
 }
 
 .cassettes > ul > li:nth-child(2n) {

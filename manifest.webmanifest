@@ -1,0 +1,25 @@
+{
+  "name": "TRRRRDT Records",
+  "short_name": "TRRRRDT",
+  "description": "AI music, offline. Save songs to the TP1 and play them with no connection.",
+  "id": "/",
+  "start_url": "/tp1",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "icons": [
+    { "src": "/icons/tp1-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/tp1-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/tp1-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Offline player",
+      "short_name": "TP1",
+      "url": "/tp1",
+      "icons": [{ "src": "/icons/tp1-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

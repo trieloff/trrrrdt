@@ -159,6 +159,18 @@ async function loadEager(doc) {
  * Loads everything that doesn't need to be delayed.
  * @param {Element} doc The container element
  */
+/**
+ * Register the service worker that backs the site's offline mode (the TP1 player).
+ * Skipped on localhost, where a caching worker would fight the dev server's live
+ * reload; song playback offline needs no worker (it runs from IndexedDB blobs).
+ */
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  const { hostname } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return;
+  navigator.serviceWorker.register('/sw.js').catch(() => { /* offline shell unavailable */ });
+}
+
 async function loadLazy(doc) {
   loadHeader(doc.querySelector('header'));
 
@@ -173,6 +185,7 @@ async function loadLazy(doc) {
 
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
+  registerServiceWorker();
 }
 
 /**

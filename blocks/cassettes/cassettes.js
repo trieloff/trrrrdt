@@ -1,3 +1,31 @@
+import { createSaveButton, createSaveAllButton, songFromPlayerLink } from '../../scripts/player/save-offline.js';
+
+/* A cassette links to a player page (…/player#slug); resolve that to the song and
+   mount a compact "save offline" button on the tile once it scrolls into view, so
+   we only fetch the player page(s) that are actually looked at. */
+function mountCassetteSave(li, href, title, cover) {
+  if (!/\/player(\/|#|$)/.test(href)) return;
+  const obs = new IntersectionObserver((entries, o) => {
+    if (!entries[0].isIntersecting) return;
+    o.disconnect();
+    songFromPlayerLink(href).then((song) => {
+      if (!song || !song.url) return;
+      const btn = createSaveButton({
+        url: song.url,
+        title: song.title || title,
+        artist: song.artist,
+        cover: song.cover || cover,
+        style: song.style,
+        duration: song.duration,
+        source: 'suno',
+      }, { compact: true, label: 'Save' });
+      btn.classList.add('cassette-save');
+      li.append(btn);
+    });
+  });
+  obs.observe(li);
+}
+
 /**
  * Cassette tape block — renders each row as a Compact Cassette.
  * Expected content per row:
@@ -10,6 +38,7 @@
  */
 export default function decorate(block) {
   const ul = document.createElement('ul');
+  const playerLinks = [];
 
   [...block.children].forEach((row, i) => {
     const cols = [...row.children];
@@ -93,6 +122,8 @@ export default function decorate(block) {
       a.setAttribute('aria-label', title || 'Play');
       a.append(shell);
       li.append(a);
+      mountCassetteSave(li, link.href, title, cover?.src);
+      playerLinks.push(link.href);
     } else {
       li.append(shell);
     }
@@ -100,4 +131,15 @@ export default function decorate(block) {
   });
 
   block.replaceChildren(ul);
+
+  // "Save all offline" for a crate of songs (an artist's discography, a playlist),
+  // resolving each cassette's player link. Only when there's more than one to save.
+  const savable = playerLinks.filter((h) => /\/player(\/|#|$)/.test(h));
+  if (savable.length > 1) {
+    const saveAll = createSaveAllButton(() => Promise.all(
+      savable.map((h) => songFromPlayerLink(h)),
+    ).then((songs) => songs.filter(Boolean).map((s) => ({ ...s, source: 'suno' }))));
+    saveAll.classList.add('cassettes-save-all');
+    block.prepend(saveAll);
+  }
 }

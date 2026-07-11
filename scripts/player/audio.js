@@ -78,6 +78,15 @@ export default function createAudioEngine() {
     pause() {
       players.forEach((p) => p.pause());
     },
+    /* resume the current track in place (no crossfade/restart) */
+    resume() {
+      const p = players[active];
+      if (p.src) { p.volume = 1; return p.play(); }
+      return Promise.resolve();
+    },
+    isPlaying() {
+      return !players[active].paused && !!players[active].src;
+    },
     onEnded(callback) {
       players.forEach((p) => p.addEventListener('ended', () => {
         if (p === players[active]) callback();

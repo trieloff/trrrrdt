@@ -3,6 +3,7 @@ import createAudioEngine from '../../scripts/player/audio.js';
 import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
+import { createCurrentTrackButton } from '../../scripts/player/save-offline.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
 } from '../../scripts/player/linernotes.js';
@@ -680,6 +681,29 @@ export default async function decorate(block) {
   const parent = window.location.pathname.replace(/\/[^/]*\/?$/, '');
   eject.href = parent || '/';
   const dots = [...stage.querySelectorAll('.turntable-dot')];
+
+  // "Save offline" — only for playable file (Suno) tracks; Apple tracks are DRM'd
+  // and can't be stored. Re-targeted to the current track on every overlay update.
+  const saveOffline = createCurrentTrackButton(() => {
+    // eslint-disable-next-line no-use-before-define
+    const t = tracks[state.current];
+    if (!t) return null;
+    if (t.source === 'apple' && t.appleId) {
+      return { appleUrl: `https://music.apple.com/${t.storefront || 'us'}/song/${t.appleId}`, title: t.title };
+    }
+    if (t.source !== 'file' || !t.audio) return null;
+    return {
+      url: t.audio,
+      title: t.title,
+      artist: t.artist,
+      cover: t.image,
+      style: t.style,
+      duration: (t.meta.match(/(\d+:\d{2})\s*$/) || [])[1] || '',
+      source: 'suno',
+    };
+  });
+  stage.querySelector('.turntable-info').append(saveOffline.el);
+
   const file = createAudioEngine();
 
   // Pre-warm MusicKit (load SDK + configure with the dev token) as soon as the
@@ -791,6 +815,7 @@ export default async function decorate(block) {
     else playBtn.textContent = 'Drop the needle';
 
     dots.forEach((d, i) => d.classList.toggle('turntable-dot-active', i === state.current));
+    saveOffline.refresh();
   }
 
   async function setTrack(i, autoplay) {

@@ -3,6 +3,7 @@ import createAudioEngine from '../../scripts/player/audio.js';
 import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scripts/player/apple.js';
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
+import { createCurrentTrackButton } from '../../scripts/player/save-offline.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
 } from '../../scripts/player/linernotes.js';
@@ -581,6 +582,29 @@ export default async function decorate(block) {
   const eject = stage.querySelector('.yunost-eject');
   eject.href = window.location.pathname.replace(/\/[^/]*\/?$/, '') || '/';
   const dots = [...stage.querySelectorAll('.yunost-dot')];
+
+  // "Save offline" — only playable file (Suno/R2) channels; Apple is DRM'd. The
+  // channel's audio track is what's stored (a video's own soundtrack isn't).
+  const saveOffline = createCurrentTrackButton(() => {
+    // eslint-disable-next-line no-use-before-define
+    const t = tracks[state.current];
+    if (!t) return null;
+    if (t.source === 'apple' && t.appleId) {
+      return { appleUrl: `https://music.apple.com/${t.storefront || 'us'}/song/${t.appleId}`, title: t.title };
+    }
+    if (t.source !== 'file' || !t.audio) return null;
+    return {
+      url: t.audio,
+      title: t.title,
+      artist: '',
+      cover: t.image,
+      style: t.style,
+      duration: (t.meta.match(/(\d+:\d{2})\s*$/) || [])[1] || '',
+      source: 'suno',
+    };
+  });
+  stage.querySelector('.yunost-card').append(saveOffline.el);
+
   const file = createAudioEngine();
 
   if (apple) apple.configure().catch(() => {});
@@ -658,6 +682,7 @@ export default async function decorate(block) {
     else playBtn.textContent = 'Tune in';
 
     dots.forEach((d, i) => d.classList.toggle('yunost-dot-active', i === state.current));
+    saveOffline.refresh();
   }
 
   async function setTrack(i, autoplay) {
