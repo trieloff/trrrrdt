@@ -4,6 +4,7 @@ import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scri
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
 import { createCurrentTrackButton } from '../../scripts/player/save-offline.js';
+import createLamp from '../../scripts/player/lamp.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
 } from '../../scripts/player/linernotes.js';
@@ -455,6 +456,12 @@ async function initScene(block, tracks, state) {
   sleeve.geometry = new THREE.PlaneGeometry(jacket, jacket);
   sleeve.userData.focusSize = jacket;
 
+  // a VARMBLIXT glass-donut lamp on the desk, back-left of the device — its deep
+  // orange glow rakes across the wood and rims the turntable
+  const lamp = createLamp(THREE, { mmToUnits: world.mmToUnits });
+  lamp.group.position.set(-1.6, 0, -0.95);
+  scene.add(lamp.group);
+
   const scaledBox = new THREE.Box3().setFromObject(model);
   lookTarget.set(0, (scaledBox.max.y - scaledBox.min.y) * 0.48, 0);
   camera.lookAt(lookTarget);
@@ -506,12 +513,15 @@ async function initScene(block, tracks, state) {
       focusObj = focusObj === sleeve ? null : sleeve;
       return;
     }
+    // tap the lamp to switch its glow on/off
+    if (raycaster.intersectObject(lamp.meshes, true).length) { lamp.toggle(); return; }
     if (focusObj) { focusObj = null; return; }
     if (raycaster.intersectObject(model, true).length) state.requestPlay();
   });
   renderer.domElement.addEventListener('pointermove', (e) => {
     setPointer(e);
     const over = raycaster.intersectObject(model, true).length > 0
+      || raycaster.intersectObject(lamp.meshes, true).length > 0
       || (paper.visible && raycaster.intersectObject(paper).length > 0)
       || (sleeve.visible && raycaster.intersectObject(sleeve).length > 0);
     renderer.domElement.style.cursor = over ? 'pointer' : 'default';
@@ -597,6 +607,9 @@ async function initScene(block, tracks, state) {
     wallGlowColor.copy(env.fg).lerp(env.accent, 0.3 + wallUniforms.uMid.value * 0.55);
     wallGlow.color.copy(wallGlowColor);
     wallGlow.intensity = 3.0 + wallUniforms.uBass.value * 7.0 + wallUniforms.uMid.value * 2.5;
+
+    // the lamp is always on; its orange glow breathes gently with the low end
+    lamp.setLevel(wallUniforms.uBass.value);
 
     const spinning = state.playing || window.location.hash === '#spin';
     if (vinyl && spinAxis && spinning && !state.reducedMotion) {

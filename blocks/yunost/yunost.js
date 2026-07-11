@@ -4,6 +4,7 @@ import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scri
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
 import { createCurrentTrackButton } from '../../scripts/player/save-offline.js';
+import createLamp from '../../scripts/player/lamp.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
 } from '../../scripts/player/linernotes.js';
@@ -168,12 +169,14 @@ async function initScene(block, tracks, state) {
   // the cabinet — a flat sheet that big can't show in a face-on shot that fills the
   // frame. Keep h low so the tube stays square to the viewer and the floor flattens
   // enough to hold the forward sheet. fit() still overrides d on narrow screens.
-  const camPose = { az: 0, h: 1.5, d: 6.0 };
-  const camGoal = { az: 0, h: 1.5, d: 6.0 };
+  const camPose = { az: 0, h: 1.5, d: 6.8 };
+  const camGoal = { az: 0, h: 1.5, d: 6.8 };
   const camDrift = { az: 0, h: 0, d: 0 }; // subtle handheld sway while on air
   const halfFov = Math.tan((camera.fov / 2) * (Math.PI / 180));
   function placeCamera() {
-    const fit = 1.25 / (halfFov * Math.min(camera.aspect, 1.75));
+    // higher fit factor = more room around the little set (it's a small TV on a
+    // big desk beside a large lamp — the frame needs breathing space)
+    const fit = 1.6 / (halfFov * Math.min(camera.aspect, 1.75));
     const d = Math.max(camPose.d, fit) + camDrift.d;
     const az = camPose.az + camDrift.az;
     camera.position.set(Math.sin(az) * d, camPose.h + camDrift.h, Math.cos(az) * d);
@@ -382,6 +385,9 @@ async function initScene(block, tracks, state) {
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   model.scale.setScalar(2.0 / Math.max(size.x, size.y, size.z));
+  // turn the set to a 3/4 view so a bit of its side and back show (re-centred
+  // below, so it still sits square on the desk)
+  model.rotation.y = 0.5;
   box.setFromObject(model);
   const center = box.getCenter(new THREE.Vector3());
   model.position.set(-center.x, -box.min.y, -center.z);
@@ -410,7 +416,8 @@ async function initScene(block, tracks, state) {
   // to the TV's cabinet height, so the sheet is a true A5 in front of the little set.
   // Built once, re-skinned per channel; click it to read (camera eases down).
   const cabinetHeight = box.getSize(new THREE.Vector3()).y;
-  const paperWidth = physicalScale(cabinetHeight, YUNOST_402_HEIGHT_MM).mmToUnits(A5_MM.w);
+  const world = physicalScale(cabinetHeight, YUNOST_402_HEIGHT_MM);
+  const paperWidth = world.mmToUnits(A5_MM.w);
   const paper = createPaper(THREE, paperWidth);
   const paperH = paper.userData.paperSize.h;
   // lies flat on the desk in front of the set, its far edge set a touch beyond the
@@ -420,6 +427,13 @@ async function initScene(block, tracks, state) {
   paper.rotation.set(-Math.PI / 2, 0, -0.15);
   paper.position.set(0.15, 0.02, 1.85);
   scene.add(paper);
+
+  // a VARMBLIXT glass-donut lamp set back on the desk, behind the little TV and
+  // off to one side — it peeks past the set's shoulder and backlights it with a
+  // warm amber glow against the cooler CRT light
+  const lamp = createLamp(THREE, { mmToUnits: world.mmToUnits });
+  lamp.group.position.set(1.2, 0, -1.6);
+  scene.add(lamp.group);
   let readBlend = 0;
   const pageNotes = findFragmentPath(block); // fallback when a channel has none
   const notesCache = new Map();
@@ -449,6 +463,8 @@ async function initScene(block, tracks, state) {
       return;
     }
     if (state.reading) { state.reading = false; return; }
+    // tap the lamp to switch its glow on/off
+    if (raycaster.intersectObject(lamp.meshes, true).length) { lamp.toggle(); return; }
     if (raycaster.intersectObject(model, true).length) state.requestPlay();
   });
 
@@ -503,6 +519,9 @@ async function initScene(block, tracks, state) {
     flicker = 1 + Math.sin(elapsed * 3.7) * 0.03 + Math.sin(elapsed * 7.1) * 0.02;
     screenGlow.color.copy(env.accent);
     screenGlow.intensity = (1.2 + wallUniforms.uBass.value * 2.2) * flicker;
+
+    // the lamp is always on; its orange glow breathes gently with the low end
+    lamp.setLevel(wallUniforms.uBass.value);
 
     // drive the tube: scanline/static time + brightness riding the audio
     screenUniforms.uTime.value = elapsed;
