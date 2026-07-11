@@ -54,6 +54,16 @@ async function initScene(block) {
   scene.add(floor);
 
   const model = createVarmblixtModel(THREE);
+  // the real VARMBLIXT donut's signature warm amber (Sabine Marcelis for IKEA) —
+  // the same colour the lamp casts across the turntable and TV scenes. Keep the
+  // model's transmission here: it's one object on its own page, so the glassy
+  // look is worth the extra pass.
+  const vm = model.userData.materials;
+  vm.glass.color.set(0xc9611f);
+  vm.glass.emissive.set(0xf5842c);
+  vm.glass.attenuationColor.set(0xff5a12);
+  vm.glow.color.set(0xffa64f);
+  model.traverse((o) => { if (o.isPointLight) o.color.set(0xff9a40); });
   model.rotation.y = 0;
   scene.add(model);
 
@@ -141,7 +151,7 @@ export default async function decorate(block) {
   const viewport = document.createElement('div');
   viewport.className = 'varmblixt-viewport';
   viewport.setAttribute('role', 'img');
-  viewport.setAttribute('aria-label', 'Interactive three-dimensional study of a white glass ring lamp');
+  viewport.setAttribute('aria-label', 'Interactive three-dimensional study of an orange glass ring lamp');
 
   const copy = document.createElement('div');
   copy.className = 'varmblixt-copy';
