@@ -162,11 +162,13 @@ async function initScene(block, tracks, state) {
 
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
   const lookTarget = new THREE.Vector3(0, 0.8, 0);
-  // d pulled back from a tight crop so the whole set sits on a visible desk —
-  // that foreground desk is where the A5 liner sheet lies (a flat sheet can't show
-  // in a face-on shot that fills the frame). fit() still overrides on narrow screens.
-  const camPose = { az: 0, h: 1.5, d: 4.75 };
-  const camGoal = { az: 0, h: 1.5, d: 4.75 };
+  // d pulled well back from a tight crop so the whole set sits on a visible desk with
+  // room in front for the A5 liner sheet, which is laid clear of (not tucked under)
+  // the cabinet — a flat sheet that big can't show in a face-on shot that fills the
+  // frame. Keep h low so the tube stays square to the viewer and the floor flattens
+  // enough to hold the forward sheet. fit() still overrides d on narrow screens.
+  const camPose = { az: 0, h: 1.5, d: 6.0 };
+  const camGoal = { az: 0, h: 1.5, d: 6.0 };
   const camDrift = { az: 0, h: 0, d: 0 }; // subtle handheld sway while on air
   const halfFov = Math.tan((camera.fov / 2) * (Math.PI / 180));
   function placeCamera() {
@@ -410,10 +412,12 @@ async function initScene(block, tracks, state) {
   const paperWidth = physicalScale(cabinetHeight, YUNOST_402_HEIGHT_MM).mmToUnits(A5_MM.w);
   const paper = createPaper(THREE, paperWidth);
   const paperH = paper.userData.paperSize.h;
-  // lies flat on the desk, front-centre of the set, angled a touch so it reads as
-  // a sheet set down rather than a UI panel; clear of the play controls
+  // lies flat on the desk in front of the set, its far edge set a touch beyond the
+  // cabinet front (z ~0.84) so it never tucks under the TV — which otherwise shows
+  // as the sheet clipping into the set, most visibly in the overhead read pose.
+  // Angled slightly so it reads as a sheet set down rather than a UI panel.
   paper.rotation.set(-Math.PI / 2, 0, -0.15);
-  paper.position.set(0.2, 0.02, 0.85);
+  paper.position.set(0.15, 0.02, 1.85);
   scene.add(paper);
   let readBlend = 0;
   const pageNotes = findFragmentPath(block); // fallback when a channel has none
