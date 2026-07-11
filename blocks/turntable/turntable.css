@@ -190,12 +190,19 @@ main > .section:has(.turntable) > div {
   text-decoration: none;
 }
 
-/* --- play control: printed on the faceplate --- */
-.turntable .turntable-play {
+/* --- play + save controls: printed on the faceplate, one row --- */
+.turntable .turntable-controls {
   position: absolute;
   bottom: 32px;
   left: 24px;
   z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.turntable .turntable-play {
   margin: 0;
   padding: 10px 18px;
   font-family: var(--mono-font-family);
@@ -211,6 +218,27 @@ main > .section:has(.turntable) > div {
 
 .turntable .turntable-play:hover,
 .turntable .turntable-play:focus-visible {
+  background-color: rgb(255 255 255 / 12%);
+}
+
+/* the "Save offline" control shares the faceplate look of "Drop the needle"
+   (a squared marking, not the default pill) — but keeps its green "saved" tint */
+.turntable .turntable-controls .save-offline {
+  margin: 0;
+  padding: 10px 18px;
+  font-size: var(--body-font-size-xs);
+  letter-spacing: 0.1em;
+  border-radius: 4px;
+  opacity: 1;
+}
+
+.turntable .turntable-controls .save-offline:not(.is-saved) {
+  color: var(--light-color);
+  border-color: rgb(255 255 255 / 40%);
+}
+
+.turntable .turntable-controls .save-offline:not(.is-saved):hover,
+.turntable .turntable-controls .save-offline:not(.is-saved):focus-visible {
   background-color: rgb(255 255 255 / 12%);
 }
 
@@ -366,7 +394,7 @@ main > .section:has(.turntable) > div {
     left: 48px;
   }
 
-  .turntable .turntable-play {
+  .turntable .turntable-controls {
     bottom: 36px;
     left: 48px;
   }

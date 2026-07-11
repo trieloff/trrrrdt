@@ -20,7 +20,7 @@ function ensureCSS() {
 
 const LABEL = {
   idle: 'Save offline',
-  saved: 'On this device',
+  saved: 'On TP1',
   full: 'Storage full',
   fail: 'Try again',
 };
@@ -164,7 +164,7 @@ export function createSaveAllButton(getSongs, { label = 'Save all offline' } = {
     const states = await Promise.all(songs.map((s) => offline.has(offline.songId(s))));
     const missing = states.filter((x) => !x).length;
     btn.classList.toggle('is-saved', missing === 0);
-    setText(missing === 0 ? 'All on this device' : label);
+    setText(missing === 0 ? 'All on TP1' : label);
   }
 
   btn.addEventListener('click', async () => {

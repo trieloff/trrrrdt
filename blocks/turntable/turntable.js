@@ -100,7 +100,9 @@ function buildStage(tracks) {
     </div>
     <p class="turntable-status" aria-live="polite"></p>
     <a class="turntable-eject" href="/">⏏ Eject</a>
-    <button type="button" class="turntable-play" aria-pressed="false">Drop the needle</button>
+    <div class="turntable-controls">
+      <button type="button" class="turntable-play" aria-pressed="false">Drop the needle</button>
+    </div>
     <div class="turntable-dots" role="presentation"></div>
     <label class="turntable-dof">
       <span class="turntable-dof-label">Focus <span class="turntable-dof-value"></span></span>
@@ -701,8 +703,9 @@ export default async function decorate(block) {
       duration: (t.meta.match(/(\d+:\d{2})\s*$/) || [])[1] || '',
       source: 'suno',
     };
-  });
-  stage.querySelector('.turntable-info').append(saveOffline.el);
+  }, { compact: false });
+  // sits on the same row as "Drop the needle", styled to match the faceplate marking
+  stage.querySelector('.turntable-controls').append(saveOffline.el);
 
   const file = createAudioEngine();
 
