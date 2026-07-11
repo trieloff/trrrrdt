@@ -3,6 +3,9 @@
    light content pages alike. */
 
 .save-offline {
+  /* players mount this inside a pointer-events:none overlay over the 3D canvas —
+     it must opt back in or the canvas swallows the tap */
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
