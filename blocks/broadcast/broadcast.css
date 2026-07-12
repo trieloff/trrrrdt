@@ -1,0 +1,391 @@
+/* broadcast — an "on air now" broadcast console: a CRT feed of the cover art
+   beside a channel readout, tally light, VU meter, and one dominant CTA.
+   Distinct from `hero` (full-bleed cover behind cream text) and `feature`
+   (album cover floating beside copy on a red stage): here the cover is a live
+   CRT feed inside a recessed bezel, and the copy sits on the equipment face. */
+
+/* When broadcast leads the page it owns the band, so drop the global
+   first-section hero treatment (charcoal wash, centring, scan-lines, cap) —
+   the console brings its own chrome. */
+main > .section:first-of-type:has(.broadcast) {
+  padding: 40px 0;
+  background: none;
+  border-bottom: 0;
+  overflow: visible;
+  text-align: initial;
+}
+
+main > .section:first-of-type:has(.broadcast)::before,
+main > .section:first-of-type:has(.broadcast)::after {
+  content: none;
+}
+
+/* neutralise the first-section paragraph rule (0.75 opacity, 560px cap, auto
+   margins) so the console copy reads at full strength and left-aligned */
+main > .section:first-of-type:has(.broadcast) p {
+  max-width: none;
+  margin: 0;
+  opacity: 1;
+}
+
+/* --- the console --------------------------------------------------------- */
+.broadcast {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 20px;
+  color: var(--light-color);
+  background:
+    radial-gradient(120% 90% at 84% 6%, rgb(232 163 23 / 10%), transparent 55%),
+    radial-gradient(130% 120% at 6% 104%, rgb(45 125 154 / 14%), transparent 52%),
+    linear-gradient(158deg, #343434 0%, #262626 46%, #1e1e1e 100%);
+  border-radius: var(--radius-card);
+  box-shadow: var(--bevel-dark), 0 18px 50px rgb(0 0 0 / 45%);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* faint brushed-panel sheen along the top edge */
+.broadcast::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 14%), transparent);
+}
+
+/* --- the CRT feed -------------------------------------------------------- */
+.broadcast-screen {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #0c0c0c;
+  box-shadow:
+    inset 0 0 0 2px rgb(0 0 0 / 65%),
+    inset 0 0 26px 8px rgb(0 0 0 / 55%),
+    0 2px 0 rgb(255 255 255 / 6%);
+}
+
+.broadcast-screen picture,
+.broadcast-screen img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* one-shot power-on: a bright line blooms open as the tube warms up */
+.broadcast-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 46%, rgb(255 255 255 / 85%) 50%, transparent 54%);
+  opacity: 0;
+  animation: broadcast-poweron 1200ms ease-out 120ms 1 both;
+}
+
+/* CRT phosphor rows — kept faint so the cover stays legible (WCAG AA) */
+.broadcast-scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    rgb(0 0 0 / 16%) 2px 3px
+  );
+}
+
+/* curved-glass highlight on top, vignette settling into the bezel below */
+.broadcast-glass {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 78% at 50% -12%, rgb(255 255 255 / 14%), transparent 46%),
+    radial-gradient(150% 130% at 50% 118%, rgb(0 0 0 / 42%), transparent 55%);
+}
+
+.broadcast-bug {
+  position: absolute;
+  z-index: 5;
+  inset: 10px auto auto 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 55%);
+  color: var(--light-color);
+  font-family: var(--mono-font-family);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.broadcast-bug-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  box-shadow: 0 0 6px 1px rgb(217 48 37 / 80%);
+  animation: broadcast-blink 1.6s ease-in-out infinite;
+}
+
+/* --- the console face ---------------------------------------------------- */
+.broadcast-console {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 560px;
+}
+
+/* channel readout / eyebrow.
+   The 3-class selectors on the paragraph roles below out-specify the global
+   `main > .section:first-of-type p` colour/opacity rule (0,2,2), so the amber
+   readout and dimmed stamp survive when broadcast leads the page. */
+.broadcast .broadcast-console .broadcast-channel {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--accent-mustard);
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.broadcast-tally {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  box-shadow: 0 0 8px 2px rgb(217 48 37 / 65%);
+  animation: broadcast-blink 1.6s ease-in-out infinite;
+}
+
+/* on-air VU meter */
+.broadcast-meter {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  width: 100%;
+  max-width: 220px;
+  height: 20px;
+  margin: -2px 0 2px;
+}
+
+.broadcast-segment {
+  flex: 1;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--seg, rgb(255 255 255 / 12%));
+  opacity: 0.28;
+  animation: broadcast-vu 1.5s ease-in-out infinite;
+  animation-delay: calc(var(--i) * -80ms);
+}
+
+.broadcast-segment:nth-child(-n + 8) { --seg: var(--accent-mint); }
+
+.broadcast-segment:nth-child(9),
+.broadcast-segment:nth-child(10),
+.broadcast-segment:nth-child(11) { --seg: var(--accent-mustard); }
+
+.broadcast-segment:nth-child(n + 12) { --seg: var(--accent-color); }
+
+.broadcast-console h2 {
+  margin: 0;
+  color: var(--light-color);
+  font-size: var(--heading-font-size-l);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.broadcast .broadcast-console .broadcast-subtitle {
+  margin: 0;
+  color: rgb(245 230 211 / 84%);
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-size: var(--heading-font-size-xs);
+  line-height: 1.35;
+}
+
+/* one dominant primary CTA; the secondary reads as a quiet linked label */
+.broadcast-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin-top: 4px;
+}
+
+.broadcast-actions .button-wrapper {
+  margin: 0;
+}
+
+.broadcast-actions a.button.primary {
+  padding: 14px 34px;
+  font-size: var(--body-font-size-m);
+}
+
+.broadcast-actions a.button.secondary {
+  padding: 8px 4px;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  color: rgb(245 230 211 / 78%);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.broadcast-actions a.button.secondary:hover,
+.broadcast-actions a.button.secondary:focus-visible {
+  background: none;
+  color: var(--light-color);
+}
+
+/* the global first-section rule paints secondaries with a coral outline and
+   out-specifies the block; when broadcast leads the page, keep the CTA a quiet
+   link so the red primary stays the one dominant action. (Placed after the
+   .broadcast-actions rules above so specificity ascends for stylelint.) */
+main > .section:first-of-type:has(.broadcast) a.button.secondary {
+  border-color: transparent;
+  color: rgb(245 230 211 / 78%);
+}
+
+main > .section:first-of-type:has(.broadcast) a.button.secondary:hover,
+main > .section:first-of-type:has(.broadcast) a.button.secondary:focus-visible {
+  color: var(--light-color);
+}
+
+/* machine label — an equipment stamp under a hairline rule */
+.broadcast .broadcast-console .broadcast-machine {
+  width: 100%;
+  margin: 6px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgb(245 230 211 / 12%);
+  color: #b0a794;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.broadcast-console .broadcast-machine em {
+  font-style: normal;
+}
+
+@keyframes broadcast-poweron {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.02);
+  }
+
+  8% {
+    opacity: 1;
+  }
+
+  42% {
+    opacity: 0.5;
+    transform: scaleY(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes broadcast-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes broadcast-vu {
+  0%, 100% { opacity: 0.22; }
+  50% { opacity: 1; }
+}
+
+/* --- tablet -------------------------------------------------------------- */
+@media (width >= 600px) {
+  .broadcast {
+    padding: 26px;
+    gap: 26px;
+  }
+
+  .broadcast-screen {
+    align-self: center;
+    width: 100%;
+    max-width: 460px;
+  }
+}
+
+/* --- desktop: CRT on the left, console alongside ------------------------- */
+@media (width >= 900px) {
+  .broadcast {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 40px;
+    padding: 32px;
+  }
+
+  .broadcast-screen {
+    flex: 0 0 42%;
+    align-self: center;
+    max-width: 420px;
+  }
+
+  .broadcast-console {
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .broadcast-console h2 {
+    font-size: var(--heading-font-size-xl);
+  }
+
+  .broadcast.broadcast-no-screen .broadcast-console {
+    max-width: 720px;
+  }
+}
+
+@media (width >= 1200px) {
+  .broadcast {
+    gap: 52px;
+    padding: 40px;
+  }
+
+  .broadcast-screen {
+    max-width: 460px;
+  }
+}
+
+/* --- reduced motion: hold everything still, keep the meter legibly lit --- */
+@media (prefers-reduced-motion: reduce) {
+  .broadcast-screen::before,
+  .broadcast-bug-dot,
+  .broadcast-tally {
+    animation: none;
+  }
+
+  .broadcast-segment {
+    animation: none;
+    opacity: 0.8;
+  }
+}
