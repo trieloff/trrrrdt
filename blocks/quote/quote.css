@@ -1,0 +1,149 @@
+/* quote — liner-note pull quote
+   Fraunces italic display type, a single WONK-ruptured word, and an oversized
+   quote mark overprinted onto the page. Parchment-friendly by default. */
+
+.quote {
+  --quote-ink: var(--text-color);
+  --quote-attr: #6f5228; /* warm sepia credit — AA on parchment/cream */
+  --quote-mark: var(--accent-color);
+
+  position: relative;
+  max-width: 40rem;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.quote blockquote {
+  position: relative;
+  margin: 0;
+}
+
+/* oversized quote mark — a printed overprint that multiplies onto the page */
+.quote blockquote::before {
+  content: '\201C';
+  position: absolute;
+  top: -0.34em;
+  left: -0.14em;
+  z-index: 0;
+  color: var(--quote-mark);
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(120px, 22vw, 240px);
+  line-height: 1;
+  opacity: 0.16;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* the quotation — Fraunces italic at display size, sober by default */
+.quote .quote-quotation {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  color: var(--quote-ink);
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: 'WONK' 0, 'SOFT' 0, 'opsz' 144;
+  font-size: clamp(24px, 4.4vw, 40px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.quote .quote-quotation p {
+  margin: 0 0 0.3em;
+}
+
+.quote .quote-quotation p:last-child {
+  margin-bottom: 0;
+}
+
+/* the rupture — one word pushed to the far end of the WONK axis */
+.quote .quote-rupture {
+  font-variation-settings: 'WONK' 1, 'SOFT' 40, 'opsz' 144;
+  color: var(--quote-mark);
+}
+
+/* attribution — mono small-caps credit, em-dashed like a liner note */
+.quote .quote-attribution {
+  position: relative;
+  z-index: 1;
+  margin: 1.1em 0 0;
+  color: var(--quote-attr);
+  font-family: var(--mono-font-family);
+  font-weight: 700;
+  font-size: var(--body-font-size-s);
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.14em;
+}
+
+.quote .quote-attribution > :first-child {
+  margin: 0;
+}
+
+.quote .quote-attribution > :first-child::before {
+  content: '— ';
+}
+
+.quote .quote-attribution cite {
+  color: var(--quote-mark);
+  font-style: normal;
+}
+
+/* crt variant — the quote read off a warmed-up phosphor monitor */
+.quote.crt {
+  --quote-ink: #d7f5e3;
+  --quote-attr: #74cf99;
+  --quote-mark: var(--accent-mint);
+
+  max-width: 44rem;
+  padding: clamp(28px, 5vw, 48px);
+  background:
+    radial-gradient(120% 120% at 50% 0%, rgb(39 174 96 / 8%), transparent 60%),
+    var(--text-color);
+  border: 1px solid rgb(39 174 96 / 45%);
+  border-radius: var(--radius);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 40%),
+    0 0 22px rgb(39 174 96 / 18%),
+    inset 0 0 40px rgb(39 174 96 / 6%);
+  overflow: hidden;
+}
+
+/* faint phosphor scan lines, held below the text */
+.quote.crt::after {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgb(0 0 0 / 20%) 2px,
+    rgb(0 0 0 / 20%) 3px
+  );
+  pointer-events: none;
+}
+
+.quote.crt .quote-quotation,
+.quote.crt .quote-attribution {
+  z-index: 3;
+}
+
+.quote.crt .quote-quotation {
+  text-shadow: 0 0 12px rgb(39 174 96 / 45%); /* phosphor bloom */
+}
+
+.quote.crt blockquote::before {
+  opacity: 0.22;
+  mix-blend-mode: screen;
+}
+
+@media (width >= 900px) {
+  .quote {
+    padding: 0 32px;
+  }
+}
