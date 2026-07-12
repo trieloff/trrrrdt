@@ -1,0 +1,206 @@
+/* channels — the roster as a mixing-desk patch bay.
+   A dark console with one colored channel strip per artist, stacked vertically.
+   Reads as presets on a desk, not a card grid. */
+
+.channels {
+  --channels-desk: #1c1c1c; /* charcoal machinery — the console face */
+  --channels-module: var(--smoke-color); /* raised channel module */
+  --channels-module-hover: #474747;
+  --channels-caption: #b3a897; /* warm grey — AA contrast on the module */
+
+  background-color: var(--channels-desk);
+  border-radius: var(--radius-card);
+  padding: 8px;
+  box-shadow: var(--bevel-dark), var(--drop-shadow);
+}
+
+.channels .channels-desk {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.channels .channels-desk > li {
+  margin: 0;
+}
+
+/* --- the channel strip: the whole row is one link --- */
+.channels .channels-strip {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 56px; /* touch target */
+  padding: 8px 14px 8px 10px;
+  background-color: var(--channels-module);
+  border-radius: 6px;
+  box-shadow: var(--bevel-dark);
+  color: var(--light-color);
+  text-decoration: none;
+}
+
+/* colored channel stripe — the per-artist identity, full-height bar */
+.channels .channels-stripe {
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 4px;
+  min-height: 34px;
+  border-radius: 2px;
+  background-color: var(--channel, var(--accent-color));
+}
+
+/* channel number — amber panel marking, tabular so digits line up */
+.channels .channels-number {
+  flex: 0 0 auto;
+  min-width: 2.5ch;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-s);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  text-align: right;
+  color: var(--accent-mustard);
+}
+
+/* optional scribble-strip thumbnail (image cell) */
+.channels .channels-thumb {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  line-height: 0;
+  box-shadow: var(--bevel-dark);
+}
+
+.channels .channels-thumb img,
+.channels .channels-thumb picture {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* name + tagline stack — the label fills the remaining width */
+.channels .channels-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* the name in Fraunces at this artist's own axes (set per artist in channels.js;
+   fallbacks are the default neutral face for any unknown signing) */
+.channels .channels-name {
+  font-family: var(--accent-font-family);
+  font-weight: var(--fr-wght, 460);
+  font-variation-settings:
+    'wght' var(--fr-wght, 460),
+    'WONK' var(--fr-wonk, 0),
+    'SOFT' var(--fr-soft, 20),
+    'opsz' 40;
+  font-size: 20px;
+  line-height: 1.1;
+  color: var(--light-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* tagline — one-line mono caption, knob markings */
+.channels .channels-tagline {
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  line-height: 1.4;
+  color: var(--channels-caption);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* cue / patch label on the right — the CTA text plus a jack arrow */
+.channels .channels-cue {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  color: var(--channels-caption);
+}
+
+.channels .channels-cue-text {
+  display: none; /* hidden on small screens — arrow carries the affordance */
+  white-space: nowrap;
+}
+
+.channels .channels-arrow {
+  font-size: 15px;
+  line-height: 1;
+  color: var(--channel, var(--accent-color));
+}
+
+/* --- states: hover + keyboard focus stay in parity --- */
+.channels .channels-strip:hover {
+  background-color: var(--channels-module-hover);
+}
+
+.channels .channels-strip:hover .channels-cue,
+.channels .channels-strip:focus-visible .channels-cue {
+  color: var(--light-color);
+}
+
+.channels .channels-strip:hover .channels-stripe,
+.channels .channels-strip:focus-visible .channels-stripe {
+  box-shadow: 0 0 8px var(--channel, var(--accent-color));
+}
+
+/* visible focus — cream outline is guaranteed high-contrast on any channel */
+.channels .channels-strip:focus-visible {
+  outline: 2px solid var(--light-color);
+  outline-offset: 2px;
+}
+
+/* --- responsive --- */
+@media (width >= 600px) {
+  .channels .channels-cue-text {
+    display: inline;
+  }
+}
+
+@media (width >= 900px) {
+  .channels {
+    padding: 10px;
+  }
+
+  .channels .channels-strip {
+    padding: 10px 18px 10px 12px;
+    column-gap: 18px;
+  }
+
+  .channels .channels-name {
+    font-size: 24px;
+  }
+}
+
+/* --- motion only when the visitor allows it --- */
+@media (prefers-reduced-motion: no-preference) {
+  .channels .channels-strip {
+    transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .channels .channels-arrow {
+    transition: transform 0.15s ease;
+  }
+
+  .channels .channels-strip:hover {
+    transform: translateX(2px);
+  }
+
+  .channels .channels-strip:hover .channels-arrow,
+  .channels .channels-strip:focus-visible .channels-arrow {
+    transform: translateX(3px);
+  }
+}
