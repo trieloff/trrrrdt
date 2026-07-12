@@ -33,7 +33,28 @@ main .varmblixt {
   overflow: hidden;
   color: #292722;
   background: #eeeae2;
+
+  /* how much of the lamp's amber leaks into the page — driven by the slider */
+  --varmblixt-bleed: 0.72;
+
   isolation: isolate;
+}
+
+/* the lamp warms the surrounding studio: a static amber wash over the render,
+   its strength tied to the intensity control via --varmblixt-bleed */
+main .varmblixt::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: radial-gradient(
+    132% 104% at 50% 58%,
+    rgb(255 150 74 / calc(0.26 * var(--varmblixt-bleed, 0.72))) 0%,
+    rgb(214 104 38 / calc(0.14 * var(--varmblixt-bleed, 0.72))) 38%,
+    rgb(255 150 74 / 0%) 72%
+  );
+  mix-blend-mode: soft-light;
+  pointer-events: none;
 }
 
 main .varmblixt .varmblixt-viewport,
@@ -66,7 +87,7 @@ main .varmblixt .varmblixt-copy {
 main .varmblixt .varmblixt-kicker {
   margin: 0 0 0.75rem;
   color: #786f62;
-  font-family: var(--fixed-font-family, monospace);
+  font-family: var(--mono-font-family, monospace);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -82,6 +103,31 @@ main .varmblixt .varmblixt-copy h1 {
   font-weight: 400;
   line-height: 0.9;
   letter-spacing: -0.055em;
+}
+
+/* the single Fraunces rupture in the functionalist facade: one word slips into
+   the serif and morphs WONK 0 -> 1 on hover/focus. the copy layer is otherwise
+   pointer-transparent, so re-enable interaction on just this word. */
+main .varmblixt .varmblixt-wonk {
+  font-family: var(--accent-font-family, serif);
+  font-variation-settings: 'opsz' 96, 'SOFT' 0, 'WONK' 0;
+  letter-spacing: -0.02em;
+  pointer-events: auto;
+  cursor: default;
+  transition: font-variation-settings 600ms ease;
+}
+
+main .varmblixt .varmblixt-wonk:hover,
+main .varmblixt .varmblixt-wonk:focus-visible {
+  font-variation-settings: 'opsz' 96, 'SOFT' 0, 'WONK' 1;
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  main .varmblixt .varmblixt-wonk {
+    font-variation-settings: 'opsz' 96, 'SOFT' 0, 'WONK' 1;
+    transition: none;
+  }
 }
 
 main .varmblixt .varmblixt-copy > p:last-child {

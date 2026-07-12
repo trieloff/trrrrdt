@@ -98,9 +98,15 @@ async function initScene(block) {
   renderer.domElement.addEventListener('pointercancel', onPointerUp);
 
   const intensityControl = block.querySelector('.varmblixt-intensity');
-  intensityControl.addEventListener('input', () => {
-    model.userData.setLightIntensity(Number(intensityControl.value) / 100);
-  });
+  // one control, two readouts: the model's internal light AND the amount of
+  // amber the study lets bleed into the page around it (a CSS custom property).
+  const applyIntensity = () => {
+    const level = Number(intensityControl.value) / 100;
+    model.userData.setLightIntensity(level);
+    block.style.setProperty('--varmblixt-bleed', String(level));
+  };
+  intensityControl.addEventListener('input', applyIntensity);
+  applyIntensity();
 
   const resize = () => {
     const { width, height } = viewport.getBoundingClientRect();
@@ -156,9 +162,9 @@ export default async function decorate(block) {
   const copy = document.createElement('div');
   copy.className = 'varmblixt-copy';
   copy.innerHTML = `
-    <p class="varmblixt-kicker">Procedural glass study</p>
-    <h1>Light, shaped from a curve.</h1>
-    <p>Generated from mathematical surfaces in Three.js. Drag to rotate.</p>
+    <p class="varmblixt-kicker">ОБРАЗЕЦ 7 · LUMEN TEST · REV 2026-07</p>
+    <h1>Light, <span class="varmblixt-wonk" tabindex="0">shaped</span> from a curve.</h1>
+    <p>Grown from mathematical surfaces in Three.js. Draws no current; reads warm to the touch. Drag to rotate.</p>
   `;
 
   const control = document.createElement('label');
