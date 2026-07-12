@@ -520,15 +520,21 @@ async function initScene(block, state) {
   scene.add(dialPivot);
 
   function resize() {
-    const w = container.clientWidth || window.innerWidth;
-    const h = container.clientHeight || window.innerHeight;
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (!w || !h) return;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     placeCamera();
   }
   resize();
-  window.addEventListener('resize', resize);
+  // A ResizeObserver on the canvas box catches orientation changes reliably,
+  // after the layout has settled — a plain window 'resize' on iOS can fire
+  // mid-rotation with stale metrics, which stretched the model to a wrong aspect.
+  const resizeObs = new ResizeObserver(() => resize());
+  resizeObs.observe(container);
+  window.addEventListener('orientationchange', () => { requestAnimationFrame(resize); });
 
   const clock = new THREE.Clock();
   let raf = null;
@@ -584,6 +590,7 @@ export default async function decorate(block) {
         <div class="tp1-net" role="status"><span class="tp1-net-dot"></span><span class="tp1-net-label">Online</span></div>
       </header>
       <section class="tp1-crate" aria-label="Songs saved on this device">
+        <button class="tp1-crate-toggle" type="button" aria-expanded="true" aria-label="Show or hide saved songs"><span class="tp1-crate-grip"></span></button>
         <div class="tp1-crate-head">
           <h1>On this device</h1>
           <div class="tp1-meter"><div class="tp1-meter-bar"><i></i></div><span class="tp1-meter-label"></span></div>
@@ -611,9 +618,21 @@ export default async function decorate(block) {
   const prevBtn = stage.querySelector('.tp1-prev');
   const nextBtn = stage.querySelector('.tp1-next');
   const nowTitle = stage.querySelector('.tp1-now-title');
+  const crate = stage.querySelector('.tp1-crate');
+  const crateToggle = stage.querySelector('.tp1-crate-toggle');
+
+  // collapse the crate to its header so the device shows through (mobile only —
+  // on desktop the crate is a side column). Playback stays live in the now-bar.
+  crateToggle.addEventListener('click', () => {
+    const collapsed = crate.classList.toggle('tp1-crate-collapsed');
+    crateToggle.setAttribute('aria-expanded', String(!collapsed));
+  });
 
   const state = {
-    audio: createAudioEngine(),
+    // play the stored audio DIRECTLY (no Web Audio analyser) so it keeps going
+    // when the phone locks / the app backgrounds — the whole point of an offline
+    // player. Costs the reactive wall (it falls back to the idle animation).
+    audio: createAudioEngine({ analyse: false }),
     songs: [],
     usedBytes: 0,
     current: null,

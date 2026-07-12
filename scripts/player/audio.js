@@ -8,7 +8,15 @@
 
 const FADE_MS = 400;
 
-export default function createAudioEngine() {
+/*
+ * `analyse` (default true): route the elements through a Web Audio analyser for
+ * the spectrum-reactive visualizer. Pass false to play the <audio> elements
+ * DIRECTLY — on iOS an AudioContext is suspended when the screen locks, which
+ * silences anything routed through it, so a media element must play un-routed to
+ * keep going in the background / on the lock screen. The offline TP1 player wants
+ * that background playback more than it wants the reactive wall.
+ */
+export default function createAudioEngine({ analyse = true } = {}) {
   const players = [new Audio(), new Audio()];
   players.forEach((p) => {
     p.preload = 'auto';
@@ -23,6 +31,7 @@ export default function createAudioEngine() {
 
   function ensureAnalyser() {
     if (analyser !== null) return;
+    if (!analyse) { analyser = false; return; } // stay element-only for background audio
     try {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       const ctx = new Ctx();

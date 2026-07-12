@@ -158,12 +158,41 @@ main > .section:has(.tp1) > div {
   box-shadow: 0 -18px 50px rgb(0 0 0 / 50%);
 }
 
+/* grabber handle: tap to collapse the crate down to its header so the device is
+   visible (or expand it back). Universal bottom-sheet affordance. */
+.tp1 .tp1-crate-toggle {
+  pointer-events: auto;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 26px;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tp1 .tp1-crate-grip {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 26%);
+  transition: background 0.2s;
+}
+
+.tp1 .tp1-crate-toggle:hover .tp1-crate-grip,
+.tp1 .tp1-crate-toggle:focus-visible .tp1-crate-grip {
+  background: rgb(255 255 255 / 48%);
+}
+
 .tp1 .tp1-crate-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.2rem 0.5rem;
+  padding: 0.4rem 1.2rem 0.5rem;
 }
 
 .tp1 .tp1-crate-head h1 {
@@ -418,6 +447,15 @@ main > .section:has(.tp1) > div {
   text-overflow: ellipsis;
 }
 
+/* collapsed crate (mobile only): fold the list/empty away, leaving the header +
+   grabber, so the 3D device shows through. The now-bar below stays put. */
+@media (width < 900px) {
+  .tp1 .tp1-crate.tp1-crate-collapsed .tp1-list,
+  .tp1 .tp1-crate.tp1-crate-collapsed .tp1-empty {
+    display: none;
+  }
+}
+
 /* --- desktop: crate becomes a right-hand column --- */
 @media (width >= 900px) {
   .tp1 .tp1-ui {
@@ -426,6 +464,9 @@ main > .section:has(.tp1) > div {
   }
 
   .tp1 .tp1-bar { grid-area: bar; }
+
+  /* no collapsing on desktop — the crate is a fixed column */
+  .tp1 .tp1-crate-toggle { display: none; }
 
   .tp1 .tp1-crate {
     grid-area: crate;
