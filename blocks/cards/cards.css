@@ -1,4 +1,4 @@
-/* cards — mixing desk channels: smoke surfaces, one colored stripe per artist */
+/* cards — mixing desk channels: smoke surfaces, one colored meter per artist */
 .cards > ul {
   list-style: none;
   margin: 0;
@@ -23,8 +23,12 @@
   box-shadow: var(--bevel-dark), 0 6px 20px rgb(0 0 0 / 30%);
 }
 
-/* channel stripe */
-.cards > ul > li::before {
+/* --- channel stripe as a meter segment ---
+   ::before is the dim track, ::after is the fill. The fill sits low at rest and
+   climbs to full height with a glow on hover and keyboard focus (parity via
+   :focus-within), like a signal peaking on a mixing-desk channel. */
+.cards > ul > li::before,
+.cards > ul > li::after {
   content: '';
   position: absolute;
   left: 12px;
@@ -33,6 +37,46 @@
   width: 3px;
   border-radius: 2px;
   background-color: var(--channel, var(--dark-color));
+}
+
+.cards > ul > li::before {
+  opacity: 0.28;
+}
+
+.cards > ul > li::after {
+  transform-origin: bottom;
+  transform: scaleY(0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.cards > ul > li:hover::after,
+.cards > ul > li:focus-within::after {
+  transform: scaleY(1);
+  box-shadow: 0 0 8px var(--channel, var(--dark-color)), 0 0 2px var(--channel, var(--dark-color));
+}
+
+/* --- varied tile rhythm: the newest release stays "on the spindle" ---
+   In a grid of more than four cards, the first tile spans two columns so the
+   grid stops reading as ten equal products. Quantity query keeps it off small
+   grids; the min-width gate keeps it off single-column mobile. */
+@media (width >= 600px) {
+  .cards > ul > li:first-child:nth-last-child(n + 5) {
+    grid-column: span 2;
+  }
+
+  /* cover-art features also grow taller so the artwork stays roughly square */
+  .cards > ul > li.cards-has-image:first-child:nth-last-child(n + 5) {
+    grid-row: span 2;
+  }
+}
+
+/* --- one crooked mount per grid, like a flight-case sticker (sparingly) --- */
+.cards > ul > li:nth-child(7) {
+  transform: rotate(-1.2deg);
+}
+
+.cards > ul > li:nth-child(7):hover {
+  transform: rotate(-1.2deg) translateY(-2px);
 }
 
 /* --- image cards become full-bleed covers: the art fills the card and the text
@@ -44,8 +88,9 @@
   align-items: flex-end;
 }
 
-/* no channel stripe over artwork */
-.cards > ul > li.cards-has-image::before {
+/* no channel meter over artwork */
+.cards > ul > li.cards-has-image::before,
+.cards > ul > li.cards-has-image::after {
   display: none;
 }
 
@@ -77,11 +122,15 @@
   margin-bottom: 0;
 }
 
-/* card title — the name, in the accent face */
+/* card title — the name, in the accent face at this artist's own Fraunces axis
+   (weight / WONK / SOFT set per artist in cards.js; fallbacks are the default) */
 .cards .cards-card-body p:first-child {
   font-family: var(--accent-font-family);
-  font-weight: 500;
-  font-variation-settings: 'WONK' 1, 'SOFT' 60, 'opsz' 48;
+  font-variation-settings:
+    'wght' var(--card-wght, 500),
+    'WONK' var(--card-wonk, 1),
+    'SOFT' var(--card-soft, 60),
+    'opsz' 48;
   font-size: 19px;
   line-height: 1.15;
   color: var(--light-color);
@@ -115,6 +164,13 @@
   background-color: rgb(232 87 58 / 14%);
 }
 
+/* keyboard focus visible on every card link (WCAG AA) */
+.cards .cards-card-body a:focus-visible {
+  outline: 2px solid var(--channel, var(--accent-color));
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
 /* --- cover-card body: text over a scrim at the foot of the art --- */
 .cards .cards-has-image .cards-card-body {
   position: relative;
@@ -136,4 +192,37 @@
 .cards .cards-has-image .cards-card-body p:nth-child(2),
 .cards .cards-has-image .cards-card-body p:nth-child(2) em {
   color: rgb(255 255 255 / 82%);
+}
+
+/* --- optional section modifiers: denser roster vs looser catalogue ---
+   Applied via Section Metadata "Style" — author types "cards roster" or
+   "cards catalog" (or "cards--roster"; toClassName collapses it to
+   cards-roster). Density only — the meter, feature tile, and per-artist type
+   all still apply. */
+.section.cards-roster .cards > ul {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.section.cards-catalog .cards > ul {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 22px;
+}
+
+/* --- respect reduced-motion: keep the static crook, drop the motion --- */
+@media (prefers-reduced-motion: reduce) {
+  .cards > ul > li,
+  .cards > ul > li::after {
+    transition: none;
+  }
+
+  .cards > ul > li:hover {
+    transform: none;
+  }
+
+  /* the crook is static geometry, not motion — keep it even on hover */
+  .cards > ul > li:nth-child(7),
+  .cards > ul > li:nth-child(7):hover {
+    transform: rotate(-1.2deg);
+  }
 }
