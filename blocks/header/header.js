@@ -109,6 +109,32 @@ function toggleMenu(nav, navSections, forceExpanded = null) {
 }
 
 /**
+ * Lights the nav channel matching the current route.
+ * Prefers an exact path match; otherwise the longest path-prefix match, so
+ * /artists/sylvaine-eternelle lights the "Artists" channel while
+ * /playlists/titan/player still lights the exact "Turntable" channel. Only one
+ * channel is ever lit. Sets aria-current="page"; CSS illuminates its LED segment.
+ * @param {Element} navSections The nav sections container
+ */
+function markActiveNavItem(navSections) {
+  if (!navSections) return;
+  const strip = (p) => p.replace(/\/+$/, '') || '/';
+  const here = strip(window.location.pathname);
+  const links = navSections.querySelectorAll(':scope .default-content-wrapper > ul > li > a[href]');
+  let best = null;
+  let bestLength = -1;
+  links.forEach((link) => {
+    const path = strip(new URL(link.href, window.location).pathname);
+    const matches = here === path || (path !== '/' && here.startsWith(`${path}/`));
+    if (matches && path.length > bestLength) {
+      best = link;
+      bestLength = path.length;
+    }
+  });
+  if (best) best.setAttribute('aria-current', 'page');
+}
+
+/**
  * loads and decorates the header, mainly the nav
  * @param {Element} block The header block element
  */
@@ -135,6 +161,14 @@ export default async function decorate(block) {
   if (brandLink) {
     brandLink.className = '';
     brandLink.closest('.button-container').className = '';
+    // service-desk VU meter beside the wordmark: a single needle tick on
+    // load (and, since this is an MPA, on every route change). The motion is
+    // pure CSS and gated behind prefers-reduced-motion. Appended as a flex
+    // sibling of the wordmark so it never wraps under it on narrow screens.
+    const meter = document.createElement('span');
+    meter.className = 'nav-brand-meter';
+    meter.setAttribute('aria-hidden', 'true');
+    navBrand.append(meter);
   }
 
   const navSections = nav.querySelector('.nav-sections');
@@ -149,6 +183,7 @@ export default async function decorate(block) {
         }
       });
     });
+    markActiveNavItem(navSections);
   }
 
   // hamburger for mobile
