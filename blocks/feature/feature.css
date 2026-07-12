@@ -42,8 +42,7 @@
   font-size: var(--heading-font-size-l);
   line-height: 1.04;
   letter-spacing: 0.02em;
-  overflow-wrap: break-word;
-  word-break: keep-all;
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 

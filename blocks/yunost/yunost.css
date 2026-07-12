@@ -157,6 +157,7 @@ main > .section:has(.yunost) > div {
   line-height: 1.1;
   color: var(--light-color, #fff);
   margin-top: 4px;
+  overflow-wrap: anywhere;
 }
 
 .yunost .yunost-meta {
@@ -198,9 +199,39 @@ main > .section:has(.yunost) > div {
   gap: 10px;
 }
 
+.yunost .yunost-deck-prev,
+.yunost .yunost-deck-next {
+  margin: 0;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-family: var(--mono-font-family, monospace);
+  font-size: var(--body-font-size-xs, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--light-color);
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.yunost .yunost-deck-prev:hover,
+.yunost .yunost-deck-prev:focus-visible,
+.yunost .yunost-deck-next:hover,
+.yunost .yunost-deck-next:focus-visible {
+  background-color: rgb(255 255 255 / 12%);
+}
+
+.yunost .yunost-deck-prev:disabled,
+.yunost .yunost-deck-next:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .yunost .yunost-play {
   margin: 0;
   padding: 10px 18px;
+  min-height: 44px;
   font-family: var(--mono-font-family, monospace);
   font-size: var(--body-font-size-xs, 11px);
   text-transform: uppercase;
@@ -287,10 +318,16 @@ main > .section:has(.yunost) > div {
 }
 
 .yunost .yunost-dot {
+  box-sizing: content-box;
   width: 5px;
   height: 5px;
-  border-radius: 50%;
+  margin: 0;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 999px;
   background-color: rgb(255 255 255 / 35%);
+  background-clip: content-box;
+  cursor: pointer;
   transition: transform 0.2s, background-color 0.2s;
 }
 

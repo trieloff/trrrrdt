@@ -4,6 +4,10 @@ import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scri
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
 import { createCurrentTrackButton } from '../../scripts/player/save-offline.js';
+import {
+  bindDeckRegion, bindDeckStepButtons, mountDeckTabs, refreshDeckStepButtons,
+  scrollToDeckIndex, updateDeckTabs,
+} from '../../scripts/player/deck-nav.js';
 import createLamp from '../../scripts/player/lamp.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
@@ -125,7 +129,7 @@ function finalize(t, i) {
   };
 }
 
-function buildStage(tracks) {
+function buildStage() {
   const stage = document.createElement('div');
   stage.className = 'yunost-stage';
   stage.innerHTML = `
@@ -140,16 +144,12 @@ function buildStage(tracks) {
     <p class="yunost-status" aria-live="polite"></p>
     <a class="yunost-eject" href="/">⏏ Off</a>
     <div class="yunost-controls">
+      <button type="button" class="yunost-deck-prev" aria-label="Previous channel">Prev</button>
       <button type="button" class="yunost-play" aria-pressed="false">Tune in</button>
+      <button type="button" class="yunost-deck-next" aria-label="Next channel">Next</button>
     </div>
-    <div class="yunost-dots" role="presentation"></div>
+    <div class="yunost-dots"></div>
   `;
-  const dots = stage.querySelector('.yunost-dots');
-  tracks.forEach(() => {
-    const dot = document.createElement('span');
-    dot.className = 'yunost-dot';
-    dots.append(dot);
-  });
   return stage;
 }
 
@@ -576,7 +576,7 @@ export default async function decorate(block) {
   if (!tracks.length) { block.textContent = ''; return; }
 
   block.textContent = '';
-  const stage = buildStage(tracks);
+  const stage = buildStage();
   const feed = document.createElement('div');
   feed.className = 'yunost-feed';
   feed.append(stage);
@@ -601,9 +601,11 @@ export default async function decorate(block) {
     status: stage.querySelector('.yunost-status'),
   };
   const playBtn = stage.querySelector('.yunost-play');
+  const prevBtn = stage.querySelector('.yunost-deck-prev');
+  const nextBtn = stage.querySelector('.yunost-deck-next');
   const eject = stage.querySelector('.yunost-eject');
   eject.href = window.location.pathname.replace(/\/[^/]*\/?$/, '') || '/';
-  const dots = [...stage.querySelectorAll('.yunost-dot')];
+  const dots = stage.querySelector('.yunost-dots');
 
   // "Save offline" — only playable file (Suno/R2) channels; Apple is DRM'd. The
   // channel's audio track is what's stored (a video's own soundtrack isn't).
@@ -645,6 +647,14 @@ export default async function decorate(block) {
     startRender: () => {},
     stopRender: () => {},
   };
+
+  mountDeckTabs(dots, {
+    prefix: 'yunost',
+    tracks,
+    tablistLabel: 'Channels',
+    tabLabel: (track, i) => `Channel ${i + 1}: ${track.title}`,
+    onSelect: (i) => scrollToDeckIndex(feed, i, state.reducedMotion, 'yunost-track'),
+  });
 
   function pauseAll() {
     file.pause();
@@ -695,6 +705,7 @@ export default async function decorate(block) {
     if (state.playing) status = `On air: ${track.title}`;
     else if (isApple && state.appleError) status = 'Apple Music unavailable right now';
     else if (needsConnect) status = 'Connect your Apple Music account to play the full soundtrack';
+    else status = `Channel ${state.current + 1} of ${tracks.length}: ${track.title}`;
     info.status.textContent = status;
 
     playBtn.disabled = !track.playable;
@@ -704,7 +715,8 @@ export default async function decorate(block) {
     else if (needsConnect) playBtn.textContent = 'Connect Apple Music';
     else playBtn.textContent = 'Tune in';
 
-    dots.forEach((d, i) => d.classList.toggle('yunost-dot-active', i === state.current));
+    updateDeckTabs(dots, 'yunost', state.current);
+    refreshDeckStepButtons(prevBtn, nextBtn, state.current, tracks.length);
     saveOffline.refresh();
   }
 
@@ -763,6 +775,18 @@ export default async function decorate(block) {
   };
 
   playBtn.addEventListener('click', () => state.requestPlay());
+  const goToIndex = (i) => scrollToDeckIndex(feed, i, state.reducedMotion, 'yunost-track');
+  bindDeckStepButtons(prevBtn, nextBtn, {
+    getCurrent: () => state.current,
+    getCount: () => tracks.length,
+    onGo: goToIndex,
+  });
+  bindDeckRegion(block, {
+    regionLabel: 'Television player',
+    getCurrent: () => state.current,
+    getCount: () => tracks.length,
+    onGo: goToIndex,
+  });
   const advance = () => {
     const next = feed.querySelector(`.yunost-track[data-index="${state.current + 1}"]`);
     if (next) next.scrollIntoView({ behavior: state.reducedMotion ? 'auto' : 'smooth' });

@@ -143,6 +143,7 @@ main > .section:has(.turntable) > div {
   line-height: 1.05;
   color: var(--light-color);
   text-shadow: 0 2px 12px rgb(0 0 0 / 60%);
+  overflow-wrap: anywhere;
 }
 
 .turntable .turntable-title {
@@ -153,6 +154,7 @@ main > .section:has(.turntable) > div {
   color: var(--muted-on-dark);
   text-shadow: 0 1px 6px rgb(0 0 0 / 60%);
   margin-top: 2px;
+  overflow-wrap: anywhere;
 }
 
 .turntable .turntable-meta {
@@ -201,9 +203,39 @@ main > .section:has(.turntable) > div {
   gap: 10px;
 }
 
+.turntable .turntable-deck-prev,
+.turntable .turntable-deck-next {
+  margin: 0;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--light-color);
+  background-color: transparent;
+  border: 1px solid rgb(255 255 255 / 40%);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.turntable .turntable-deck-prev:hover,
+.turntable .turntable-deck-prev:focus-visible,
+.turntable .turntable-deck-next:hover,
+.turntable .turntable-deck-next:focus-visible {
+  background-color: rgb(255 255 255 / 12%);
+}
+
+.turntable .turntable-deck-prev:disabled,
+.turntable .turntable-deck-next:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .turntable .turntable-play {
   margin: 0;
   padding: 10px 18px;
+  min-height: 44px;
   font-family: var(--mono-font-family);
   font-size: var(--body-font-size-xs);
   text-transform: uppercase;
@@ -349,15 +381,20 @@ main > .section:has(.turntable) > div {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  pointer-events: none;
+  gap: 4px;
 }
 
 .turntable .turntable-dot {
+  box-sizing: content-box;
   width: 4px;
   height: 4px;
-  border-radius: 50%;
+  margin: 0;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 999px;
   background-color: rgb(255 255 255 / 35%);
+  background-clip: content-box;
+  cursor: pointer;
   transition: background-color 0.3s, transform 0.3s;
 }
 

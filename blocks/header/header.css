@@ -147,11 +147,15 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
 header .nav-brand {
   grid-area: brand;
   flex-basis: 180px;
+  min-width: 0;
   font-family: var(--heading-font-family);
   font-size: 18px;
   font-weight: 300;
   line-height: 1;
   letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 header .nav-brand a:any-link {

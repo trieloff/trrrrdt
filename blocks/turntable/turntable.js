@@ -4,6 +4,10 @@ import { createAppleBackend, classifyAppleUrl, hydrateArtwork } from '../../scri
 import { wallpaperFromStyle, buildWallpaper, makeDeskGrain } from '../../scripts/player/visualizer.js';
 import { slugify, resolveEntries } from '../../scripts/player/content.js';
 import { createCurrentTrackButton } from '../../scripts/player/save-offline.js';
+import {
+  bindDeckRegion, bindDeckStepButtons, mountDeckTabs, refreshDeckStepButtons,
+  scrollToDeckIndex, updateDeckTabs,
+} from '../../scripts/player/deck-nav.js';
 import createLamp from '../../scripts/player/lamp.js';
 import {
   findFragmentPath, loadNotesCanvas, createPaper, setPaperCanvas, isNotesLink, notesPathOf,
@@ -87,7 +91,7 @@ function finalize(t, i) {
   };
 }
 
-function buildStage(tracks) {
+function buildStage() {
   const stage = document.createElement('div');
   stage.className = 'turntable-stage';
   stage.innerHTML = `
@@ -102,20 +106,16 @@ function buildStage(tracks) {
     <p class="turntable-status" aria-live="polite"></p>
     <a class="turntable-eject" href="/">⏏ Eject</a>
     <div class="turntable-controls">
+      <button type="button" class="turntable-deck-prev" aria-label="Previous track">Prev</button>
       <button type="button" class="turntable-play" aria-pressed="false">Drop the needle</button>
+      <button type="button" class="turntable-deck-next" aria-label="Next track">Next</button>
     </div>
-    <div class="turntable-dots" role="presentation"></div>
+    <div class="turntable-dots"></div>
     <label class="turntable-dof">
       <span class="turntable-dof-label">Focus <span class="turntable-dof-value"></span></span>
       <input class="turntable-dof-range" type="range" min="0" max="100" step="1" aria-label="Depth of field amount">
     </label>
   `;
-  const dots = stage.querySelector('.turntable-dots');
-  tracks.forEach(() => {
-    const dot = document.createElement('span');
-    dot.className = 'turntable-dot';
-    dots.append(dot);
-  });
   return stage;
 }
 
@@ -667,7 +667,7 @@ export default async function decorate(block) {
   if (!tracks.length) { block.textContent = ''; return; }
 
   block.textContent = '';
-  const stage = buildStage(tracks);
+  const stage = buildStage();
   const feed = document.createElement('div');
   feed.className = 'turntable-feed';
   feed.append(stage);
@@ -692,10 +692,12 @@ export default async function decorate(block) {
     status: stage.querySelector('.turntable-status'),
   };
   const playBtn = stage.querySelector('.turntable-play');
+  const prevBtn = stage.querySelector('.turntable-deck-prev');
+  const nextBtn = stage.querySelector('.turntable-deck-next');
   const eject = stage.querySelector('.turntable-eject');
   const parent = window.location.pathname.replace(/\/[^/]*\/?$/, '');
   eject.href = parent || '/';
-  const dots = [...stage.querySelectorAll('.turntable-dot')];
+  const dots = stage.querySelector('.turntable-dots');
 
   // "Save offline" — only for playable file (Suno) tracks; Apple tracks are DRM'd
   // and can't be stored. Re-targeted to the current track on every overlay update.
@@ -755,6 +757,14 @@ export default async function decorate(block) {
     startRender: () => {},
     stopRender: () => {},
   };
+
+  mountDeckTabs(dots, {
+    prefix: 'turntable',
+    tracks,
+    tablistLabel: 'Tracks',
+    tabLabel: (track, i) => `Track ${i + 1}: ${track.title}${track.artist ? ` — ${track.artist}` : ''}`,
+    onSelect: (i) => scrollToDeckIndex(feed, i, state.reducedMotion, 'turntable-track'),
+  });
 
   if (isLocalDev) {
     dofRange.value = String(Math.round(state.dofAmount * 100));
@@ -820,6 +830,8 @@ export default async function decorate(block) {
       status = 'Apple Music unavailable right now';
     } else if (needsConnect) {
       status = 'Connect your Apple Music account to play the full song';
+    } else {
+      status = `Track ${state.current + 1} of ${tracks.length}: ${track.title}${track.artist ? ` by ${track.artist}` : ''}`;
     }
     info.status.textContent = status;
 
@@ -830,7 +842,8 @@ export default async function decorate(block) {
     else if (isApple && apple && !apple.isAuthorized()) playBtn.textContent = 'Connect Apple Music';
     else playBtn.textContent = 'Drop the needle';
 
-    dots.forEach((d, i) => d.classList.toggle('turntable-dot-active', i === state.current));
+    updateDeckTabs(dots, 'turntable', state.current);
+    refreshDeckStepButtons(prevBtn, nextBtn, state.current, tracks.length);
     saveOffline.refresh();
   }
 
@@ -899,6 +912,18 @@ export default async function decorate(block) {
   };
 
   playBtn.addEventListener('click', () => state.requestPlay());
+  const goToIndex = (i) => scrollToDeckIndex(feed, i, state.reducedMotion, 'turntable-track');
+  bindDeckStepButtons(prevBtn, nextBtn, {
+    getCurrent: () => state.current,
+    getCount: () => tracks.length,
+    onGo: goToIndex,
+  });
+  bindDeckRegion(block, {
+    regionLabel: 'Turntable player',
+    getCurrent: () => state.current,
+    getCount: () => tracks.length,
+    onGo: goToIndex,
+  });
   const advance = () => {
     const next = feed.querySelector(`.turntable-track[data-index="${state.current + 1}"]`);
     if (next) {
