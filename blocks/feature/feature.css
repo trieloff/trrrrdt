@@ -1,109 +1,261 @@
-/* feature — a spotlighted featured release: cover art on a dark stage + copy */
+/* feature — a liner-note spread: a record sleeve laid askew on parchment,
+   typewritten copy, a stamped archive mark. Default dialect = liner (paper);
+   `feature dark` / `feature stage` = charcoal, for player-adjacent contexts. */
+
 .feature {
+  /* liner-note palette (WCAG AA on the parchment sheet) */
+  --feature-paper: #f2e7cf;
+  --feature-paper-hi: #faf1dc;
+  --feature-ink: #2c2013; /* body mono — 11:1 on paper */
+  --feature-ink-strong: #201710; /* headings */
+  --feature-meta: #6a5334; /* fine print — 5.9:1 on paper */
+  --feature-stamp: #4a3418; /* stamped-mark text — 9.5:1 on paper */
+  --feature-rule: #b23a24; /* stamp frame / accent rule (decorative) */
+  --feature-rule-wash: rgb(178 58 36 / 10%);
+  --feature-poetic: #8f2d1e; /* Fraunces rupture — 6.7:1 on paper */
+  --feature-cast: rgb(38 26 12 / 45%);
+  --feature-hard: rgb(38 26 12 / 14%);
+
+  position: relative;
   margin: 8px 0;
-  padding: 32px 24px;
-  color: var(--light-color);
-  background:
-    radial-gradient(130% 130% at 16% 22%, rgb(217 48 37 / 22%), transparent 55%),
-    var(--text-color);
-  border-radius: var(--radius-card);
-  box-shadow: var(--bevel-light);
-  overflow: hidden;
+  padding: 34px 24px 40px;
+  color: var(--feature-ink);
+  background-color: var(--feature-paper);
+  background-image:
+    radial-gradient(120% 90% at 12% 0%, var(--feature-paper-hi), transparent 55%),
+    radial-gradient(140% 120% at 92% 108%, rgb(120 92 44 / 14%), transparent 60%),
+    linear-gradient(
+      90deg,
+      transparent 61.2%,
+      rgb(90 62 28 / 8%) 62%,
+      rgb(255 255 255 / 30%) 62.4%,
+      transparent 63.2%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgb(120 92 44 / 0%) 0 3px,
+      rgb(120 92 44 / 3.5%) 3px 4px
+    );
+  border-radius: 3px;
+  box-shadow:
+    inset 0 0 0 1px rgb(80 58 28 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 45%),
+    0 1px 1px rgb(0 0 0 / 6%),
+    0 20px 44px -18px var(--feature-cast);
 }
 
 .feature > div {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 26px;
+  gap: 24px;
   align-items: flex-start;
 }
 
+/* --- the sleeve: a square laid askew, lifted off the paper on a hard shadow --- */
 .feature .feature-art {
-  width: 100%;
+  position: relative;
+  width: 72%;
   max-width: 300px;
-  align-self: center;
+  margin: 6px 0 10px 4px;
+  align-self: flex-start;
+  transform: rotate(-2.4deg);
+  transition: transform 0.35s ease;
+}
+
+/* a strip of tape holding the sleeve to the page */
+.feature .feature-art::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  top: -11px;
+  left: 44%;
+  width: 74px;
+  height: 26px;
+  transform: rotate(-6deg);
+  background: rgb(232 163 23 / 30%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%), 0 1px 2px rgb(0 0 0 / 12%);
+}
+
+.feature .feature-art picture {
+  display: block;
 }
 
 .feature .feature-art img {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: var(--radius);
-  box-shadow: 0 20px 55px rgb(0 0 0 / 60%), 0 0 0 1px rgb(255 255 255 / 8%);
+  border-radius: 1px;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 8%),
+    10px 12px 0 -2px var(--feature-hard),
+    0 18px 30px -12px rgb(38 26 12 / 45%);
 }
 
+.feature:hover .feature-art {
+  transform: rotate(-1deg);
+}
+
+/* --- the copy: typewritten manual with one poetic rupture --- */
 .feature .feature-body {
+  position: relative;
   width: 100%;
 }
 
 .feature .feature-body h2 {
   margin: 0 0 10px;
-  color: var(--light-color);
+  color: var(--feature-ink-strong);
   font-size: var(--heading-font-size-l);
-  line-height: 1.04;
-  letter-spacing: 0.02em;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
   overflow-wrap: break-word;
-  word-break: keep-all;
   text-wrap: balance;
 }
 
 .feature .feature-body p {
-  color: rgb(245 230 211 / 74%);
-  max-width: 48ch;
+  margin: 0 0 12px;
+  max-width: 54ch;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-m);
+  line-height: 1.75;
+  color: var(--feature-ink);
 }
 
-/* the line immediately after the title = the multilingual subtitle */
-.feature .feature-body h2 + p {
-  margin: 0 0 16px;
+/* the multilingual line right after the title = the Fraunces rupture */
+.feature .feature-body .feature-subtitle {
+  margin: 0 0 18px;
   font-family: var(--accent-font-family);
   font-style: italic;
-  font-size: var(--heading-font-size-xs);
-  letter-spacing: 0.04em;
-  color: var(--accent-warm);
+  font-weight: 500;
+  font-size: var(--heading-font-size-s);
+  font-variation-settings: 'WONK' 1, 'SOFT' 40, 'opsz' 40;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--feature-poetic);
 }
 
+/* the eyebrow reads as a stamped catalogue mark, not a plain label */
 .feature .feature-body .feature-eyebrow {
-  margin: 0 0 12px;
+  display: inline-block;
+  margin: 0 0 18px;
+  padding: 5px 13px 4px 11px;
   font-family: var(--mono-font-family);
   font-size: var(--body-font-size-xs);
-  letter-spacing: 0.24em;
+  font-weight: 700;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--accent-color);
+  color: var(--feature-stamp);
+  background: var(--feature-rule-wash);
+  border: 1.5px solid var(--feature-rule);
+  border-radius: 2px;
+  box-shadow: 1px 1px 0 rgb(178 58 36 / 14%);
+  transform: rotate(-2.2deg);
+  transform-origin: left center;
 }
 
-.feature .feature-body .button-wrapper {
-  display: inline-block;
-  margin: 12px 12px 0 0;
+.feature .feature-body .feature-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
 }
 
+.feature .feature-body .feature-actions .button-wrapper {
+  margin: 0;
+}
+
+/* secondary CTA: dark label in a red frame — the red-on-paper ghost fails AA */
 .feature a.button.secondary {
-  border-color: rgb(245 230 211 / 40%);
-  color: var(--light-color);
+  border-color: var(--feature-rule);
+  color: var(--feature-ink-strong);
 }
 
-.feature a.button.secondary:hover {
-  border-color: var(--light-color);
-  background-color: rgb(255 255 255 / 10%);
-  color: var(--light-color);
+.feature a.button.secondary:hover,
+.feature a.button.secondary:focus-visible {
+  background-color: var(--feature-rule-wash);
+  color: var(--feature-ink-strong);
+}
+
+/* ============================================================
+   dark / stage dialect — charcoal, for player-adjacent contexts
+   ============================================================ */
+.feature.dark,
+.feature.stage {
+  --feature-paper: #1c1c1c;
+  --feature-ink: rgb(245 230 211 / 82%);
+  --feature-ink-strong: var(--light-color);
+  --feature-meta: rgb(245 230 211 / 58%);
+  --feature-stamp: var(--light-color);
+  --feature-rule: var(--accent-color);
+  --feature-rule-wash: rgb(217 48 37 / 14%);
+  --feature-poetic: var(--accent-warm);
+  --feature-cast: rgb(0 0 0 / 60%);
+  --feature-hard: rgb(0 0 0 / 35%);
+
+  background-image:
+    radial-gradient(130% 130% at 16% 22%, rgb(217 48 37 / 20%), transparent 55%),
+    radial-gradient(120% 90% at 88% 108%, rgb(45 125 154 / 12%), transparent 60%);
+  border-radius: var(--radius-card);
+  box-shadow:
+    var(--bevel-dark),
+    0 24px 60px -24px rgb(0 0 0 / 70%);
+}
+
+.feature.dark .feature-art img,
+.feature.stage .feature-art img {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 8%),
+    12px 14px 0 -4px var(--feature-hard),
+    0 26px 46px -16px rgb(0 0 0 / 65%);
 }
 
 @media (width >= 900px) {
   .feature {
-    padding: 52px 48px;
+    padding: 56px 56px 60px;
   }
 
+  /* asymmetric spread: a narrower sleeve column, pulled up to escape the
+     top edge; the copy sits lower — a diagonal offset, not a 50/50 card */
   .feature > div {
-    flex-direction: row;
-    gap: 52px;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 44%) minmax(0, 1fr);
+    column-gap: 52px;
+    align-items: start;
   }
 
   .feature .feature-art {
-    flex: 0 0 auto;
-    max-width: 360px;
+    width: 100%;
+    max-width: 380px;
+    margin: -34px 0 0;
+    transform: rotate(-2.8deg);
+  }
+
+  .feature .feature-body {
+    padding-top: 16px;
   }
 
   .feature .feature-body h2 {
     font-size: var(--heading-font-size-xl);
+  }
+
+  .feature .feature-body .feature-subtitle {
+    font-size: var(--heading-font-size-m);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature .feature-art {
+    transition: none;
+  }
+
+  .feature:hover .feature-art {
+    transform: rotate(-2.4deg);
+  }
+
+  @media (width >= 900px) {
+    .feature:hover .feature-art {
+      transform: rotate(-2.8deg);
+    }
   }
 }
