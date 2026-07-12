@@ -1,0 +1,559 @@
+/* stylelint-disable no-descending-specificity -- hover/state selectors are
+   grouped with the components they belong to, not ordered by specificity */
+
+/* catalog — the back-catalogue index for /playlists.
+   Two dialects from one block:
+   - .catalog          The Catalogue: a label archive. Newest release on the
+                       spindle, the rest a numbered ledger. Plays in full.
+   - .catalog.mixtapes Mixtapes: a dense wall of cover sleeves carrying an
+                       explicit Apple-Music preview affordance. */
+
+.catalog {
+  --catalog-rule: rgb(28 28 28 / 14%);
+}
+
+/* --- shared: the interactive shell --- */
+.catalog .catalog-link {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
+.catalog a.catalog-link:hover {
+  text-decoration: none;
+}
+
+.catalog a.catalog-link:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 3px;
+  border-radius: var(--radius);
+}
+
+/* --- shared: cover art --- */
+.catalog .catalog-art picture,
+.catalog .catalog-art img,
+.catalog .catalog-thumb picture,
+.catalog .catalog-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.catalog .catalog-art img,
+.catalog .catalog-thumb img {
+  object-fit: cover;
+}
+
+/* --- shared: the record disc (spindle hero + no-art placeholder) --- */
+.catalog .catalog-disc {
+  position: relative;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 38% 30%, rgb(255 255 255 / 16%), transparent 42%),
+    repeating-radial-gradient(circle at 50% 50%, rgb(255 255 255 / 7%) 0 1px, transparent 1px 4px),
+    radial-gradient(circle at 50% 50%, #2b2b2b 0 19%, #151515 20% 100%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+}
+
+.catalog .catalog-disc::after {
+  content: '';
+  position: absolute;
+  inset: 37%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-color) 0 60%, #0c0c0c 61% 100%);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 45%);
+}
+
+/* --- shared: no-art placeholder sleeve --- */
+.catalog .catalog-blank {
+  position: relative;
+  background: radial-gradient(120% 120% at 30% 20%, #343434, #171717);
+}
+
+.catalog .catalog-blank .catalog-disc {
+  position: absolute;
+  inset: 14%;
+}
+
+.catalog .catalog-stamp {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  font-family: var(--mono-font-family);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgb(245 230 211 / 82%);
+}
+
+/* --- shared: play triangle glyph --- */
+.catalog .catalog-play-tri {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 4px 0 4px 7px;
+  border-color: transparent transparent transparent currentcolor;
+}
+
+/* ======================================================================
+   THE CATALOGUE — label archive
+   ====================================================================== */
+
+.catalog .catalog-shelf {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- newest release: still on the spindle --- */
+.catalog .catalog-newest {
+  margin-bottom: 26px;
+}
+
+.catalog .catalog-newest .catalog-link {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 4px;
+}
+
+.catalog .catalog-cover-frame {
+  position: relative;
+  width: min(92%, 340px);
+  aspect-ratio: 7 / 5;
+}
+
+.catalog .catalog-newest .catalog-art {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 18px 44px rgb(0 0 0 / 42%), 0 0 0 1px rgb(0 0 0 / 22%);
+}
+
+.catalog .catalog-disc-big {
+  position: absolute;
+  right: 0;
+  top: 8%;
+  z-index: 0;
+  width: 56%;
+  aspect-ratio: 1;
+  box-shadow: 0 12px 26px rgb(0 0 0 / 45%);
+  transition: transform 0.4s ease;
+}
+
+.catalog .catalog-newest .catalog-link:hover .catalog-disc-big {
+  animation: catalog-spin 3.4s linear infinite;
+}
+
+.catalog .catalog-newest .catalog-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.catalog .catalog-eyebrow {
+  font-family: var(--mono-font-family);
+  font-weight: 700;
+  font-size: var(--body-font-size-xs);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+}
+
+.catalog .catalog-newest .catalog-title {
+  margin-top: 8px;
+  font-family: var(--accent-font-family);
+  font-weight: 600;
+  font-variation-settings: 'WONK' 1, 'SOFT' 55, 'opsz' 72;
+  font-size: clamp(30px, 7vw, 52px);
+  line-height: 1.02;
+  color: var(--text-color);
+}
+
+.catalog .catalog-newest .catalog-tagline {
+  margin-top: 10px;
+  max-width: 46ch;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-s);
+  line-height: 1.6;
+  color: var(--dark-color);
+}
+
+.catalog .catalog-play {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono-font-family);
+  font-weight: 700;
+  font-size: var(--body-font-size-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-color);
+}
+
+.catalog .catalog-newest .catalog-play {
+  margin-top: 16px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgb(217 48 37 / 10%);
+  box-shadow: inset 0 0 0 1px rgb(217 48 37 / 35%);
+}
+
+.catalog .catalog-newest .catalog-cta {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 18px;
+  padding: 11px 24px;
+  border-radius: var(--radius);
+  background-color: var(--accent-color);
+  color: var(--background-color);
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  font-size: var(--body-font-size-s);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: var(--bevel-light), var(--drop-shadow);
+  transition: transform 0.15s, background-color 0.2s;
+}
+
+.catalog .catalog-newest .catalog-link:hover .catalog-cta {
+  transform: translateY(-1px);
+  background-color: var(--accent-coral);
+}
+
+/* --- the ledger: numbered archive rows --- */
+.catalog .catalog-item:not(.catalog-newest) .catalog-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 4px;
+  border-top: 1px solid var(--catalog-rule);
+  border-radius: 6px;
+  transition: background-color 0.15s, transform 0.15s;
+}
+
+.catalog .catalog-shelf .catalog-item:last-child .catalog-link {
+  border-bottom: 1px solid var(--catalog-rule);
+}
+
+.catalog .catalog-item:not(.catalog-newest) .catalog-link:hover {
+  transform: translateX(3px);
+  background-color: rgb(28 28 28 / 4%);
+}
+
+.catalog .catalog-no {
+  display: none;
+  flex: 0 0 auto;
+  width: 46px;
+  font-family: var(--mono-font-family);
+  font-weight: 700;
+  font-size: var(--body-font-size-xs);
+  letter-spacing: 0.04em;
+  color: var(--dark-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.catalog .catalog-thumb {
+  flex: 0 0 auto;
+  width: 48px;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 30%), 0 0 0 1px rgb(0 0 0 / 12%);
+}
+
+.catalog .catalog-item .catalog-entry {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.catalog .catalog-item .catalog-title {
+  display: block;
+  font-family: var(--accent-font-family);
+  font-weight: 600;
+  font-variation-settings: 'WONK' 1, 'SOFT' 55, 'opsz' 40;
+  font-size: 18px;
+  line-height: 1.14;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalog .catalog-item .catalog-tagline {
+  display: -webkit-box;
+  margin-top: 2px;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  line-height: 1.45;
+  color: var(--dark-color);
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.catalog .catalog-meta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.catalog .catalog-item .catalog-cta {
+  display: none;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--link-color);
+  transition: color 0.2s;
+}
+
+.catalog .catalog-item .catalog-cta::after {
+  content: ' →';
+}
+
+.catalog .catalog-item .catalog-link:hover .catalog-cta {
+  color: var(--link-hover-color);
+}
+
+/* ======================================================================
+   MIXTAPES — the Apple-Music preview wall
+   ====================================================================== */
+
+.catalog.mixtapes .catalog-wall {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-flow: dense;
+  gap: 10px;
+}
+
+.catalog.mixtapes .catalog-tape {
+  position: relative;
+  aspect-ratio: 1;
+}
+
+.catalog.mixtapes .catalog-tape-feature {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.catalog.mixtapes .catalog-tape .catalog-link {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 22%), 0 0 0 1px rgb(0 0 0 / 12%);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.catalog.mixtapes .catalog-tape .catalog-link:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px rgb(0 0 0 / 34%), 0 0 0 1px rgb(0 0 0 / 12%);
+}
+
+.catalog.mixtapes .catalog-art {
+  position: absolute;
+  inset: 0;
+}
+
+/* the Apple-Music affordance — a frosted preview pill, cool teal tick */
+.catalog.mixtapes .catalog-preview {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-family: var(--mono-font-family);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--light-color);
+  background: rgb(12 12 12 / 60%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
+  backdrop-filter: blur(3px);
+}
+
+.catalog.mixtapes .catalog-preview .catalog-play-tri {
+  border-color: transparent transparent transparent var(--accent-teal);
+}
+
+.catalog.mixtapes .catalog-entry {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 28px 10px 10px;
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 88%) 0%,
+    rgb(0 0 0 / 42%) 55%,
+    transparent 100%
+  );
+}
+
+.catalog.mixtapes .catalog-title {
+  display: -webkit-box;
+  font-family: var(--accent-font-family);
+  font-weight: 600;
+  font-variation-settings: 'WONK' 1, 'SOFT' 60, 'opsz' 48;
+  font-size: 16px;
+  line-height: 1.08;
+  color: var(--light-color);
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.catalog.mixtapes .catalog-tape-feature .catalog-title {
+  font-size: 24px;
+}
+
+.catalog.mixtapes .catalog-tape-feature .catalog-tagline {
+  display: -webkit-box;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  line-height: 1.5;
+  color: rgb(255 255 255 / 80%);
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.catalog.mixtapes .catalog-source {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono-font-family);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: rgb(255 255 255 / 78%);
+}
+
+.catalog.mixtapes .catalog-source::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-teal);
+  box-shadow: 0 0 6px rgb(45 125 154 / 70%);
+}
+
+@keyframes catalog-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ======================================================================
+   RESPONSIVE
+   ====================================================================== */
+
+@media (width >= 600px) {
+  .catalog .catalog-no {
+    display: block;
+  }
+
+  .catalog .catalog-item .catalog-tagline {
+    -webkit-line-clamp: 2;
+  }
+
+  .catalog.mixtapes .catalog-wall {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .catalog.mixtapes .catalog-title {
+    font-size: 17px;
+  }
+}
+
+@media (width >= 900px) {
+  .catalog .catalog-newest {
+    margin-bottom: 34px;
+  }
+
+  .catalog .catalog-newest .catalog-link {
+    flex-direction: row;
+    align-items: center;
+    gap: 44px;
+  }
+
+  .catalog .catalog-cover-frame {
+    flex: 0 0 auto;
+    width: 420px;
+  }
+
+  .catalog .catalog-newest .catalog-entry {
+    flex: 1 1 auto;
+  }
+
+  .catalog .catalog-thumb {
+    width: 60px;
+  }
+
+  .catalog .catalog-item .catalog-title {
+    font-size: 21px;
+  }
+
+  .catalog .catalog-item .catalog-cta {
+    display: inline-block;
+  }
+
+  .catalog.mixtapes .catalog-wall {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .catalog.mixtapes .catalog-tape-feature .catalog-title {
+    font-size: 28px;
+  }
+}
+
+@media (width >= 1200px) {
+  .catalog.mixtapes .catalog-wall {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* ======================================================================
+   REDUCED MOTION
+   ====================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .catalog .catalog-newest .catalog-link:hover .catalog-disc-big {
+    animation: none;
+  }
+
+  .catalog .catalog-disc-big,
+  .catalog .catalog-newest .catalog-cta,
+  .catalog .catalog-item:not(.catalog-newest) .catalog-link,
+  .catalog.mixtapes .catalog-tape .catalog-link {
+    transition: none;
+  }
+
+  .catalog .catalog-item:not(.catalog-newest) .catalog-link:hover,
+  .catalog .catalog-newest .catalog-link:hover .catalog-cta,
+  .catalog.mixtapes .catalog-tape .catalog-link:hover {
+    transform: none;
+  }
+}
