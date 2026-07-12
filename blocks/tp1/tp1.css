@@ -47,7 +47,7 @@ main > .section:has(.tp1) > div {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background-color: #0b0b0d;
+  background-color: var(--surface-dark);
 }
 
 .tp1 .tp1-canvas,
@@ -65,7 +65,7 @@ main > .section:has(.tp1) > div {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #f5e6d3;
+  color: var(--light-color);
   font-family: var(--body-font-family, monospace);
   letter-spacing: 0.08em;
   transition: opacity 0.6s ease;
@@ -83,7 +83,7 @@ main > .section:has(.tp1) > div {
   display: flex;
   flex-direction: column;
   pointer-events: none;
-  color: #ece7db;
+  color: var(--light-color);
   font-family: var(--body-font-family, "Helvetica Neue", Arial, sans-serif);
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
@@ -102,7 +102,7 @@ main > .section:has(.tp1) > div {
   font-weight: 700;
   font-size: 1.15rem;
   letter-spacing: 0.02em;
-  color: #f5e6d3;
+  color: var(--light-color);
   text-decoration: none;
   text-shadow: 0 1px 6px rgb(0 0 0 / 60%);
 }
@@ -124,7 +124,7 @@ main > .section:has(.tp1) > div {
   font-size: 0.62rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #cfc8ba;
+  color: var(--caption-on-dark);
   background: rgb(10 10 12 / 55%);
   padding: 0.32rem 0.6rem;
   border-radius: 999px;
@@ -135,13 +135,13 @@ main > .section:has(.tp1) > div {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #4caf6a;
-  box-shadow: 0 0 8px #4caf6a;
+  background: var(--accent-mint);
+  box-shadow: 0 0 8px var(--accent-mint);
 }
 
 .tp1 .tp1-net-dot.tp1-net-off {
-  background: #e6a23c;
-  box-shadow: 0 0 8px #e6a23c;
+  background: var(--accent-warm);
+  box-shadow: 0 0 8px var(--accent-warm);
 }
 
 /* the crate: bottom sheet on mobile */
@@ -171,7 +171,7 @@ main > .section:has(.tp1) > div {
   font-size: 1.15rem;
   font-weight: 700;
   margin: 0;
-  color: #f5e6d3;
+  color: var(--light-color);
 }
 
 .tp1 .tp1-meter {
@@ -195,7 +195,7 @@ main > .section:has(.tp1) > div {
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: linear-gradient(90deg, #4caf6a, #e6a23c);
+  background: linear-gradient(90deg, var(--accent-mint), var(--accent-warm));
   transition: width 0.4s ease;
 }
 
@@ -203,7 +203,7 @@ main > .section:has(.tp1) > div {
   font-family: "Space Mono", monospace;
   font-size: 0.6rem;
   letter-spacing: 0.08em;
-  color: #9a948a;
+  color: var(--caption-on-dark);
   white-space: nowrap;
 }
 
@@ -217,14 +217,14 @@ main > .section:has(.tp1) > div {
 .tp1 .tp1-empty {
   margin: 0;
   padding: 1.4rem 1.4rem 2rem;
-  color: #9a948a;
+  color: var(--caption-on-dark);
   font-size: 0.9rem;
   line-height: 1.5;
   max-width: 40ch;
 }
 
 .tp1 .tp1-empty b {
-  color: #cfc8ba;
+  color: var(--caption-on-dark);
   font-weight: 700;
 }
 
@@ -292,7 +292,7 @@ main > .section:has(.tp1) > div {
 .tp1 .tp1-song-eq i {
   width: 3px;
   height: 40%;
-  background: #f5e6d3;
+  background: var(--light-color);
   border-radius: 2px;
   animation: tp1-eq 0.9s ease-in-out infinite;
 }
@@ -322,7 +322,7 @@ main > .section:has(.tp1) > div {
 .tp1 .tp1-song-artist {
   margin: 0.1rem 0 0;
   font-size: 0.72rem;
-  color: #9a948a;
+  color: var(--caption-on-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -332,7 +332,7 @@ main > .section:has(.tp1) > div {
   flex: 0 0 auto;
   border: 1px solid rgb(255 255 255 / 14%);
   background: transparent;
-  color: #9a948a;
+  color: var(--caption-on-dark);
   font-family: "Space Mono", monospace;
   font-size: 0.6rem;
   letter-spacing: 0.1em;
@@ -343,7 +343,7 @@ main > .section:has(.tp1) > div {
 }
 
 .tp1 .tp1-song-del:hover {
-  color: #f5e6d3;
+  color: var(--light-color);
   border-color: rgb(217 48 37 / 60%);
   background: rgb(217 48 37 / 12%);
 }
@@ -363,8 +363,8 @@ main > .section:has(.tp1) > div {
   flex: 0 0 auto;
   border: 0;
   cursor: pointer;
-  background: #d93025;
-  color: #fff;
+  background: var(--accent-color);
+  color: var(--light-color);
   font-family: "Space Mono", monospace;
   font-size: 0.72rem;
   letter-spacing: 0.14em;
@@ -390,7 +390,7 @@ main > .section:has(.tp1) > div {
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 999px;
   background: transparent;
-  color: #cfc8ba;
+  color: var(--caption-on-dark);
   font-size: 0.6rem;
   letter-spacing: 0.05em;
   line-height: 1;
@@ -405,14 +405,14 @@ main > .section:has(.tp1) > div {
 .tp1 .tp1-skip:hover:not(:disabled),
 .tp1 .tp1-skip:focus-visible:not(:disabled) {
   background: rgb(255 255 255 / 10%);
-  color: #fff;
+  color: var(--light-color);
 }
 
 .tp1 .tp1-now-title {
   flex: 1 1 auto;
   min-width: 0;
   font-size: 0.85rem;
-  color: #cfc8ba;
+  color: var(--caption-on-dark);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -448,7 +448,7 @@ main > .section:has(.tp1) > div {
 
 /* no-webgl fallback: the crate still works as a plain list */
 .tp1.tp1-no-3d .tp1-stage {
-  background: #0b0b0d;
+  background: var(--surface-dark);
 }
 
 .tp1.tp1-no-3d .tp1-loading {

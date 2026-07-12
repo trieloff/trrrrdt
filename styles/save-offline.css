@@ -80,7 +80,7 @@
 }
 
 .save-offline.is-saved .save-offline-icon::after {
-  border-color: #0b0b0d;
+  border-color: var(--surface-dark);
   bottom: 30%;
   width: 4px;
   height: 7px;

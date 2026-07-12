@@ -166,7 +166,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   line-height: 1.35;
-  color: var(--dark-color);
+  color: color-mix(in srgb, var(--cassette-ink) 68%, transparent);
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;

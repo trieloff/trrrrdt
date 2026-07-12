@@ -49,7 +49,7 @@ main > .section:has(.yunost) > div {
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   overscroll-behavior: none;
-  background-color: #080808;
+  background-color: var(--surface-dark);
 }
 
 .yunost .yunost-feed {
@@ -64,7 +64,7 @@ main > .section:has(.yunost) > div {
   margin-bottom: -100vh;
   margin-bottom: -100dvh;
   overflow: hidden;
-  background: #080808;
+  background: var(--surface-dark);
 }
 
 .yunost .yunost-track {
@@ -147,8 +147,7 @@ main > .section:has(.yunost) > div {
   font-size: 22px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--light-color, #fff);
-  opacity: 0.85;
+  color: var(--muted-on-dark);
 }
 
 .yunost .yunost-title {
@@ -165,7 +164,7 @@ main > .section:has(.yunost) > div {
   font-size: var(--body-font-size-xs, 11px);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--border-color, #9a9a9a);
+  color: var(--caption-on-dark);
   margin-top: 6px;
 }
 
@@ -181,8 +180,7 @@ main > .section:has(.yunost) > div {
   font-size: var(--body-font-size-xs, 11px);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--light-color, #fff);
-  opacity: 0.8;
+  color: var(--caption-on-dark);
 }
 
 .yunost .yunost-source::before { content: '◍ '; }
@@ -244,17 +242,17 @@ main > .section:has(.yunost) > div {
 }
 
 .yunost.yunost-connect .yunost-play {
-  color: #fff;
-  background-color: #fa243c;
-  border-color: #fa243c;
+  color: var(--light-color);
+  background-color: var(--accent-apple);
+  border-color: var(--accent-apple);
   font-weight: 700;
   box-shadow: 0 2px 14px rgb(250 36 60 / 45%);
 }
 
 .yunost.yunost-connect .yunost-play:hover,
 .yunost.yunost-connect .yunost-play:focus-visible {
-  background-color: #ff3141;
-  border-color: #ff3141;
+  background-color: var(--accent-apple-hover);
+  border-color: var(--accent-apple-hover);
 }
 
 .yunost .yunost-eject {
@@ -268,12 +266,13 @@ main > .section:has(.yunost) > div {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   text-decoration: none;
-  color: var(--light-color, #fff);
-  opacity: 0.7;
+  color: var(--caption-on-dark);
 }
 
 .yunost .yunost-eject:hover,
-.yunost .yunost-eject:focus-visible { opacity: 1; }
+.yunost .yunost-eject:focus-visible {
+  color: var(--light-color);
+}
 
 /* --- channel dots (right rail) --- */
 .yunost .yunost-dots {
@@ -315,7 +314,7 @@ main > .section:has(.yunost) > div {
 .yunost.yunost-no-3d .yunost-loading { display: none; }
 
 .yunost.yunost-no-3d .yunost-stage {
-  background: linear-gradient(180deg, #141414 0%, #080808 100%);
+  background: linear-gradient(180deg, var(--text-color) 0%, var(--surface-dark) 100%);
 }
 
 @media (width >= 900px) {

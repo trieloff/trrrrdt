@@ -114,3 +114,39 @@ Always use the `--prompt` parameter when committing, e.g. `git commit --prompt "
 ## Skills
 
 This project has skills installed in `.claude/skills/`. Run `./.agents/discover-skills` at the start of each session. For any block development work, start with the `content-driven-development` skill.
+
+## Design Context
+
+### Users
+
+Cerebral freaks with golden ears — people who seek out weird, niche music and audio experiences rather than mainstream discovery. They arrive curious, often already attuned to analog craft, fictional worlds, and the uncanny edge of AI-generated art. The job to be done: explore fictional artist personas, listen through immersive 3D players, and get lost in Hörspiel narratives — not skim a catalog and bounce.
+
+### Brand Personality
+
+**Analog · Psychedelic · Whimsical**
+
+Voice is warm and mechanical at once — the site talks like a well-maintained piece of consumer electronics that happens to be slightly hallucinating. Emotional goal: nostalgia for a world never experienced, for a reality that never existed. Delight comes from tactile surfaces, channel-switching, and liner-note intimacy — never from growth-hack urgency or algorithmic recommendation theater.
+
+### Aesthetic Direction
+
+**Cassette-futurism** — retro-analog visuals (CRT scan lines, tape-deck metaphors, injection-molded bevels, VU-meter colors) implemented with modern web craft and Three.js 3D models (Sony PS-F9 turntable, Yunost-402 Soviet TV).
+
+**References:** GeoCities whimsy and handmade web energy, filtered through a timeline where the Soviet Union endured and Dieter Rams ran the politburo — utilitarian precision, warm thermoplastic materials, and state-issued charm.
+
+**Anti-references:** Streaming-giant minimalism (Spotify, Apple Music) — no anonymous dark chrome, no infinite-scroll feed psychology, no "your daily mix" banality.
+
+**Theme:** Contextual, not global. Light parchment (`#fffdf7`) for browsing, catalog, and liner notes; dark charcoal machinery (`#1c1c1c`) for hero sections and immersive player experiences. The mode shifts with context, not a user toggle.
+
+**Palette & type (existing tokens):** Yunost red (`#d93025`) and studio teal (`#2d7d9a`) as primary accents; per-artist channel stripes on the mixing-desk model; Space Grotesk headings, Space Mono body, Fraunces for accent/liner-note moments.
+
+### Design Principles
+
+1. **Contextual immersion** — Browsing stays bright and legible on parchment; players and heroes go dark and full-viewport. Never flatten both modes into one homogeneous theme.
+2. **Machinery, not chrome** — Interfaces should feel like physical objects: beveled buttons, panel surfaces, dials, scan lines, scroll-snap channel decks. Flat SaaS cards are out of character.
+3. **Nostalgia for unreality** — Design evokes fictional histories (Soviet futurism × Rams functionalism × 90s web) rather than documenting real retro. Slightly uncanny, never kitsch-precise.
+4. **Niche over mass-market** — Celebrate weirdness, golden-ear detail, and artist-channel identity. Resist generic music-platform patterns that optimize for passive consumption.
+5. **Psychedelic precision** — Hold Rams-grid discipline (spacing, hierarchy, uppercase CTAs) while allowing color bleed, channel stripes, and Fraunces accent cracks as controlled psychedelic ruptures.
+
+### Accessibility
+
+WCAG 2.1 AA target. Respect `prefers-reduced-motion` (scan-line animations already gated). Maintain contrast on player controls and liner-notes text. Accessibility should not sand off the analog character — provide equivalent non-visual paths through player experiences without reducing them to bare lists.

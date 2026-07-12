@@ -48,7 +48,7 @@
 }
 
 .feature .feature-body p {
-  color: rgb(245 230 211 / 74%);
+  color: var(--muted-on-dark);
   max-width: 48ch;
 }
 
@@ -68,7 +68,7 @@
   font-size: var(--body-font-size-xs);
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: var(--accent-color);
+  color: var(--light-color);
 }
 
 .feature .feature-body .button-wrapper {

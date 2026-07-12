@@ -197,13 +197,21 @@ header nav .nav-sections ul {
 header nav .nav-sections ul > li > a:any-link {
   display: inline-block;
   padding: 0.35em 0;
-  color: var(--dark-color);
+  color: var(--light-color);
   transition: color 0.2s;
 }
 
 header nav .nav-sections ul > li > a:hover {
-  color: var(--light-color);
+  color: var(--accent-coral);
   text-decoration: none;
+}
+
+header nav .nav-sections ul > li > ul > li > a:any-link {
+  color: var(--caption-on-dark);
+}
+
+header nav .nav-sections ul > li > ul > li > a:hover {
+  color: var(--light-color);
 }
 
 header nav .nav-sections ul > li {
@@ -303,6 +311,15 @@ header nav .nav-sections ul > li > ul > li {
 
   header nav .nav-sections .default-content-wrapper > ul > li > ul > li {
     padding: 8px 0;
+  }
+
+  /* parchment dropdown — switch from charcoal-bar link colors */
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul a:any-link {
+    color: var(--text-color);
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li[aria-expanded='true'] > ul a:hover {
+    color: var(--accent-color);
   }
 }
 

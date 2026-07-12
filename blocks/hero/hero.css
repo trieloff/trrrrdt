@@ -54,7 +54,7 @@ main > .section:first-of-type:has(.hero) > div {
   max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
-  color: var(--border-color);
+  color: var(--muted-on-dark);
   font-family: var(--mono-font-family);
   font-size: var(--body-font-size-s);
 }

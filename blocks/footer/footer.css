@@ -1,6 +1,6 @@
 footer {
   background-color: var(--text-color);
-  color: var(--dark-color);
+  color: var(--caption-on-dark);
   font-size: var(--body-font-size-xs);
   font-family: var(--mono-font-family);
   text-align: center;
@@ -56,7 +56,7 @@ footer .footer p:last-child {
   font-weight: 340;
   font-variation-settings: 'WONK' 1, 'SOFT' 50, 'opsz' 24;
   font-size: var(--body-font-size-s);
-  color: var(--dark-color);
+  color: var(--caption-on-dark);
 }
 
 footer .footer a:any-link {

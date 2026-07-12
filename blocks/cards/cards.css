@@ -91,13 +91,13 @@
 .cards .cards-card-body p:nth-child(2) {
   font-family: var(--mono-font-family);
   font-size: var(--body-font-size-xs);
-  color: var(--dark-color);
+  color: var(--caption-on-dark);
   margin-top: 0.4em;
   line-height: 1.5;
 }
 
 .cards .cards-card-body p:nth-child(2) em {
-  color: var(--dark-color);
+  color: var(--caption-on-dark);
 }
 
 /* card action link */
@@ -123,17 +123,20 @@
   padding: 44px 18px 18px;
   background: linear-gradient(
     to top,
-    rgb(0 0 0 / 88%) 0%,
-    rgb(0 0 0 / 55%) 45%,
+    rgb(0 0 0 / 94%) 0%,
+    rgb(0 0 0 / 82%) 40%,
+    rgb(0 0 0 / 50%) 70%,
     rgb(0 0 0 / 0%) 100%
   );
 }
 
 .cards .cards-has-image .cards-card-body p:first-child {
   color: var(--light-color);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 85%);
 }
 
 .cards .cards-has-image .cards-card-body p:nth-child(2),
 .cards .cards-has-image .cards-card-body p:nth-child(2) em {
-  color: rgb(255 255 255 / 82%);
+  color: var(--muted-on-dark);
+  text-shadow: 0 1px 6px rgb(0 0 0 / 80%);
 }
