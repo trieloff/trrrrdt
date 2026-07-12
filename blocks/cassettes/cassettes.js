@@ -1,5 +1,65 @@
 import { createSaveButton, createSaveAllButton, songFromPlayerLink } from '../../scripts/player/save-offline.js';
 
+/* Cassettes remembered as "played" on this device get a subtle oxide patina.
+   Purely local — no network, no cross-device sync. Keys are normalised to
+   pathname+hash so they survive preview/live/localhost host differences. */
+const PLAYED_KEY = 'trrrrdt-played';
+
+function keyFor(href) {
+  try {
+    const u = new URL(href, window.location.href);
+    return u.pathname + u.hash;
+  } catch (e) {
+    return href;
+  }
+}
+
+function readPlayed() {
+  try {
+    return new Set(JSON.parse(window.localStorage.getItem(PLAYED_KEY) || '[]'));
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function markPlayed(href) {
+  try {
+    const set = readPlayed();
+    set.add(keyFor(href));
+    window.localStorage.setItem(PLAYED_KEY, JSON.stringify([...set]));
+  } catch (e) {
+    /* localStorage unavailable (private mode / quota) — patina is best-effort */
+  }
+}
+
+/* The side heading ("Side A — L'Ambassade") lives outside the block, in the
+   section that precedes it. Read it defensively and return just the letter. */
+function readSideLetter(block) {
+  const section = block.closest('.section');
+  if (!section) return '';
+  const scopes = [section, section.previousElementSibling].filter(Boolean);
+  let letter = '';
+  scopes.some((scope) => {
+    const heading = scope.querySelector('h1, h2, h3, h4');
+    const match = heading && heading.textContent.match(/\bside\s+([a-z])\b/i);
+    if (match) {
+      letter = match[1].toUpperCase();
+      return true;
+    }
+    return false;
+  });
+  return letter;
+}
+
+/* Deterministic "one wrong tape per section" pick — a fract() hash of the
+   section seed, so the same tape is the defect on every visit (no randomness,
+   no storage). */
+function pickWrong(seed, count) {
+  if (count <= 0) return -1;
+  const x = Math.sin(seed * 12.9898 + 4.1337) * 43758.5453;
+  return Math.floor((x - Math.floor(x)) * count);
+}
+
 /* A cassette links to a player page (…/player#slug); resolve that to the song and
    mount a compact "save offline" button on the tile once it scrolls into view, so
    we only fetch the player page(s) that are actually looked at. */
@@ -39,8 +99,24 @@ function mountCassetteSave(li, href, title, cover) {
 export default function decorate(block) {
   const ul = document.createElement('ul');
   const playerLinks = [];
+  const rows = [...block.children];
 
-  [...block.children].forEach((row, i) => {
+  // side letter derived from the preceding "Side X — …" heading, else A;
+  // used for the side badge and the A1…An within-section track numbers
+  const sideLetter = readSideLetter(block);
+  const letter = sideLetter || 'A';
+
+  // one deliberately "wrong" tape per section (inverted shell + crooked label).
+  // seed from the side letter when present, else this block's ordinal on the page
+  const seed = sideLetter
+    ? sideLetter.charCodeAt(0) - 65
+    : Math.max(0, [...document.querySelectorAll('.cassettes')].indexOf(block));
+  const wrongIndex = pickWrong(seed, rows.length);
+
+  // previously-played tapes wear an oxide patina (read once for the whole block)
+  const played = readPlayed();
+
+  rows.forEach((row, i) => {
     const cols = [...row.children];
     const title = cols[0]?.textContent?.trim() || '';
     const subtitle = cols[1]?.textContent?.trim() || '';
@@ -49,6 +125,14 @@ export default function decorate(block) {
 
     const li = document.createElement('li');
     li.className = 'cassette';
+
+    const isWrong = i === wrongIndex;
+    if (isWrong) li.classList.add('cassette-wrong');
+
+    // reel spin duration varies per tape (title length + index) — a hand-wound,
+    // never-quite-uniform feel; consumed by the CSS animation via a custom prop
+    const reelDuration = (1.35 + ((title.length + i) % 9) * 0.11).toFixed(2);
+    li.style.setProperty('--reel-duration', `${reelDuration}s`);
 
     const shell = document.createElement('div');
     shell.className = 'cassette-shell';
@@ -59,8 +143,8 @@ export default function decorate(block) {
       <span class="cassette-screw cassette-screw-br"></span>
       <div class="cassette-label">
         <div class="cassette-label-head">
-          <span class="cassette-side">Side A</span>
-          <span class="cassette-index">Nº ${String(i + 1).padStart(2, '0')}</span>
+          <span class="cassette-side">Side ${letter}</span>
+          <span class="cassette-index">${letter}${i + 1}</span>
         </div>
         <span class="cassette-title"></span>
         <span class="cassette-subtitle"></span>
@@ -88,7 +172,8 @@ export default function decorate(block) {
 
       // invert the body from the cover's dominant tone: a dark cover gets an
       // ivory body, a light cover a black one (same-origin art keeps the
-      // sampling canvas untainted; on failure we keep the alternating default)
+      // sampling canvas untainted; on failure we keep the alternating default).
+      // The "wrong" tape flips this on purpose — a mispressed shell.
       const probe = new Image();
       probe.crossOrigin = 'anonymous';
       probe.addEventListener('load', () => {
@@ -108,9 +193,9 @@ export default function decorate(block) {
         } catch (e) {
           return;
         }
-        const dark = lum < 128;
-        li.style.setProperty('--cassette-color', dark ? 'var(--cassette-ivory)' : 'var(--cassette-black)');
-        li.style.setProperty('--cassette-ink', dark ? 'var(--text-color)' : 'var(--light-color)');
+        const bodyDark = isWrong ? lum >= 128 : lum < 128;
+        li.style.setProperty('--cassette-color', bodyDark ? 'var(--cassette-ivory)' : 'var(--cassette-black)');
+        li.style.setProperty('--cassette-ink', bodyDark ? 'var(--text-color)' : 'var(--light-color)');
       });
       probe.src = cover.src;
     }
@@ -122,6 +207,11 @@ export default function decorate(block) {
       a.setAttribute('aria-label', title || 'Play');
       a.append(shell);
       li.append(a);
+      if (played.has(keyFor(a.href))) li.classList.add('cassette-played');
+      a.addEventListener('click', () => {
+        markPlayed(a.href);
+        li.classList.add('cassette-played');
+      });
       mountCassetteSave(li, link.href, title, cover?.src);
       playerLinks.push(link.href);
     } else {
