@@ -81,6 +81,23 @@ main > .section:has(.turntable) > div {
   display: block;
 }
 
+/* --- needle-drop flash: a brief warm brightness bloom when a track starts.
+   Sits above the canvas but below the overlay legends, so it lights the scene
+   without washing out the controls. Animated (opacity) from JS via WAAPI. --- */
+.turntable .turntable-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    ellipse at 50% 62%,
+    rgb(255 246 230 / 90%) 0%,
+    rgb(255 246 230 / 22%) 55%,
+    rgb(255 246 230 / 0%) 100%
+  );
+}
+
 /* --- loading --- */
 .turntable .turntable-loading {
   position: absolute;
@@ -165,29 +182,78 @@ main > .section:has(.turntable) > div {
   margin-top: 6px;
 }
 
-/* --- eject: one level up and out --- */
+/* --- VU meter: rides the live audio bands (--vu-b/m/t, set per frame in JS),
+   idling low when paused. transform:scaleY keeps it on the compositor. --- */
+.turntable .turntable-vu {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+  margin-bottom: 12px;
+}
+
+.turntable .turntable-vu span {
+  width: 4px;
+  height: 100%;
+  border-radius: 1px;
+  transform: scaleY(0.1);
+  transform-origin: bottom;
+  background: linear-gradient(
+    180deg,
+    var(--accent-color) 0%,
+    var(--accent-mustard) 42%,
+    var(--accent-mint) 100%
+  );
+  box-shadow: 0 1px 5px rgb(0 0 0 / 45%);
+  transition: transform 0.1s linear;
+}
+
+.turntable .turntable-vu span:nth-child(1) { transform: scaleY(calc(0.1 + (0.9 * var(--vu-b, 0)))); }
+.turntable .turntable-vu span:nth-child(2) { transform: scaleY(calc(0.1 + (0.9 * var(--vu-m, 0)))); }
+.turntable .turntable-vu span:nth-child(3) { transform: scaleY(calc(0.1 + (0.9 * var(--vu-t, 0)))); }
+.turntable .turntable-vu span:nth-child(4) { transform: scaleY(calc(0.1 + (0.9 * var(--vu-m, 0)))); }
+.turntable .turntable-vu span:nth-child(5) { transform: scaleY(calc(0.1 + (0.9 * var(--vu-b, 0)))); }
+
+/* --- eject: one level up and out, engraved into the faceplate --- */
 .turntable .turntable-eject {
   position: absolute;
   top: 20px;
   left: 24px;
   z-index: 2;
-  padding: 8px 14px;
+  padding: 8px 12px;
   font-family: var(--mono-font-family);
   font-size: var(--body-font-size-xs);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   color: var(--light-color);
-  border: 1px solid rgb(255 255 255 / 40%);
-  border-radius: 4px;
   text-decoration: none;
+
+  /* machined legend, not a bordered web button: a cut edge below the glyphs and
+     a hairline milled highlight above, with a soft halo for legibility */
+  text-shadow:
+    0 1px 0 rgb(0 0 0 / 85%),
+    0 -1px 0 rgb(255 255 255 / 16%),
+    0 2px 8px rgb(0 0 0 / 55%);
 }
 
 .turntable .turntable-eject:hover,
 .turntable .turntable-eject:focus-visible {
-  background-color: rgb(255 255 255 / 12%);
-  color: var(--light-color);
+  color: #fff;
   text-decoration: none;
+
+  /* hover lights the legend from behind — backlight, not a background fill */
+  text-shadow:
+    0 0 10px rgb(232 163 23 / 65%),
+    0 0 22px rgb(232 163 23 / 35%),
+    0 1px 0 rgb(0 0 0 / 85%),
+    0 2px 8px rgb(0 0 0 / 55%);
+}
+
+.turntable .turntable-eject:focus-visible {
+  outline: 2px solid var(--accent-mustard);
+  outline-offset: 3px;
+  border-radius: 3px;
 }
 
 /* --- play + save controls: printed on the faceplate, one row --- */
@@ -202,44 +268,76 @@ main > .section:has(.turntable) > div {
   gap: 10px;
 }
 
+/* the controls read as legends machined into the faceplate: mono lettering with
+   an engraved edge, no bordered box. Hover backlights the marking, it never
+   fills a background. The shared marking treatment: */
 .turntable .turntable-play {
   margin: 0;
-  padding: 10px 18px;
+  padding: 10px 16px;
   font-family: var(--mono-font-family);
   font-size: var(--body-font-size-xs);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.14em;
   color: var(--light-color);
   background-color: transparent;
-  border: 1px solid rgb(255 255 255 / 40%);
-  border-radius: 4px;
+  border: 0;
   cursor: pointer;
+  text-shadow:
+    0 1px 0 rgb(0 0 0 / 85%),
+    0 -1px 0 rgb(255 255 255 / 16%),
+    0 2px 8px rgb(0 0 0 / 55%);
 }
 
 .turntable .turntable-play:hover,
 .turntable .turntable-play:focus-visible {
-  background-color: rgb(255 255 255 / 12%);
+  color: #fff;
+  text-shadow:
+    0 0 10px rgb(232 163 23 / 65%),
+    0 0 22px rgb(232 163 23 / 35%),
+    0 1px 0 rgb(0 0 0 / 85%),
+    0 2px 8px rgb(0 0 0 / 55%);
 }
 
-/* the "Save offline" control shares the faceplate look of "Drop the needle"
-   (a squared marking, not the default pill) — but keeps its green "saved" tint */
+.turntable .turntable-play:focus-visible {
+  outline: 2px solid var(--accent-mustard);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* "Save offline" shares the engraved legend look — its download-ring icon and
+   green "saved" tint carry the state, so no pill border is needed */
 .turntable .turntable-controls .save-offline {
   margin: 0;
-  padding: 10px 18px;
+  padding: 10px 14px;
   font-size: var(--body-font-size-xs);
-  letter-spacing: 0.1em;
-  border-radius: 4px;
+  letter-spacing: 0.12em;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
   opacity: 1;
+  text-shadow:
+    0 1px 0 rgb(0 0 0 / 85%),
+    0 -1px 0 rgb(255 255 255 / 16%),
+    0 2px 8px rgb(0 0 0 / 55%);
+}
+
+.turntable .turntable-controls .save-offline:focus-visible {
+  outline: 2px solid var(--accent-mustard);
+  outline-offset: 3px;
 }
 
 .turntable .turntable-controls .save-offline:not(.is-saved) {
   color: var(--light-color);
-  border-color: rgb(255 255 255 / 40%);
 }
 
 .turntable .turntable-controls .save-offline:not(.is-saved):hover,
 .turntable .turntable-controls .save-offline:not(.is-saved):focus-visible {
-  background-color: rgb(255 255 255 / 12%);
+  color: #fff;
+  text-shadow:
+    0 0 10px rgb(232 163 23 / 65%),
+    0 0 22px rgb(232 163 23 / 35%),
+    0 1px 0 rgb(0 0 0 / 85%),
+    0 2px 8px rgb(0 0 0 / 55%);
 }
 
 .turntable .turntable-play:disabled {
@@ -248,12 +346,14 @@ main > .section:has(.turntable) > div {
 }
 
 /* when an Apple track needs the listener to sign in, the play control becomes a
-   call to action in Apple Music's brand red rather than a printed marking */
+   call to action in Apple Music's brand red rather than an engraved legend */
 .turntable.turntable-connect .turntable-play {
   color: #fff;
   background-color: #fa243c;
-  border-color: #fa243c;
+  border: 1px solid #fa243c;
+  border-radius: 4px;
   font-weight: 700;
+  text-shadow: none;
   box-shadow: 0 2px 14px rgb(250 36 60 / 45%);
 }
 
@@ -261,6 +361,7 @@ main > .section:has(.turntable) > div {
 .turntable.turntable-connect .turntable-play:focus-visible {
   background-color: #ff3141;
   border-color: #ff3141;
+  text-shadow: none;
 }
 
 /* --- source badge: which network the current track streams from --- */
@@ -411,6 +512,10 @@ main > .section:has(.turntable) > div {
   }
 
   .turntable .turntable-dot {
+    transition: none;
+  }
+
+  .turntable .turntable-vu span {
     transition: none;
   }
 }

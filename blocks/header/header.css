@@ -1,5 +1,11 @@
 /* header and nav layout */
 header .nav-wrapper {
+  /* service-desk tokens: channel LEDs + an AA-safe dimmed label ink on charcoal */
+  --led-off: #2a2521;
+  --led-green: var(--accent-mint);
+  --led-amber: var(--accent-mustard);
+  --nav-link-dim: #a99f90;
+
   background-color: var(--text-color);
   border-bottom: 2px solid var(--accent-color);
   width: 100%;
@@ -60,6 +66,15 @@ header nav p {
 
 header nav a:any-link {
   color: currentcolor;
+}
+
+/* keyboard focus — a bright lamp ring, legible on the charcoal face */
+header nav a:focus-visible,
+header nav button:focus-visible,
+header nav .nav-drop:focus-visible {
+  outline: 2px solid var(--accent-mustard);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* hamburger */
@@ -146,7 +161,9 @@ header nav[aria-expanded='true'] .nav-hamburger-icon::after {
 /* brand */
 header .nav-brand {
   grid-area: brand;
-  flex-basis: 180px;
+  flex-basis: 210px;
+  display: flex;
+  align-items: center;
   font-family: var(--heading-font-family);
   font-size: 18px;
   font-weight: 300;
@@ -168,6 +185,42 @@ header nav .nav-brand img {
   height: auto;
 }
 
+/* brand VU meter — a scaled window with a needle that ticks once on load */
+header .nav-brand-meter {
+  display: inline-block;
+  position: relative;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 12px;
+  margin-left: 10px;
+  vertical-align: middle;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #14110e, #201b16);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 60%), var(--bevel-dark);
+  overflow: hidden;
+}
+
+header .nav-brand-meter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 3px, rgb(245 230 211 / 16%) 3px 4px);
+}
+
+header .nav-brand-meter::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  bottom: 2px;
+  width: 1.5px;
+  height: 9px;
+  border-radius: 1px;
+  background: var(--accent-mustard);
+  transform-origin: bottom center;
+  transform: rotate(12deg);
+  box-shadow: 0 0 4px rgb(232 163 23 / 70%);
+}
+
 /* sections */
 header nav .nav-sections {
   grid-area: sections;
@@ -176,10 +229,41 @@ header nav .nav-sections {
   visibility: hidden;
 }
 
+/* mobile: the expanded overlay reads as a slide-down service panel */
 header nav[aria-expanded='true'] .nav-sections {
   display: block;
   visibility: visible;
   align-self: start;
+  position: relative;
+  margin: 14px 2px 0;
+  padding: 16px 20px 20px;
+  border-top: 2px solid var(--accent-color);
+  border-radius: 6px;
+  background: linear-gradient(180deg, #221d18 0%, #17130f 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 6%),
+    inset 0 0 0 1px rgb(0 0 0 / 55%),
+    0 12px 30px rgb(0 0 0 / 45%);
+}
+
+/* four corner screws for the service panel (highlight dome + body/rim per corner) */
+header nav[aria-expanded='true'] .nav-sections::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(circle at 12px 13px, #ddceac 0 1.5px, transparent 2px),
+    radial-gradient(circle at 14px 15px, #9c8f74 0 3px, #443b31 3px 4.5px, transparent 5px),
+    radial-gradient(circle at calc(100% - 16px) 13px, #ddceac 0 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 14px) 15px, #9c8f74 0 3px, #443b31 3px 4.5px, transparent 5px),
+    radial-gradient(circle at 12px calc(100% - 15px), #ddceac 0 1.5px, transparent 2px),
+    radial-gradient(circle at 14px calc(100% - 13px), #9c8f74 0 3px, #443b31 3px 4.5px, transparent 5px),
+    radial-gradient(circle at calc(100% - 16px) calc(100% - 15px), #ddceac 0 1.5px, transparent 2px),
+    radial-gradient(circle at calc(100% - 14px) calc(100% - 13px), #9c8f74 0 3px, #443b31 3px 4.5px, transparent 5px);
+  background-repeat: no-repeat;
 }
 
 header nav .nav-sections ul {
@@ -197,8 +281,8 @@ header nav .nav-sections ul {
 header nav .nav-sections ul > li > a:any-link {
   display: inline-block;
   padding: 0.35em 0;
-  color: var(--dark-color);
-  transition: color 0.2s;
+  color: var(--nav-link-dim);
+  transition: color 0.2s, background 0.2s;
 }
 
 header nav .nav-sections ul > li > a:hover {
@@ -218,6 +302,46 @@ header nav .nav-sections ul > li > ul > li {
   font-weight: 400;
 }
 
+/* top-level links are channel buttons, each carrying a small VU LED */
+header nav .nav-sections .default-content-wrapper > ul > li > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.55em 6px;
+}
+
+header nav .nav-sections .default-content-wrapper > ul > li > a::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--led-off);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 55%), inset 0 0 0 1px rgb(0 0 0 / 45%);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+header nav .nav-sections .default-content-wrapper > ul > li > a:hover::before {
+  background: var(--led-amber);
+  box-shadow: 0 0 6px 1px rgb(232 163 23 / 65%), inset 0 0 1px rgb(255 255 255 / 60%);
+}
+
+/* the active channel: brighter label + illuminated green segment */
+header nav .nav-sections .default-content-wrapper > ul > li > a[aria-current='page'] {
+  color: var(--light-color);
+}
+
+header nav .nav-sections .default-content-wrapper > ul > li > a[aria-current='page']::before {
+  background: var(--led-green);
+  box-shadow: 0 0 7px 1px rgb(39 174 96 / 70%), inset 0 0 1px rgb(255 255 255 / 70%);
+}
+
+/* mobile: bevelled dividers between channels in the service panel */
+header nav[aria-expanded='true'] .nav-sections .default-content-wrapper > ul > li + li {
+  border-top: 1px solid rgb(0 0 0 / 45%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
 @media (width >= 900px) {
   header nav .nav-sections {
     display: block;
@@ -227,6 +351,16 @@ header nav .nav-sections ul > li > ul > li {
 
   header nav[aria-expanded='true'] .nav-sections {
     align-self: unset;
+    margin: 0;
+    padding: 0;
+    border-top: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  header nav[aria-expanded='true'] .nav-sections::before {
+    content: none;
   }
 
   header nav .nav-sections .nav-drop {
@@ -257,18 +391,39 @@ header nav .nav-sections ul > li > ul > li {
 
   header nav .nav-sections ul {
     display: flex;
-    gap: 24px;
+    gap: 6px;
     margin: 0;
     font-size: var(--body-font-size-xs);
-  }
-
-  header nav .nav-sections ul > li > a:any-link {
-    padding: 0;
   }
 
   header nav .nav-sections .default-content-wrapper > ul > li {
     flex: 0 1 auto;
     position: relative;
+  }
+
+  /* desktop: embossed, inset channel segments */
+  header nav .nav-sections .default-content-wrapper > ul > li > a {
+    gap: 7px;
+    padding: 6px 11px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #262019, #1a1611);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 6%),
+      inset 0 -1px 0 rgb(0 0 0 / 55%),
+      0 0 0 1px rgb(0 0 0 / 45%);
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > a:hover {
+    background: linear-gradient(180deg, #2f2820, #1c1712);
+    color: var(--light-color);
+  }
+
+  header nav .nav-sections .default-content-wrapper > ul > li > a[aria-current='page'] {
+    background: linear-gradient(180deg, #241f18, #151009);
+    box-shadow:
+      inset 0 0 0 1px rgb(39 174 96 / 32%),
+      inset 0 9px 14px -9px rgb(39 174 96 / 45%),
+      0 0 0 1px rgb(0 0 0 / 45%);
   }
 
   header nav .nav-sections .default-content-wrapper > ul > li > ul {
@@ -309,4 +464,93 @@ header nav .nav-sections ul > li > ul > li {
 /* tools */
 header nav .nav-tools {
   grid-area: tools;
+}
+
+/* motion — a single needle tick, and the service panel sliding down; both off
+   when the visitor prefers reduced motion */
+@keyframes nav-brand-tick {
+  0% { transform: rotate(-26deg); }
+  55% { transform: rotate(16deg); }
+  75% { transform: rotate(6deg); }
+  100% { transform: rotate(12deg); }
+}
+
+@keyframes nav-panel-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  header .nav-brand-meter::after {
+    animation: nav-brand-tick 900ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  header nav[aria-expanded='true'] .nav-sections {
+    animation: nav-panel-drop 260ms ease-out both;
+  }
+}
+
+/* optional light "test-equipment" face — opt in with <body class="header-parchment">;
+   harmless when the class is absent */
+body.header-parchment header .nav-wrapper {
+  --led-off: #cfc3ad;
+  --nav-link-dim: #5a5a5a;
+
+  background-color: var(--panel-color);
+  border-bottom-color: var(--border-color);
+  box-shadow: var(--bevel-light), 0 3px 12px rgb(0 0 0 / 15%);
+}
+
+body.header-parchment header nav {
+  color: var(--text-color);
+}
+
+body.header-parchment header .nav-brand a:any-link {
+  color: var(--text-color);
+}
+
+body.header-parchment header nav[aria-expanded='true'] {
+  background-color: var(--panel-color);
+}
+
+body.header-parchment header nav[aria-expanded='true'] .nav-sections {
+  background: linear-gradient(180deg, #fdf6e7 0%, #ece0c8 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 70%),
+    inset 0 0 0 1px rgb(0 0 0 / 20%),
+    0 12px 30px rgb(0 0 0 / 25%);
+}
+
+body.header-parchment header nav .nav-sections .default-content-wrapper > ul > li > a:hover,
+body.header-parchment header nav .nav-sections .default-content-wrapper > ul > li > a[aria-current='page'] {
+  color: var(--text-color);
+}
+
+@media (width >= 900px) {
+  body.header-parchment header nav .nav-sections .default-content-wrapper > ul > li > a {
+    background: linear-gradient(180deg, #fff9ec, #e7d9bf);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 70%),
+      inset 0 -1px 0 rgb(0 0 0 / 18%),
+      0 0 0 1px rgb(0 0 0 / 18%);
+  }
+
+  body.header-parchment header nav .nav-sections .default-content-wrapper > ul > li > a:hover {
+    background: linear-gradient(180deg, #fffdf7, #e2d2b4);
+  }
+
+  body.header-parchment header nav .nav-sections .default-content-wrapper > ul > li > a[aria-current='page'] {
+    background: linear-gradient(180deg, #f3ead6, #dcc9a6);
+    box-shadow:
+      inset 0 0 0 1px rgb(39 174 96 / 45%),
+      inset 0 9px 14px -9px rgb(39 174 96 / 40%),
+      0 0 0 1px rgb(0 0 0 / 20%);
+  }
 }

@@ -592,7 +592,10 @@ export default async function decorate(block) {
       <section class="tp1-crate" aria-label="Songs saved on this device">
         <button class="tp1-crate-toggle" type="button" aria-expanded="true" aria-label="Show or hide saved songs"><span class="tp1-crate-grip"></span></button>
         <div class="tp1-crate-head">
-          <h1>On this device</h1>
+          <div class="tp1-crate-heading">
+            <h1>On this device</h1>
+            <span class="tp1-plate" aria-hidden="true"><span class="tp1-plate-a">Export set</span><span class="tp1-plate-b">No network</span></span>
+          </div>
           <div class="tp1-meter"><div class="tp1-meter-bar"><i></i></div><span class="tp1-meter-label"></span></div>
         </div>
         <div class="tp1-list" role="list"></div>

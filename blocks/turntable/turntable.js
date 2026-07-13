@@ -33,6 +33,30 @@ const ROOMS = {
   default: { wall: 0x1c1c1c, table: 0x3a3a3a, glow: 0xc9bfae },
 };
 
+/*
+ * Per-artist Fraunces axes (from the homepage briefing) — applied inline to the
+ * overlay's artist line so each persona's name carries its own voice. Keyed by a
+ * deaccented toClassName slug; unknown artists keep the CSS default settings.
+ */
+const ARTIST_AXES = {
+  'sylvaine-eternelle': "'wght' 500, 'WONK' 1, 'SOFT' 70",
+  'helle-raud': "'wght' 200, 'WONK' 0, 'SOFT' 0",
+  'natsuko-terada': "'wght' 600, 'WONK' 1, 'SOFT' 40",
+  'dmitri-volkov': "'wght' 300, 'WONK' 0, 'SOFT' 20",
+  'kevin-mayfield': "'wght' 800, 'WONK' 1, 'SOFT' 80",
+  'the-moss-twins': "'wght' 400, 'WONK' 1, 'SOFT' 100",
+  'itzik-kagan': "'wght' 900, 'WONK' 1, 'SOFT' 100",
+  'ann-francon': "'wght' 700, 'WONK' 1, 'SOFT' 60",
+  'cassidy-diane': "'wght' 350, 'WONK' 0, 'SOFT' 30",
+};
+
+/* Map an artist name to its Fraunces axis string, deaccenting first so accented
+   personas ("Sylvaine Éternelle") resolve to their briefing slug. */
+function artistAxes(name) {
+  const slug = toClassName((name || '').normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+  return ARTIST_AXES[slug] || '';
+}
+
 /* Build a partial track from a block row. Apple rows carry an appleId instead of
    an <audio> src; plain rows keep the mp3 href. finalize() adds slug/wallpaper/room. */
 function rowToEntry(cells) {
@@ -92,8 +116,10 @@ function buildStage(tracks) {
   stage.className = 'turntable-stage';
   stage.innerHTML = `
     <div class="turntable-canvas"></div>
+    <div class="turntable-flash" aria-hidden="true"></div>
     <div class="turntable-loading"><span class="turntable-spinner"></span><span class="turntable-loading-label">Loading PS-F9…</span></div>
     <div class="turntable-info">
+      <div class="turntable-vu" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <p class="turntable-source" aria-hidden="true"></p>
       <p class="turntable-artist"></p>
       <p class="turntable-title"></p>
@@ -540,6 +566,8 @@ async function initScene(block, tracks, state) {
 
   const clock = new THREE.Clock();
   let elapsed = 0;
+  let vuFrame = 0;
+  let vuLit = false;
   function frame() {
     if (!state.rendering) return;
     requestAnimationFrame(frame);
@@ -573,6 +601,24 @@ async function initScene(block, tracks, state) {
       wallUniforms.uBass.value += (idle - wallUniforms.uBass.value) * 0.05;
       wallUniforms.uMid.value += (idle - wallUniforms.uMid.value) * 0.05;
       wallUniforms.uTreble.value += (0.05 - wallUniforms.uTreble.value) * 0.05;
+    }
+
+    // VU meter — mirror the smoothed audio bands onto CSS custom properties for
+    // the overlay meter. Throttled to every 4th frame so it never thrashes style
+    // recalc, and zeroed once when playback stops so the bars idle low.
+    vuFrame = (vuFrame + 1) % 4;
+    if (vuFrame === 0) {
+      if (state.playing && !state.reducedMotion) {
+        block.style.setProperty('--vu-b', wallUniforms.uBass.value.toFixed(2));
+        block.style.setProperty('--vu-m', wallUniforms.uMid.value.toFixed(2));
+        block.style.setProperty('--vu-t', wallUniforms.uTreble.value.toFixed(2));
+        vuLit = true;
+      } else if (vuLit) {
+        block.style.setProperty('--vu-b', '0');
+        block.style.setProperty('--vu-m', '0');
+        block.style.setProperty('--vu-t', '0');
+        vuLit = false;
+      }
     }
 
     if (!state.reducedMotion) {
@@ -693,6 +739,7 @@ export default async function decorate(block) {
   };
   const playBtn = stage.querySelector('.turntable-play');
   const eject = stage.querySelector('.turntable-eject');
+  const flash = stage.querySelector('.turntable-flash');
   const parent = window.location.pathname.replace(/\/[^/]*\/?$/, '');
   eject.href = parent || '/';
   const dots = [...stage.querySelectorAll('.turntable-dot')];
@@ -798,11 +845,26 @@ export default async function decorate(block) {
     return 'full';
   }
 
+  // a brief needle-drop light flash when a track starts (reduced-motion: off).
+  // WAAPI on a real element retriggers cleanly and self-cleans (fill: none).
+  let wasPlaying = false;
+  function flashNeedle() {
+    if (state.reducedMotion || !flash) return;
+    flash.animate(
+      [{ opacity: 0.5 }, { opacity: 0 }],
+      { duration: 120, easing: 'ease-out' },
+    );
+  }
+
   function updateOverlay() {
     const track = tracks[state.current];
     const isApple = track.source === 'apple';
     const needsConnect = isApple && apple && !apple.isAuthorized() && !state.playing;
     info.artist.textContent = track.artist;
+    // per-artist Fraunces axes from the briefing; unknown artists fall back to
+    // the CSS default variation settings (keep 'opsz' 72 to match the CSS).
+    const axes = artistAxes(track.artist);
+    info.artist.style.fontVariationSettings = axes ? `'opsz' 72, ${axes}` : '';
     info.title.textContent = track.title;
     info.meta.textContent = track.meta;
     block.classList.toggle('turntable-apple', isApple);
@@ -832,6 +894,10 @@ export default async function decorate(block) {
 
     dots.forEach((d, i) => d.classList.toggle('turntable-dot-active', i === state.current));
     saveOffline.refresh();
+
+    // needle-drop flash on the rising edge of playback
+    if (state.playing && !wasPlaying) flashNeedle();
+    wasPlaying = state.playing;
   }
 
   async function setTrack(i, autoplay) {

@@ -71,3 +71,222 @@ main > .section:not(:first-of-type, :last-of-type) > div > p:last-child:not(:onl
 main > .section > div > h2:only-child {
   margin-bottom: 0;
 }
+
+/* ============================================================================
+   READING MODE — long-form articles (body.reading-page)
+   A parchment prose column that keeps the site header/footer. Triggered by the
+   `reading` template or an `/articles/*` path (scripts.js). CSS-only: no scroll
+   listeners, no WebGL, nothing that fights prefers-reduced-motion.
+   ========================================================================== */
+/* stylelint-disable no-descending-specificity -- intentional reading-mode overrides */
+
+/* a warm mount the sheet floats on */
+body.reading-page {
+  background-color: #efe7d6;
+}
+
+/* the prose sheet: a bright parchment column with a faint stacked-page edge and
+   a page-fold shadow that repeats down the scroll (the page-break metaphor) */
+body.reading-page main {
+  max-width: 768px;
+  margin: 0 auto;
+  padding: clamp(40px, 6vw, 72px) clamp(22px, 5vw, 56px) clamp(56px, 8vw, 96px);
+  background-color: #fffdf7;
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 880px,
+    rgb(90 70 40 / 5%) 894px,
+    transparent 904px
+  );
+  box-shadow:
+    6px 6px 0 rgb(0 0 0 / 3%),
+    12px 12px 0 rgb(0 0 0 / 2%),
+    0 24px 60px rgb(0 0 0 / 12%);
+}
+
+/* neutralise the hero / alternating-panel / section-margin treatments so the
+   column reads as one continuous sheet */
+body.reading-page main > .section,
+body.reading-page main > .section:first-of-type,
+body.reading-page main > .section:nth-of-type(even):not(:first-of-type) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  overflow: visible;
+  box-shadow: none;
+  isolation: auto;
+}
+
+body.reading-page main > .section + .section {
+  margin-top: 2.4em;
+}
+
+body.reading-page main > .section::before,
+body.reading-page main > .section::after,
+body.reading-page main > .section:first-of-type::before,
+body.reading-page main > .section:first-of-type::after {
+  content: none;
+}
+
+body.reading-page main > .section > div {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* title — Space Grotesk light, per the article design. The second selector
+   out-specifies the global hero-band rule (main > .section:first-of-type h1,
+   cream) which otherwise washes the title out on the parchment sheet. */
+body.reading-page main h1,
+body.reading-page main > .section:first-of-type h1 {
+  margin: 0 0 0.5em;
+  font-family: var(--heading-font-family);
+  font-weight: 300;
+  font-size: clamp(40px, 7vw, 64px);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  color: var(--text-color);
+  text-shadow: none;
+}
+
+/* same story for first-section paragraphs (global paints them cream at 75%) */
+body.reading-page main > .section:first-of-type p {
+  color: inherit;
+  opacity: 1;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* chapter headings (default-content chapters — prose blocks bring their own VU
+   divider). Scoped to direct section children so it never doubles up inside a
+   prose/spec block. */
+body.reading-page main > .section > div > h2,
+body.reading-page main > .section > div > h3 {
+  font-family: var(--heading-font-family);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-color);
+}
+
+body.reading-page main > .section > div > h2 {
+  margin: 1.6em 0 0.5em;
+  font-size: clamp(24px, 3.4vw, 34px);
+}
+
+body.reading-page main > .section > div > h3 {
+  margin: 1.4em 0 0.4em;
+  font-size: clamp(19px, 2.6vw, 24px);
+}
+
+/* small VU-meter bar above each chapter */
+body.reading-page main > .section > div > h2::before {
+  content: '';
+  display: block;
+  width: 104px;
+  height: 6px;
+  margin-bottom: 16px;
+  border-radius: 1px;
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 11px, #fffdf7 11px 13px),
+    linear-gradient(
+      90deg,
+      var(--accent-mint) 0 34%,
+      var(--accent-mustard) 34% 64%,
+      var(--accent-color) 64% 100%
+    );
+}
+
+/* body copy — 16px Space Mono, 1.7 leading, 65–75ch measure */
+body.reading-page main > .section > div > p,
+body.reading-page main > .section > div > ul,
+body.reading-page main > .section > div > ol {
+  max-width: 68ch;
+  margin: 0 0 1.15em;
+  font-family: var(--mono-font-family);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-color);
+}
+
+/* neutralise the poetic-last-line flourish inside articles (unpredictable in
+   long copy — pull quotes carry the emphasis instead) */
+body.reading-page main > .section:not(:first-of-type, :last-of-type)
+  > div > p:last-child:not(:only-child, .button-wrapper) {
+  max-width: 68ch;
+  margin: 0 0 1.15em;
+  padding-left: 0;
+  border-left: 0;
+  font-family: var(--mono-font-family);
+  font-style: normal;
+  font-variation-settings: normal;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-color);
+}
+
+/* pull quote — the Fraunces rupture in the mono column */
+body.reading-page main > .section > div > blockquote {
+  max-width: 640px;
+  margin: 1.6em 0;
+  padding: 0.1em 0 0.1em 1.2em;
+  border-left: 3px solid var(--accent-color);
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-weight: 480;
+  font-variation-settings: 'WONK' 1, 'SOFT' 50, 'opsz' 40;
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.4;
+  color: var(--smoke-color);
+}
+
+body.reading-page main > .section > div > blockquote p {
+  max-width: none;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* personal names — CSS small-caps Kapitälchen */
+body.reading-page .pn {
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+/* --- dossier embed: opt one section of an ordinary page into reading rhythm
+   with section metadata Style = reading (main .section.reading) --- */
+main .section.reading > div {
+  max-width: 720px;
+}
+
+main .section.reading > div > p {
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+main .section.reading .pn {
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+main .section.reading > div > blockquote {
+  max-width: 640px;
+  margin: 1.6em 0;
+  padding: 0.1em 0 0.1em 1.2em;
+  border-left: 3px solid var(--accent-color);
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-weight: 480;
+  font-variation-settings: 'WONK' 1, 'SOFT' 50, 'opsz' 40;
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.4;
+  color: var(--smoke-color);
+}
+/* stylelint-enable no-descending-specificity */

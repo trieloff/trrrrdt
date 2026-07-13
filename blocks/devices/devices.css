@@ -1,0 +1,251 @@
+/* devices — "The Machines" as a mounted equipment rack.
+   Each authored row is a rack unit: a molded charcoal faceplate with a
+   model-number plate, a status LED, a VU strip and corner mounting screws.
+   Machinery, not chrome. */
+
+/* --- the rack backplane: matte charcoal with dark mounting rails --- */
+.devices {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 auto;
+  padding: 18px 14px;
+  border-radius: var(--radius-card);
+  background-color: var(--text-color);
+  background-image:
+    linear-gradient(180deg, rgb(255 255 255 / 4%), transparent 120px),
+    linear-gradient(
+      90deg,
+      rgb(0 0 0 / 45%) 0 10px,
+      transparent 10px calc(100% - 10px),
+      rgb(0 0 0 / 45%) calc(100% - 10px)
+    );
+  box-shadow: var(--bevel-dark), var(--drop-shadow);
+}
+
+/* --- a rack unit --- */
+.devices-unit {
+  --devices-accent: var(--accent-color);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border-left: 5px solid var(--devices-accent);
+  background-color: var(--smoke-color);
+  background-image: linear-gradient(180deg, rgb(255 255 255 / 5%), rgb(0 0 0 / 14%));
+  color: var(--light-color);
+  box-shadow: var(--bevel-dark), 0 1px 3px rgb(0 0 0 / 45%);
+}
+
+/* channel-stripe colour cycles per unit — like a mixing-desk channel */
+.devices-unit:nth-child(4n + 2) { --devices-accent: var(--accent-teal); }
+.devices-unit:nth-child(4n + 3) { --devices-accent: var(--accent-mint); }
+.devices-unit:nth-child(4n + 4) { --devices-accent: var(--accent-mustard); }
+
+/* four corner mounting screws */
+.devices-unit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  background-repeat: no-repeat;
+  background-image:
+    radial-gradient(circle at 12px 12px, rgb(0 0 0 / 45%) 0 1.5px, rgb(255 255 255 / 22%) 2px 3px, transparent 3.5px),
+    radial-gradient(circle at calc(100% - 12px) 12px, rgb(0 0 0 / 45%) 0 1.5px, rgb(255 255 255 / 22%) 2px 3px, transparent 3.5px),
+    radial-gradient(circle at 12px calc(100% - 12px), rgb(0 0 0 / 45%) 0 1.5px, rgb(255 255 255 / 22%) 2px 3px, transparent 3.5px),
+    radial-gradient(circle at calc(100% - 12px) calc(100% - 12px), rgb(0 0 0 / 45%) 0 1.5px, rgb(255 255 255 / 22%) 2px 3px, transparent 3.5px);
+}
+
+/* --- media: the product shot behind faint CRT scan lines --- */
+.devices-media {
+  position: relative;
+  margin: 0;
+  background-color: #0d0d0d;
+  overflow: hidden;
+}
+
+.devices-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.devices-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 2px, rgb(0 0 0 / 9%) 2px 3px);
+  box-shadow: inset 0 0 40px rgb(0 0 0 / 45%);
+}
+
+/* --- panel: the faceplate copy --- */
+.devices-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 18px 20px;
+}
+
+/* --- model-number plate --- */
+.devices-plate {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.devices-plate-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.devices-slot {
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--light-color);
+  opacity: 0.68;
+}
+
+/* status LED — glows in the channel colour */
+.devices-led {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--devices-accent);
+  box-shadow: 0 0 4px 1px var(--devices-accent), inset 0 0 2px rgb(255 255 255 / 60%);
+  animation: devices-led-pulse 2.4s ease-in-out infinite;
+}
+
+/* VU strip — lit green/amber segments, unlit headroom on the right */
+.devices-vu {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 9px;
+  border-radius: 2px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 5px, var(--smoke-color) 5px 7px),
+    linear-gradient(
+      90deg,
+      var(--accent-mint) 0 40%,
+      var(--accent-mustard) 40% 66%,
+      rgb(0 0 0 / 35%) 66% 100%
+    );
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 35%);
+}
+
+.devices-plate h1,
+.devices-plate h2,
+.devices-plate h3,
+.devices-plate h4,
+.devices-plate h5,
+.devices-plate h6 {
+  margin: 0;
+  font-family: var(--heading-font-family);
+  font-weight: 600;
+  font-size: var(--heading-font-size-m);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--light-color);
+}
+
+.devices-role {
+  margin: 5px 0 0;
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-weight: 500;
+  font-size: var(--heading-font-size-s);
+  line-height: 1.2;
+  color: var(--light-color);
+  opacity: 0.92;
+}
+
+.devices-role::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  margin-right: 8px;
+  vertical-align: middle;
+  background: var(--devices-accent);
+}
+
+/* --- body: description + CTA --- */
+.devices-body {
+  display: flex;
+  flex-direction: column;
+  padding-top: 12px;
+}
+
+.devices-body p {
+  margin: 0 0 0.7em;
+  font-size: var(--body-font-size-s);
+  line-height: 1.7;
+  color: var(--light-color);
+  opacity: 0.88;
+}
+
+.devices-body .button-wrapper {
+  margin: 8px 0 0;
+  padding-top: 4px;
+}
+
+.devices-body a.button {
+  min-height: 44px;
+}
+
+.devices a.button:focus-visible {
+  outline: 3px solid var(--background-color);
+  outline-offset: 2px;
+}
+
+@keyframes devices-led-pulse {
+  0%,
+  100% { opacity: 1; }
+
+  50% { opacity: 0.5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .devices-led { animation: none; }
+}
+
+/* --- tablet / desktop: horizontal rack rows --- */
+@media (width >= 900px) {
+  .devices {
+    gap: 22px;
+    padding: 22px 18px;
+  }
+
+  .devices-unit {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .devices-media {
+    flex: 0 0 40%;
+    align-self: stretch;
+  }
+
+  .devices-media img {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .devices-panel {
+    flex: 1;
+    padding: 22px 26px 24px;
+  }
+}

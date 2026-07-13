@@ -1,4 +1,15 @@
-/* hero — hi-fi receiver panel style */
+/* hero — a hi-fi receiver powering on.
+
+   The block is auto-created from a leading <picture> + <h1> (see buildHeroBlock in
+   scripts.js), which wrapTextNodes nests together as `.hero > div > div > p:has(picture)`.
+   It may also be authored as a table with body copy and CTAs. hero.js injects the
+   on-air chrome (.hero-onair) and toggles .hero-warmup for the CRT power-on.
+
+   Everything is scoped to .hero, so pages without a hero (index, artists, playlists,
+   devices, artist bios — none of which lead with a picture) are untouched. The global
+   section scan-lines are left in styles.css; the first-section band is only neutralised
+   here so the receiver panel can own its section edge to edge. */
+
 .hero-container .hero-wrapper {
   max-width: unset;
   padding: 0;
@@ -25,23 +36,126 @@ main > .section:first-of-type:has(.hero) > div {
   z-index: auto;
 }
 
+/* --- the receiver panel ---------------------------------------------------- */
+
 .hero {
+  --hero-pad-x: 24px;
+
   position: relative;
-  padding: 48px 24px;
-  min-height: 200px;
-  background-color: var(--dark-color);
-  color: var(--background-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 76px var(--hero-pad-x) 40px;
+  min-height: 260px;
+  text-align: left;
+  background-color: var(--text-color); /* charcoal machinery */
+  color: var(--light-color);
+  border-left: 4px solid var(--accent-color);
   border-bottom: 4px solid var(--accent-color);
+  box-shadow: var(--bevel-dark);
 }
 
-.hero h1 {
-  width: 100%;
-  max-width: 1100px;
-  margin-left: auto;
-  margin-right: auto;
+/* faint phosphor scan-lines + a surface for the warm-up bleed, kept inside the
+   block (above art and scrim, below the type and the readout) */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgb(0 0 0 / 0%) 0,
+    rgb(0 0 0 / 0%) 2px,
+    rgb(0 0 0 / 5%) 3px,
+    rgb(0 0 0 / 0%) 4px
+  );
+}
+
+/* --- on-air chrome (built by hero.js) -------------------------------------- */
+
+.hero-onair {
+  position: absolute;
+  top: 20px;
+  left: var(--hero-pad-x);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: rgb(16 16 16 / 92%);
+  box-shadow: var(--bevel-dark), 0 2px 6px rgb(0 0 0 / 35%);
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.hero-sign {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-color);
+}
+
+.hero-sign::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-color);
+  box-shadow: 0 0 6px var(--accent-color);
+}
+
+.hero-channel {
   color: var(--light-color);
-  font-size: clamp(2.2rem, 6vw, var(--heading-font-size-xxl));
-  letter-spacing: 0.05em;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-meter {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+  padding-left: 9px;
+  border-left: 1px solid rgb(255 255 255 / 15%);
+}
+
+.hero-meter i {
+  width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: rgb(255 255 255 / 14%); /* unlit segment */
+}
+
+.hero-meter i.is-lit {
+  background: var(--accent-mint); /* vu green — nominal signal */
+}
+
+.hero-meter i.is-lit[data-zone="high"] {
+  background: var(--accent-mustard); /* vu amber */
+}
+
+.hero-meter i.is-lit[data-zone="peak"] {
+  background: var(--accent-color); /* yunost red — peak */
+}
+
+/* --- type: anchored left, bleeding to the frame ---------------------------- */
+
+.hero h1 {
+  margin: 0 0 0 -8px; /* bleed toward the left channel-stripe */
+  max-width: min(92%, 40rem); /* leave the right of the panel open — asymmetry */
+  color: var(--light-color);
+  font-size: clamp(2.4rem, 7vw, var(--heading-font-size-xxl));
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
 
   /* keep multi-script titles from breaking mid-word (e.g. チタン) — break at the
      spaces around the separators instead, and balance the resulting lines */
@@ -50,36 +164,59 @@ main > .section:first-of-type:has(.hero) > div {
   text-wrap: balance;
 }
 
-.hero p {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  color: var(--border-color);
+/* subtitle / body copy only exists on authored heroes (the auto-hero keeps its
+   subtitle in the following section); never restyle the picture+h1 wrapper <p> */
+.hero p:not(:has(picture)) {
+  max-width: min(92%, 46rem);
+  margin: 14px 0 0;
+  color: var(--light-color);
+  opacity: 0.82;
   font-family: var(--mono-font-family);
   font-size: var(--body-font-size-s);
+  position: relative;
+  z-index: 2;
 }
 
 .hero .button-wrapper {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 22px 0 0;
+  position: relative;
+  z-index: 2;
 }
 
+/* demote the secondary CTA to a quiet panel marking so a single primary owns the
+   power-on moment — content is kept, only the weight changes */
 .hero a.button.secondary {
-  border-color: var(--border-color);
-  color: var(--background-color);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--light-color);
+  opacity: 0.72;
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-s);
+  letter-spacing: 0.08em;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
-.hero a.button.secondary:hover {
-  border-color: var(--background-color);
-  background-color: rgb(255 255 255 / 10%);
-  color: var(--background-color);
+.hero a.button.secondary:hover,
+.hero a.button.secondary:focus-visible {
+  background: none;
+  color: var(--light-color);
+  opacity: 1;
+}
+
+/* --- image variant: art behind the panel ----------------------------------- */
+
+.hero:has(picture) {
+  min-height: 360px;
 }
 
 .hero picture {
   position: absolute;
   z-index: 0;
   inset: 0;
+  margin: 0;
   width: 100%;
   height: 100%;
   box-sizing: border-box;
@@ -87,36 +224,33 @@ main > .section:first-of-type:has(.hero) > div {
 
 .hero picture img {
   object-fit: cover;
+  object-position: 72% 45%; /* push the subject right — off-centre, escaping */
   width: 100%;
   height: 100%;
+  transform: scale(1.06);
+  transform-origin: 78% 40%;
 }
 
-/* scrim so the light text stays readable over cover art */
+/* asymmetric scrim: heavy at the bottom-left where the type sits, opening up to
+   the top-right where the art breathes — holds cream text at WCAG AA */
 .hero:has(picture)::after {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(
-    to top,
-    rgb(0 0 0 / 88%) 0%,
-    rgb(0 0 0 / 74%) 50%,
-    rgb(0 0 0 / 80%) 100%
-  );
-}
-
-.hero:has(picture) {
-  min-height: 320px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.hero h1,
-.hero p,
-.hero .button-wrapper {
-  position: relative;
-  z-index: 2;
+  background:
+    linear-gradient(
+      105deg,
+      rgb(0 0 0 / 86%) 0%,
+      rgb(0 0 0 / 62%) 42%,
+      rgb(0 0 0 / 26%) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgb(0 0 0 / 84%) 0%,
+      rgb(0 0 0 / 30%) 55%,
+      rgb(0 0 0 / 46%) 100%
+    );
 }
 
 /* the auto-hero nests the <h1> inside the leading picture's <p>, and that <p>
@@ -140,9 +274,71 @@ main > .section:first-of-type:has(.hero) h1 {
     0 4px 24px rgb(0 0 0 / 65%);
 }
 
+/* --- CRT warm-up: one focal moment on first paint -------------------------- */
+
+.hero.hero-warmup {
+  animation: hero-crt-warmup 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.hero.hero-warmup::before {
+  animation: hero-crt-bleed 720ms ease-out both;
+}
+
+@keyframes hero-crt-warmup {
+  0% {
+    filter: brightness(0.32) saturate(0.5) contrast(1.4);
+  }
+
+  30% {
+    filter: brightness(1.28) saturate(1.15) contrast(1.05);
+  }
+
+  100% {
+    filter: none;
+  }
+}
+
+@keyframes hero-crt-bleed {
+  0% {
+    box-shadow: inset 0 0 90px 28px rgb(232 87 58 / 55%); /* coral bloom */
+  }
+
+  55% {
+    box-shadow: inset 0 0 68px 8px rgb(232 163 23 / 26%); /* to amber */
+  }
+
+  100% {
+    box-shadow: inset 0 0 0 0 rgb(232 163 23 / 0%);
+  }
+}
+
+/* honour reduced-motion: the panel simply appears, fully lit */
+@media (prefers-reduced-motion: reduce) {
+  .hero.hero-warmup,
+  .hero.hero-warmup::before {
+    animation: none;
+  }
+}
+
+/* --- larger viewports ------------------------------------------------------ */
+
 @media (width >= 900px) {
   .hero {
-    padding: 64px 32px;
-    min-height: 240px;
+    --hero-pad-x: 32px;
+
+    padding: 88px var(--hero-pad-x) 52px;
+    min-height: 300px;
+  }
+
+  .hero:has(picture) {
+    min-height: 440px;
+  }
+
+  .hero h1 {
+    margin-left: -14px;
+  }
+
+  .hero-onair {
+    top: 24px;
   }
 }

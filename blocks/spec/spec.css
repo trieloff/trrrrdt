@@ -1,0 +1,64 @@
+/* spec — charcoal, monospace technical panel (Suno style prompt / track meta) */
+
+.spec {
+  max-width: 720px;
+  margin: 1.8em auto;
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  background-color: var(--text-color);
+  color: var(--light-color);
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-s);
+  line-height: 1.6;
+  box-shadow: var(--bevel-dark), var(--drop-shadow);
+}
+
+.spec .spec-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px 20px;
+  padding: 8px 0;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+.spec .spec-row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.spec .spec-row:last-child {
+  padding-bottom: 0;
+}
+
+.spec .spec-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent-color);
+  align-self: start;
+  padding-top: 2px;
+}
+
+.spec .spec-value {
+  color: var(--light-color);
+}
+
+.spec .spec-value p {
+  margin: 0 0 0.4em;
+  max-width: none;
+}
+
+.spec .spec-value p:last-child {
+  margin-bottom: 0;
+}
+
+.spec .spec-value :is(code, pre) {
+  color: var(--accent-mustard);
+}
+
+@media (width >= 600px) {
+  .spec .spec-row {
+    grid-template-columns: 128px 1fr;
+  }
+}

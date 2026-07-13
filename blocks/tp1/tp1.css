@@ -144,22 +144,33 @@ main > .section:has(.tp1) > div {
   box-shadow: 0 0 8px #e6a23c;
 }
 
-/* the crate: bottom sheet on mobile */
+/* the crate: a physical drawer/tray pulled out of the TP1. Bottom sheet on mobile,
+   a molded plastic tray with beveled edges and injection-mold depth. */
 .tp1 .tp1-crate {
   pointer-events: auto;
   margin-top: auto;
   display: flex;
   flex-direction: column;
   max-height: 62vh;
-  background: linear-gradient(180deg, rgb(16 16 18 / 72%), rgb(12 12 14 / 94%));
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgb(30 29 26 / 82%), rgb(12 12 14 / 95%));
   backdrop-filter: blur(14px);
-  border-top: 1px solid rgb(255 255 255 / 9%);
-  border-radius: 18px 18px 0 0;
-  box-shadow: 0 -18px 50px rgb(0 0 0 / 50%);
+  border-top: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 20px 20px 0 0;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    inset 0 0 0 1px rgb(0 0 0 / 40%),
+    inset 0 24px 42px -30px rgb(0 0 0 / 85%),
+    0 -20px 55px rgb(0 0 0 / 55%);
+
+  /* the drawer slides shut/open — max-height goes fixed-value → fixed-value so
+     there is no auto-height reflow to jank on. See the collapse rule below. */
+  transition: max-height 0.44s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-/* grabber handle: tap to collapse the crate down to its header so the device is
-   visible (or expand it back). Universal bottom-sheet affordance. */
+/* grabber handle: a recessed molded pull. Tap to slide the drawer shut down to its
+   face (or open it back). Universal bottom-sheet affordance. */
 .tp1 .tp1-crate-toggle {
   pointer-events: auto;
   flex: 0 0 auto;
@@ -175,24 +186,83 @@ main > .section:has(.tp1) > div {
 }
 
 .tp1 .tp1-crate-grip {
-  width: 40px;
-  height: 4px;
+  width: 44px;
+  height: 5px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 26%);
-  transition: background 0.2s;
+  background: linear-gradient(180deg, rgb(0 0 0 / 46%), rgb(0 0 0 / 20%));
+  box-shadow:
+    inset 0 1px 1px rgb(0 0 0 / 60%),
+    0 1px 0 rgb(255 255 255 / 14%);
+  transition: box-shadow 0.2s;
 }
 
 .tp1 .tp1-crate-toggle:hover .tp1-crate-grip,
 .tp1 .tp1-crate-toggle:focus-visible .tp1-crate-grip {
-  background: rgb(255 255 255 / 48%);
+  box-shadow:
+    inset 0 1px 1px rgb(0 0 0 / 72%),
+    0 1px 0 rgb(255 255 255 / 26%);
 }
 
 .tp1 .tp1-crate-head {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.4rem 1.2rem 0.5rem;
+  padding: 0.35rem 1.15rem 0.6rem;
+}
+
+/* left side of the drawer face: title stacked over the stamped export-set plate */
+.tp1 .tp1-crate-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+/* export-set plate — a stamped metal badge riveted into the drawer face, telling
+   you this tray plays with no network. Decorative (the net status is announced by
+   the .tp1-net region). */
+.tp1 .tp1-plate {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0.22rem 0.55rem;
+  border-radius: 3px;
+  font-family: var(--mono-font-family, monospace);
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #2a2723;
+  background:
+    linear-gradient(180deg, #d9d6cf 0%, #a9a69f 48%, #c4c1b9 52%, #8d8a83 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 70%),
+    inset 0 -1px 0 rgb(0 0 0 / 35%),
+    inset 0 0 0 1px rgb(0 0 0 / 30%),
+    0 1px 2px rgb(0 0 0 / 45%);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 45%);
+}
+
+.tp1 .tp1-plate-b::before {
+  content: "·";
+  margin: 0 0.42em;
+  opacity: 0.55;
+}
+
+/* offline: the plate reads proudly — a warm amber glow, not an error state */
+.tp1.tp1-offline .tp1-plate {
+  color: #43300a;
+  background:
+    linear-gradient(180deg, #ffd98a 0%, #e7a53c 48%, #f1b558 52%, #bf7f22 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 60%),
+    inset 0 -1px 0 rgb(0 0 0 / 30%),
+    inset 0 0 0 1px rgb(120 70 10 / 55%),
+    0 0 10px rgb(230 162 60 / 70%),
+    0 0 24px rgb(230 162 60 / 45%);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 40%);
 }
 
 .tp1 .tp1-crate-head h1 {
@@ -237,81 +307,180 @@ main > .section:has(.tp1) > div {
 }
 
 .tp1 .tp1-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 0.4rem 0.6rem 0.6rem;
+  padding: 0.5rem 0.7rem 0.7rem;
 }
 
-.tp1 .tp1-empty {
-  margin: 0;
-  padding: 1.4rem 1.4rem 2rem;
-  color: #9a948a;
-  font-size: 0.9rem;
+/* empty state — a blank cassette J-card tucked in the drawer, ruled for a
+   handwritten label, prompting you to fill the tray. The extra .tp1-crate in the
+   selector out-specifies the global first-section paragraph styling (which would
+   otherwise force light text, 0.75 opacity, and auto centring on this <p>). */
+.tp1 .tp1-crate .tp1-empty {
+  margin: 0.5rem 0.7rem 1.1rem;
+  padding: 1rem 1.15rem 1.25rem;
+  opacity: 1;
+  color: #2a2114;
+  font-family: var(--accent-font-family, Georgia, serif);
+  font-style: italic;
+  font-size: 0.98rem;
   line-height: 1.5;
-  max-width: 40ch;
+  max-width: 34ch;
+  border-radius: 3px 3px 5px 5px;
+  background-color: #efe6cf;
+  background-image:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 1.5em,
+      rgb(40 30 15 / 10%) 1.5em calc(1.5em + 1px)
+    ),
+    linear-gradient(180deg, rgb(255 255 255 / 55%), transparent 32%);
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 10%),
+    0 6px 16px rgb(0 0 0 / 40%);
 }
 
-.tp1 .tp1-empty b {
-  color: #cfc8ba;
+/* the printed index band across the top of the J-card */
+.tp1 .tp1-crate .tp1-empty::before {
+  content: "\25B6  side one \2014 ________";
+  display: block;
+  margin: -0.15rem 0 0.7rem;
+  font-family: var(--mono-font-family, monospace);
+  font-style: normal;
+  font-size: 0.58rem;
   font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #a2331f;
 }
 
-/* song row */
+.tp1 .tp1-crate .tp1-empty b {
+  font-family: var(--mono-font-family, monospace);
+  font-style: normal;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #a2331f;
+}
+
+/* song row — a mini Compact Cassette lying in the crate. A self-contained echo of
+   the cassettes block: alternating ivory/black molded shells, a cover-art label,
+   and a reel window with two hubs. */
 .tp1 .tp1-song {
+  /* ivory shell (odd rows) */
+  --tp1-body: #e7dec9;
+  --tp1-ink: #211d16;
+  --tp1-ink-dim: #6a6153;
+  --tp1-edge: rgb(0 0 0 / 22%);
+
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.4rem 0.6rem;
-  border-radius: 12px;
+  gap: 0.7rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 9px 9px 6px 6px;
+  color: var(--tp1-ink);
+  background-color: var(--tp1-body);
+  background-image:
+    radial-gradient(120% 80% at 26% 4%, rgb(255 255 255 / 30%), transparent 55%),
+    radial-gradient(130% 90% at 84% 116%, rgb(0 0 0 / 26%), transparent 60%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 42%),
+    inset 0 -2px 4px rgb(0 0 0 / 22%),
+    0 2px 6px rgb(0 0 0 / 30%);
 }
 
-.tp1 .tp1-song + .tp1-song {
-  border-top: 1px solid rgb(255 255 255 / 5%);
+/* black shell (even rows) — the crate alternates, as a box of tapes does */
+.tp1 .tp1-song:nth-child(2n) {
+  --tp1-body: #191510;
+  --tp1-ink: #efe7d6;
+  --tp1-ink-dim: #98907f;
+  --tp1-edge: rgb(0 0 0 / 48%);
+
+  background-image:
+    radial-gradient(120% 80% at 26% 4%, rgb(255 255 255 / 14%), transparent 55%),
+    radial-gradient(130% 90% at 84% 116%, rgb(0 0 0 / 44%), transparent 60%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 12%),
+    inset 0 -2px 4px rgb(0 0 0 / 42%),
+    0 2px 6px rgb(0 0 0 / 34%);
 }
 
-.tp1 .tp1-song-current {
-  background: rgb(217 48 37 / 10%);
+/* the playing tape gets a red-ringed shell (beats the alternation specificity) */
+.tp1 .tp1-song.tp1-song-current {
+  box-shadow:
+    inset 0 0 0 1.5px var(--accent-color, #d93025),
+    inset 0 1px 0 rgb(255 255 255 / 26%),
+    0 3px 12px rgb(217 48 37 / 38%);
 }
 
+/* the label window: cover art printed as the tape's paper label */
 .tp1 .tp1-song-play {
   position: relative;
   flex: 0 0 auto;
-  width: 46px;
-  height: 46px;
+  width: 58px;
+  height: 42px;
   border: 0;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
-  background: #1c1c1c;
+  background: #17120c;
   cursor: pointer;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 45%),
+    inset 0 1px 3px rgb(0 0 0 / 55%);
 }
 
 .tp1 .tp1-song-art {
   position: absolute;
   inset: 0;
   display: block;
-  background:
-    radial-gradient(circle at 50% 50%, #333 0 30%, #1c1c1c 31% 100%);
+  background: radial-gradient(circle at 50% 40%, #3a3a3a 0 26%, #1c1c1c 27% 100%);
 }
 
 .tp1 .tp1-song-art img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center top;
   display: block;
 }
 
-/* equaliser badge over the art, only on the current+playing track */
+/* reel window across the foot of the label — two toothed hubs + a dark recess */
+.tp1 .tp1-song-play::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  left: 4px;
+  height: 12px;
+  border-radius: 2px;
+  background-image:
+    radial-gradient(circle at 28% 50%, #d9c7a3 0 2.2px, #6f6552 2.2px 3.4px, transparent 3.8px),
+    radial-gradient(circle at 72% 50%, #d9c7a3 0 2.2px, #6f6552 2.2px 3.4px, transparent 3.8px),
+    linear-gradient(180deg, #2a231b, #100b07);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 70%),
+    0 0 0 1px rgb(0 0 0 / 40%);
+}
+
+/* equaliser badge over the label, only on the current+playing track */
 .tp1 .tp1-song-eq {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: none;
   align-items: flex-end;
   justify-content: center;
   gap: 2px;
   padding-bottom: 8px;
-  background: rgb(0 0 0 / 45%);
+  background: rgb(0 0 0 / 52%);
 }
 
 .tp1-is-playing .tp1-song-current .tp1-song-eq {
@@ -339,19 +508,33 @@ main > .section:has(.tp1) > div {
   min-width: 0;
 }
 
-.tp1 .tp1-song-title {
+/* title set in the accent serif, like the cassette label's hand. The extra
+   .tp1-song out-specifies the global first-section <p> rule (light text, 0.75
+   opacity, auto margins) that would otherwise wash these labels out. */
+.tp1 .tp1-song .tp1-song-title {
   margin: 0;
+  max-width: none;
+  opacity: 1;
+  font-family: var(--accent-font-family, Georgia, serif);
+  font-weight: 600;
   font-size: 0.95rem;
-  color: #f0ebe0;
+  line-height: 1.15;
+  color: var(--tp1-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.tp1 .tp1-song-artist {
-  margin: 0.1rem 0 0;
-  font-size: 0.72rem;
-  color: #9a948a;
+/* artist line stamped in mono, like the cassette subtitle */
+.tp1 .tp1-song .tp1-song-artist {
+  margin: 0.15rem 0 0;
+  max-width: none;
+  opacity: 1;
+  font-family: var(--mono-font-family, monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tp1-ink-dim);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -359,10 +542,10 @@ main > .section:has(.tp1) > div {
 
 .tp1 .tp1-song-del {
   flex: 0 0 auto;
-  border: 1px solid rgb(255 255 255 / 14%);
-  background: transparent;
-  color: #9a948a;
-  font-family: "Space Mono", monospace;
+  border: 1px solid var(--tp1-edge);
+  background: rgb(0 0 0 / 6%);
+  color: var(--tp1-ink-dim);
+  font-family: var(--mono-font-family, monospace);
   font-size: 0.6rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -372,9 +555,9 @@ main > .section:has(.tp1) > div {
 }
 
 .tp1 .tp1-song-del:hover {
-  color: #f5e6d3;
-  border-color: rgb(217 48 37 / 60%);
-  background: rgb(217 48 37 / 12%);
+  color: #fff;
+  border-color: rgb(217 48 37 / 70%);
+  background: rgb(217 48 37 / 80%);
 }
 
 /* now-playing bar */
@@ -447,12 +630,13 @@ main > .section:has(.tp1) > div {
   text-overflow: ellipsis;
 }
 
-/* collapsed crate (mobile only): fold the list/empty away, leaving the header +
-   grabber, so the 3D device shows through. The now-bar below stays put. */
+/* collapsed crate (mobile only): the drawer slides shut down to its face (grip +
+   head), so the 3D device shows through. Clamping the crate's own max-height —
+   fixed value to fixed value, with overflow:hidden — slides without reflow jank.
+   The now-bar below stays put. */
 @media (width < 900px) {
-  .tp1 .tp1-crate.tp1-crate-collapsed .tp1-list,
-  .tp1 .tp1-crate.tp1-crate-collapsed .tp1-empty {
-    display: none;
+  .tp1 .tp1-crate.tp1-crate-collapsed {
+    max-height: 5.9rem;
   }
 }
 
@@ -505,5 +689,10 @@ main > .section:has(.tp1) > div {
   .tp1 .tp1-song-eq i {
     animation: none;
     height: 45%;
+  }
+
+  /* the drawer snaps instead of sliding */
+  .tp1 .tp1-crate {
+    transition: none;
   }
 }

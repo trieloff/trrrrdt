@@ -6,7 +6,10 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 22px;
+
+  /* tighter than the tapes' rotation so their corners nearly touch — a shoebox,
+     not a spec sheet */
+  gap: 14px 18px;
 }
 
 /* black & ivory bodies: alternating with no cover, inverted from the cover's
@@ -23,6 +26,46 @@
 
   --cassette-color: var(--cassette-ivory);
   --cassette-ink: var(--text-color);
+
+  /* shelf stack: each tape sits at a slightly different tilt/height so the row
+     reads like a crate of tapes rather than a grid of widgets (overridden per
+     nth-child below; straightened on hover/focus) */
+  --cassette-tilt: 0deg;
+  --cassette-lift: 0px;
+
+  transform: translateY(var(--cassette-lift)) rotate(var(--cassette-tilt));
+  transform-origin: 50% 100%;
+  transition: transform 0.2s ease;
+}
+
+.cassettes > ul > li:nth-child(4n + 1) {
+  --cassette-tilt: -1.5deg;
+  --cassette-lift: 9px;
+}
+
+.cassettes > ul > li:nth-child(4n + 2) {
+  --cassette-tilt: 1deg;
+  --cassette-lift: 0px;
+}
+
+.cassettes > ul > li:nth-child(4n + 3) {
+  --cassette-tilt: -0.7deg;
+  --cassette-lift: 13px;
+}
+
+.cassettes > ul > li:nth-child(4n + 4) {
+  --cassette-tilt: 1.7deg;
+  --cassette-lift: 5px;
+}
+
+/* pull the hovered/focused tape upright and to the front so it's easy to read
+   and click (must follow the nth-child rules — equal specificity, later wins) */
+.cassettes > ul > li:hover,
+.cassettes > ul > li:focus-within {
+  z-index: 2;
+
+  --cassette-tilt: 0deg;
+  --cassette-lift: -2px;
 }
 
 /* "save offline" sits under each cassette, outside the play link */
@@ -237,10 +280,11 @@
   inset: 25%;
 }
 
-/* spin the reels while the cassette is hovered — the tape plays */
+/* spin the reels while the cassette is hovered — the tape plays. The duration
+   varies per tape (set inline by the JS) for a hand-wound, uneven feel */
 .cassettes .cassette-shell:hover .cassette-reel,
 .cassettes .cassette-link:hover .cassette-reel {
-  animation: cassette-reel-spin 1.7s linear infinite;
+  animation: cassette-reel-spin var(--reel-duration, 1.7s) linear infinite;
 }
 
 @keyframes cassette-reel-spin {
@@ -321,12 +365,53 @@
   color: rgb(255 255 255 / 85%);
 }
 
+/* --- the "wrong" tape: one mispressed shell per section --- */
+
+/* inverted body for plain (no-art) tapes — cover tapes are inverted inline by
+   the JS. Overrides the black/ivory alternation above. */
+.cassettes > ul > li.cassette-wrong {
+  --cassette-color: var(--cassette-black);
+  --cassette-ink: var(--light-color);
+}
+
+.cassettes > ul > li.cassette-wrong:nth-child(2n) {
+  --cassette-color: var(--cassette-ivory);
+  --cassette-ink: var(--text-color);
+}
+
+/* label applied slightly crooked — scaled up a touch so the tilt doesn't open
+   gaps at the corners */
+.cassettes .cassette-wrong .cassette-label {
+  transform: rotate(-1.6deg) scale(1.04);
+}
+
+/* --- played patina: worn on this device --- */
+
+/* the printed label loses a little colour, as tape sleeves do with handling */
+.cassettes > ul > li.cassette-played .cassette-label {
+  filter: saturate(0.55) brightness(0.97);
+}
+
+/* oxidised/worn scuffing at the corners */
+.cassettes > ul > li.cassette-played .cassette-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    radial-gradient(55% 45% at 93% 6%, rgb(64 44 22 / 30%), transparent 62%),
+    radial-gradient(45% 42% at 5% 96%, rgb(0 0 0 / 22%), transparent 60%);
+  mix-blend-mode: multiply;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cassettes .cassette-shell:hover .cassette-reel,
   .cassettes .cassette-link:hover .cassette-reel {
     animation: none;
   }
 
+  .cassettes > ul > li,
   .cassettes .cassette-shell,
   .cassettes .cassette-shell:hover,
   .cassettes .cassette-link:hover .cassette-shell {

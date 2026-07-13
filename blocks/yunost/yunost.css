@@ -44,6 +44,10 @@ main > .section:has(.yunost) > div {
 }
 
 .yunost {
+  /* phosphor readout palette — the OSD is monochrome teal-green CRT type */
+  --yunost-phosphor: #6ff2c6;
+  --yunost-phosphor-dim: #46b892;
+
   position: fixed;
   inset: 0;
   overflow-y: scroll;
@@ -125,48 +129,92 @@ main > .section:has(.yunost) > div {
   color: var(--border-color, #888);
 }
 
-/* --- channel card: top-right, CRT OSD --- */
+/* --- channel card: a CRT on-screen display (OSD) --- phosphor readout,
+   scan-lines and a thin bloomed border. This is the TV's own graphics, not a
+   web card, so it reads instantly different from the turntable's serif overlay. */
 .yunost .yunost-card {
   position: absolute;
-  top: 28px;
-  right: 28px;
+
+  /* below the ⏏ OFF eject line on phones — at top:24 the wide OSD overlaps it;
+     desktop (≥900px) restores the higher position where there's lateral room */
+  top: 64px;
+  right: 24px;
   z-index: 2;
-  max-width: min(70vw, 420px);
-  padding: 12px 16px;
+  max-width: min(72vw, 300px);
+  padding: 22px 16px 14px;
   text-align: right;
-  background: rgb(0 0 0 / 45%);
-  border-radius: 6px;
-  backdrop-filter: blur(6px);
+  color: var(--yunost-phosphor);
+  background: linear-gradient(160deg, rgb(6 16 13 / 88%), rgb(2 8 6 / 90%));
+  border: 1px solid rgb(111 242 198 / 55%);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 45%),
+    0 0 20px rgb(70 200 155 / 22%),
+    inset 0 0 26px rgb(70 200 155 / 12%);
+  text-shadow: 0 0 7px rgb(111 242 198 / 45%);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
   pointer-events: none;
+}
+
+/* scan-lines drawn over the whole OSD */
+.yunost .yunost-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgb(0 0 0 / 0%) 0,
+    rgb(0 0 0 / 0%) 2px,
+    rgb(0 0 0 / 22%) 3px,
+    rgb(0 0 0 / 22%) 3.5px
+  );
 }
 
 .yunost .yunost-card p { margin: 0; }
 
+/* model marking in the OSD chrome — carries the Юность-402 identity when the
+   authored title has no Cyrillic of its own (toggled from JS, decorative) */
+.yunost .yunost-osd-mark {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  font-family: var(--mono-font-family, monospace);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--yunost-phosphor-dim);
+  text-shadow: 0 0 5px rgb(70 184 146 / 45%);
+  opacity: 0.8;
+}
+
 .yunost .yunost-channel {
   font-family: var(--mono-font-family, monospace);
-  font-size: 22px;
+  font-size: clamp(30px, 7vw, 46px);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--light-color, #fff);
-  opacity: 0.85;
+  line-height: 0.95;
+  letter-spacing: 0.06em;
+  color: var(--yunost-phosphor);
+  text-shadow: 0 0 11px rgb(111 242 198 / 55%), 0 0 2px rgb(111 242 198 / 85%);
 }
 
 .yunost .yunost-title {
-  font-family: var(--accent-font-family, serif);
-  font-weight: 600;
-  font-size: var(--heading-font-size-m, 24px);
-  line-height: 1.1;
-  color: var(--light-color, #fff);
-  margin-top: 4px;
+  font-family: var(--mono-font-family, monospace);
+  font-weight: 700;
+  font-size: clamp(15px, 2.3vw, 19px);
+  line-height: 1.18;
+  letter-spacing: 0.01em;
+  color: var(--yunost-phosphor);
+  margin-top: 7px;
 }
 
 .yunost .yunost-meta {
   font-family: var(--mono-font-family, monospace);
   font-size: var(--body-font-size-xs, 11px);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--border-color, #9a9a9a);
-  margin-top: 6px;
+  letter-spacing: 0.1em;
+  color: var(--yunost-phosphor-dim);
+  margin-top: 8px;
 }
 
 /* --- source badge (bottom-left, above the button) --- */
@@ -200,61 +248,88 @@ main > .section:has(.yunost) > div {
   gap: 10px;
 }
 
-.yunost .yunost-play {
-  margin: 0;
-  padding: 10px 18px;
-  font-family: var(--mono-font-family, monospace);
-  font-size: var(--body-font-size-xs, 11px);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--light-color, #fff);
-  background-color: transparent;
-  border: 1px solid rgb(255 255 255 / 40%);
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.yunost .yunost-play:hover,
-.yunost .yunost-play:focus-visible { background-color: rgb(255 255 255 / 12%); }
-
-/* the "Save offline" control shares the "Tune in" look (a squared marking, not
-   the default pill), keeping its green "saved" tint — same as the Sony page */
+/* chunky, beveled channel keys — a tactile front panel, not the turntable's
+   flat printed rectangles. The relief/shape is shared; each key keeps its own
+   label colour + border so the Save control can still show its green "saved"
+   tint. Ordered so specificity never descends (no-descending-specificity). */
+.yunost .yunost-play,
 .yunost .yunost-controls .save-offline {
   margin: 0;
-  padding: 10px 18px;
+  padding: 12px 20px;
+  font-family: var(--mono-font-family, monospace);
   font-size: var(--body-font-size-xs, 11px);
-  letter-spacing: 0.1em;
-  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 5px 5px 10px 10px;
+  background: linear-gradient(180deg, #34322d 0%, #211f1b 62%, #191713 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 15%),
+    inset 0 -4px 7px rgb(0 0 0 / 40%),
+    0 3px 0 #0b0a08,
+    0 6px 12px rgb(0 0 0 / 45%);
   opacity: 1;
+  cursor: pointer;
+  transition: transform 0.07s ease, box-shadow 0.07s ease, background 0.18s ease;
+}
+
+.yunost .yunost-play {
+  color: #f2ede2;
+  border: 1px solid #100f0d;
+  border-top-color: #4a463e;
 }
 
 .yunost .yunost-controls .save-offline:not(.is-saved) {
-  color: var(--light-color, #fff);
-  border-color: rgb(255 255 255 / 40%);
+  color: #f2ede2;
+  border: 1px solid #100f0d;
+  border-top-color: #4a463e;
 }
 
+/* pressed: the key travels down and its wall collapses */
+.yunost .yunost-play:active,
+.yunost .yunost-controls .save-offline:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 55%),
+    0 1px 0 #0b0a08,
+    0 2px 5px rgb(0 0 0 / 40%);
+}
+
+.yunost .yunost-play:hover,
+.yunost .yunost-play:focus-visible,
 .yunost .yunost-controls .save-offline:not(.is-saved):hover,
 .yunost .yunost-controls .save-offline:not(.is-saved):focus-visible {
-  background-color: rgb(255 255 255 / 12%);
+  background: linear-gradient(180deg, #3f3d36 0%, #2a2823 62%, #201e19 100%);
+}
+
+.yunost .yunost-play:focus-visible,
+.yunost .yunost-controls .save-offline:not(.is-saved):focus-visible {
+  outline: 2px solid var(--yunost-phosphor);
+  outline-offset: 2px;
 }
 
 .yunost .yunost-play:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
 }
 
+/* Apple sign-in CTA: the same key, lit in Apple Music red */
 .yunost.yunost-connect .yunost-play {
   color: #fff;
-  background-color: #fa243c;
-  border-color: #fa243c;
-  font-weight: 700;
-  box-shadow: 0 2px 14px rgb(250 36 60 / 45%);
+  background: linear-gradient(180deg, #ff3a4f 0%, #e01e34 100%);
+  border: 1px solid #b3121f;
+  border-top-color: #ff6270;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 3px 0 #8f0f1a,
+    0 6px 14px rgb(250 36 60 / 45%);
 }
 
 .yunost.yunost-connect .yunost-play:hover,
 .yunost.yunost-connect .yunost-play:focus-visible {
-  background-color: #ff3141;
-  border-color: #ff3141;
+  background: linear-gradient(180deg, #ff4d61 0%, #f02237 100%);
 }
 
 .yunost .yunost-eject {
@@ -340,9 +415,149 @@ main > .section:has(.yunost) > div {
   }
 }
 
+/* --- CRT channel-change rituals: static snow + a tuning-knob sweep on every
+   channel change, and an occasional horizontal-hold slip on the OSD. Each is
+   driven by a class on the stage (the only thing that moves is the overlay) and
+   is doubly gated for reduced motion (here and in JS). --- */
+
+/* static snow burst — a self-contained SVG turbulence noise, so NO requests */
+.yunost .yunost-static {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 170px 170px;
+  mix-blend-mode: screen;
+}
+
+.yunost .yunost-stage.yunost-tuning .yunost-static {
+  animation: yunost-snow 0.22s steps(3) 1;
+}
+
+@keyframes yunost-snow {
+  0% {
+    opacity: 0.85;
+    background-position: 0 0;
+  }
+
+  33% {
+    opacity: 0.7;
+    background-position: -50px 30px;
+  }
+
+  66% {
+    opacity: 0.78;
+    background-position: 35px -40px;
+  }
+
+  100% {
+    opacity: 0;
+    background-position: 20px -20px;
+  }
+}
+
+/* tuning-knob sweep, near the OSD */
+.yunost .yunost-knob {
+  position: absolute;
+  top: 118px;
+  right: 30px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle at 50% 38%, #2c2a25, #131109 72%);
+  border: 1px solid rgb(111 242 198 / 30%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%), 0 2px 6px rgb(0 0 0 / 50%);
+}
+
+.yunost .yunost-knob::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 2px;
+  height: 12px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--yunost-phosphor);
+  box-shadow: 0 0 5px var(--yunost-phosphor);
+  transform-origin: 50% 17px;
+}
+
+.yunost .yunost-knob::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--yunost-phosphor);
+  opacity: 0;
+}
+
+.yunost .yunost-stage.yunost-tuning .yunost-knob {
+  animation: yunost-knob-show 0.6s ease-out 1;
+}
+
+.yunost .yunost-stage.yunost-tuning .yunost-knob::before {
+  animation: yunost-knob-turn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 1;
+}
+
+.yunost .yunost-stage.yunost-tuning .yunost-knob::after {
+  animation: yunost-knob-arc 0.6s ease-out 1;
+}
+
+@keyframes yunost-knob-show {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes yunost-knob-turn {
+  0% { transform: rotate(-58deg); }
+  70% { transform: rotate(36deg); }
+  100% { transform: rotate(30deg); }
+}
+
+@keyframes yunost-knob-arc {
+  0% {
+    opacity: 0;
+    transform: rotate(-70deg);
+  }
+
+  30% { opacity: 0.85; }
+
+  100% {
+    opacity: 0;
+    transform: rotate(64deg);
+  }
+}
+
+/* occasional horizontal-hold slip — the OSD card only, never the whole stage */
+.yunost .yunost-stage.yunost-hold .yunost-card {
+  animation: yunost-hold 0.1s steps(2) 1;
+}
+
+@keyframes yunost-hold {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .yunost .yunost-spinner { animation: none; }
   .yunost .yunost-dot { transition: none; }
+  .yunost .yunost-static { opacity: 0; }
+
+  .yunost .yunost-stage.yunost-tuning .yunost-static,
+  .yunost .yunost-stage.yunost-tuning .yunost-knob,
+  .yunost .yunost-stage.yunost-tuning .yunost-knob::before,
+  .yunost .yunost-stage.yunost-tuning .yunost-knob::after,
+  .yunost .yunost-stage.yunost-hold .yunost-card { animation: none; }
 }
 
 /* the liner-notes link/fragment feeds the 3D sheet — keep it out of flow.

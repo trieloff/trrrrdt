@@ -10,6 +10,7 @@ import {
   loadSection,
   loadSections,
   loadCSS,
+  getMetadata,
 } from './aem.js';
 
 /**
@@ -132,10 +133,15 @@ export function decorateMain(main) {
  */
 async function loadEager(doc) {
   document.documentElement.lang = 'en';
+  const path = window.location.pathname;
   // liner-notes / fragment pages render as a bare parchment sheet, not a full
   // site page (they're normally shown on the players' 3D desk sheet)
-  if (/(-notes(?:$|[./?])|\/fragments\/)/.test(window.location.pathname)) {
+  if (/(-notes(?:$|[./?])|\/fragments\/)/.test(path)) {
     document.body.classList.add('liner-notes-page');
+  } else if (getMetadata('template') === 'reading' || path.startsWith('/articles/')) {
+    // long-form reading mode: a parchment prose column that KEEPS the site
+    // header/footer (unlike the chrome-less liner-notes sheet)
+    document.body.classList.add('reading-page');
   }
   decorateTemplateAndTheme();
   const main = doc.querySelector('main');

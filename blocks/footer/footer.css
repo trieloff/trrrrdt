@@ -1,47 +1,70 @@
+/* TRRRRDT footer — an equipment back-panel, the terminus of the signal chain.
+   The footer fragment supplies the copy (label line + fine print); this CSS
+   decorates whatever it delivers, so the authoring contract is unchanged.
+   Animation touches only opacity/background — never size — so there is zero
+   layout shift, and all real text meets WCAG AA on the charcoal shell. */
+
 footer {
+  position: relative;
+  overflow: hidden; /* clip the full-bleed meter and the oversized burn-in ghost */
   background-color: var(--text-color);
-  color: var(--dark-color);
-  font-size: var(--body-font-size-xs);
+  color: var(--light-color);
   font-family: var(--mono-font-family);
-  text-align: center;
+  font-size: var(--body-font-size-xs);
+}
+
+footer .footer-console {
   position: relative;
 }
 
-/* VU meter strip — the signal level at the bottom of the page */
-footer::before {
-  content: '';
-  display: block;
-  height: 5px;
-  background:
-    linear-gradient(
-      90deg,
-      var(--accent-mint) 0%,
-      var(--accent-mint) 34%,
-      #2ecc71 34%,
-      #2ecc71 50%,
-      #f1c40f 50%,
-      #f1c40f 66%,
-      var(--accent-mustard) 66%,
-      var(--accent-mustard) 76%,
-      var(--accent-warm) 76%,
-      var(--accent-warm) 84%,
-      var(--accent-color) 84%,
-      var(--accent-color) 100%
-    );
+/* --- LIVE VU meter — a row of segments pulsing on a slow LFO ----------- */
+footer .footer-vu {
+  display: flex;
+  gap: 2px;
+  height: 8px;
 }
 
-footer .footer > div {
-  margin: auto;
+footer .footer-vu-seg {
+  flex: 1 1 0;
+  background-color: var(--accent-mint);
+  opacity: 0.9; /* fixed level when animation is unavailable / reduced */
+  animation: footer-vu-pulse 2.4s ease-in-out infinite;
+  animation-delay: calc(var(--seg) * -0.18s); /* stagger → rolling wave */
+}
+
+/* green → amber → red, so the meter still reads as a signal level */
+footer .footer-vu-seg:nth-child(n+7) { background-color: var(--accent-mustard); }
+footer .footer-vu-seg:nth-child(n+9) { background-color: var(--accent-warm); }
+footer .footer-vu-seg:nth-child(10) { background-color: var(--accent-color); }
+
+@keyframes footer-vu-pulse {
+  0%, 100% { opacity: 0.32; }
+  50% { opacity: 1; }
+}
+
+/* --- asymmetric back panel: authored copy left, serial plate right ----- */
+footer .footer-panel {
+  position: relative; /* containing block for the burn-in ghost */
+  display: grid;
+  gap: 24px;
   max-width: 1200px;
+  margin: auto;
   padding: 40px 24px;
 }
 
-footer .footer p {
+/* --- authored copy ---------------------------------------------------- */
+footer .footer-copy {
+  position: relative;
+  z-index: 1; /* sit above the burn-in ghost */
+  color: var(--light-color); /* 13.9:1 on charcoal */
+}
+
+footer .footer-copy p {
   margin: 0 0 6px;
 }
 
-/* label name line */
-footer .footer p:first-child {
+/* label line — Space Grotesk, the Rams lightness */
+footer .footer-copy p:first-child {
   font-family: var(--heading-font-family);
   font-weight: 300;
   font-size: var(--heading-font-size-s);
@@ -49,22 +72,97 @@ footer .footer p:first-child {
   color: var(--light-color);
 }
 
-/* the fine print — Fraunces whisper */
-footer .footer p:last-child {
+/* the fine print — a Fraunces whisper toward manual poetry */
+footer .footer-copy p:last-child {
+  max-width: 52ch;
+  margin-bottom: 0;
   font-family: var(--accent-font-family);
   font-style: italic;
   font-weight: 340;
   font-variation-settings: 'WONK' 1, 'SOFT' 50, 'opsz' 24;
   font-size: var(--body-font-size-s);
-  color: var(--dark-color);
+  color: #a99e88; /* subdued warm — 6.4:1 on charcoal, passes AA */
 }
 
-footer .footer a:any-link {
-  color: var(--accent-mustard);
+footer .footer-copy a:any-link {
+  color: var(--accent-mustard); /* 7.9:1 on charcoal */
+}
+
+/* --- burn-in ghost — phosphor memory under the copy, felt not read ---- */
+footer .footer-ghost {
+  position: absolute;
+  left: 24px;
+  bottom: -0.12em;
+  z-index: 0;
+  color: var(--light-color);
+  opacity: 0.03; /* ~3% — decorative, never harms real-text contrast */
+  font-family: var(--heading-font-family);
+  font-weight: 700;
+  font-size: clamp(56px, 13vw, 132px);
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* --- serial plate — engraved metal, CSS-generated so authors don't
+   maintain it. Nods to the Yunost-402 and the export-model fiction. ----- */
+footer .footer-plate {
+  position: relative;
+  z-index: 1;
+  justify-self: start;
+  padding: 10px 14px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: var(--radius);
+  background-color: var(--smoke-color);
+  box-shadow: var(--bevel-dark);
+  font-family: var(--mono-font-family);
+  font-size: var(--body-font-size-xs);
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+footer .footer-plate::before {
+  content: 'MODEL TRRRRDT-402 · USSR-EXPORT';
+  display: block;
+  font-weight: 700;
+  color: var(--accent-mustard); /* 5.2:1 on smoke, passes AA */
+}
+
+footer .footer-plate::after {
+  content: 'EST. 1983 · CH 01–10';
+  display: block;
+  color: #cfc4b0; /* 6.6:1 on smoke, passes AA */
 }
 
 @media (width >= 900px) {
-  footer .footer > div {
+  footer .footer-panel {
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 40px;
     padding: 48px 32px;
+  }
+
+  footer .footer-ghost {
+    left: 32px;
+  }
+
+  footer .footer-plate {
+    place-self: end;
+  }
+}
+
+/* honour reduced-motion: freeze the meter at a fixed nominal reading */
+@media (prefers-reduced-motion: reduce) {
+  footer .footer-vu-seg {
+    animation: none;
+    opacity: 1;
+  }
+
+  footer .footer-vu-seg:nth-child(n+8) {
+    opacity: 0.28; /* peaks in the amber zone — a static signal level */
   }
 }

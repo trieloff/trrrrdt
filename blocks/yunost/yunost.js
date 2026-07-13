@@ -132,10 +132,13 @@ function buildStage(tracks) {
     <div class="yunost-canvas"></div>
     <div class="yunost-loading"><span class="yunost-spinner"></span><span class="yunost-loading-label">Настройка…</span></div>
     <div class="yunost-card">
+      <span class="yunost-osd-mark" aria-hidden="true">Юность-402</span>
       <p class="yunost-channel"></p>
       <p class="yunost-title"></p>
       <p class="yunost-meta"></p>
     </div>
+    <div class="yunost-knob" aria-hidden="true"></div>
+    <div class="yunost-static" aria-hidden="true"></div>
     <p class="yunost-source" aria-hidden="true"></p>
     <p class="yunost-status" aria-live="polite"></p>
     <a class="yunost-eject" href="/">⏏ Off</a>
@@ -597,6 +600,7 @@ export default async function decorate(block) {
     channel: stage.querySelector('.yunost-channel'),
     title: stage.querySelector('.yunost-title'),
     meta: stage.querySelector('.yunost-meta'),
+    mark: stage.querySelector('.yunost-osd-mark'),
     source: stage.querySelector('.yunost-source'),
     status: stage.querySelector('.yunost-status'),
   };
@@ -646,6 +650,31 @@ export default async function decorate(block) {
     stopRender: () => {},
   };
 
+  // --- CRT channel-change rituals: a static/knob burst on every channel change,
+  // and an occasional horizontal-hold slip on the OSD while on air. Both toggle a
+  // class on the stage (CSS owns the animation) and are skipped for reduced motion.
+  let tuneTimer = null;
+  function flashTuning() {
+    if (state.reducedMotion) return;
+    stage.classList.remove('yunost-tuning');
+    stage.getBoundingClientRect(); // reflow so the snow + knob animations restart
+    stage.classList.add('yunost-tuning');
+    clearTimeout(tuneTimer);
+    tuneTimer = setTimeout(() => stage.classList.remove('yunost-tuning'), 640);
+  }
+
+  let holdTimer = null;
+  function scheduleHold() {
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(() => {
+      if (state.playing && !state.reducedMotion) {
+        stage.classList.add('yunost-hold');
+        setTimeout(() => stage.classList.remove('yunost-hold'), 180);
+      }
+      scheduleHold();
+    }, 20000 + Math.random() * 20000); // every 20–40s, with jitter
+  }
+
   function pauseAll() {
     file.pause();
     if (apple) apple.pause();
@@ -685,6 +714,8 @@ export default async function decorate(block) {
     info.channel.textContent = `CH ${String(state.current + 1).padStart(2, '0')}`;
     info.title.textContent = track.title;
     info.meta.textContent = track.meta;
+    // the Юность-402 marking carries the Cyrillic identity when the title lacks it
+    info.mark.hidden = /[Ѐ-ӿ]/.test(track.title);
     let source = '';
     if (isApple) source = state.appleError ? 'Apple Music unavailable' : 'Apple Music';
     info.source.textContent = source;
@@ -710,9 +741,11 @@ export default async function decorate(block) {
 
   async function setTrack(i, autoplay) {
     if (i === state.current || !tracks[i]) return;
+    const hadChannel = state.current >= 0;
     state.current = i;
     state.appleError = false;
     const track = tracks[i];
+    if (hadChannel) flashTuning(); // snow + knob sweep when switching channels
     if (window.location.hash !== `#${track.slug}`) {
       window.history.replaceState(null, '', `#${track.slug}`);
     }
@@ -823,6 +856,7 @@ export default async function decorate(block) {
     requestAnimationFrame(land);
   }
   setTrack(startIndex, false);
+  if (!state.reducedMotion) scheduleHold();
 
   try {
     const probe = document.createElement('canvas');

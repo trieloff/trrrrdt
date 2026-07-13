@@ -1,0 +1,88 @@
+/* prose — essay rhythm for long-form copy. Self-contained so it also reads well
+   dropped into an ordinary page; reading-page mode (lazy-styles.css) layers the
+   same rhythm over a whole article. */
+
+.prose {
+  max-width: 720px;
+  margin: 0 auto;
+  color: var(--text-color);
+}
+
+.prose h2,
+.prose h3 {
+  font-family: var(--heading-font-family);
+  letter-spacing: -0.02em;
+}
+
+.prose h2 {
+  margin: 0.2em 0 0.5em;
+  font-size: clamp(24px, 3.4vw, 34px);
+  font-weight: 600;
+}
+
+.prose h3 {
+  margin: 0.2em 0 0.4em;
+  font-size: clamp(19px, 2.6vw, 24px);
+  font-weight: 600;
+}
+
+.prose p {
+  max-width: 68ch;
+  margin: 0 0 1.15em;
+  font-family: var(--mono-font-family);
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-color);
+}
+
+/* personal names — CSS small-caps Kapitälchen */
+.prose .pn {
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+/* pull quote — the Fraunces rupture in the mono column */
+.prose blockquote {
+  margin: 1.6em 0;
+  padding: 0.1em 0 0.1em 1.2em;
+  border-left: 3px solid var(--accent-color);
+  font-family: var(--accent-font-family);
+  font-style: italic;
+  font-weight: 480;
+  font-variation-settings: 'WONK' 1, 'SOFT' 50, 'opsz' 40;
+  font-size: clamp(20px, 3vw, 26px);
+  line-height: 1.4;
+  color: var(--smoke-color);
+}
+
+.prose blockquote p {
+  max-width: none;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+/* equipment divider between chapters — a small VU meter bar */
+.prose-divider {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+  margin: 2.6em 0 1.8em;
+}
+
+.prose-divider span {
+  width: 22px;
+  border-radius: 1px;
+  background: var(--accent-mint);
+}
+
+.prose-divider span:nth-child(4),
+.prose-divider span:nth-child(5) {
+  background: var(--accent-mustard);
+}
+
+.prose-divider span:nth-child(6),
+.prose-divider span:nth-child(7) {
+  background: var(--accent-color);
+}
