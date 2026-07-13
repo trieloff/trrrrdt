@@ -51,8 +51,6 @@ main > .section:first-of-type:has(.hero) > div {
   text-align: left;
   background-color: var(--text-color); /* charcoal machinery */
   color: var(--light-color);
-  border-left: 4px solid var(--accent-color);
-  border-bottom: 4px solid var(--accent-color);
   box-shadow: var(--bevel-dark);
 }
 
