@@ -290,3 +290,102 @@ main .section.reading > div > blockquote {
   color: var(--smoke-color);
 }
 /* stylelint-enable no-descending-specificity */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Room tone — per-page ambience (scripts/room.js). Every playlist/artist page
+   samples its artwork into a palette; these rules let the environment wear it.
+   Everything is decorative: backgrounds, glows, ornament. Body text colors are
+   never touched, and every rule is gated behind body.room-on, so pages without
+   a room render exactly as before.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* the print echo: a low-res three-tone dither of the artwork, hung behind the
+   whole page like a poster through tracing paper */
+body.room-on .room-echo {
+  position: fixed;
+  inset: -4%;
+  z-index: -2;
+  background-size: cover;
+  background-position: center 20%;
+  opacity: var(--room-echo-opacity, 0.14);
+  filter: blur(2px) saturate(1.15);
+  transform: rotate(-1.2deg) scale(1.04);
+  animation: room-breathe 140s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes room-breathe {
+  from { transform: rotate(-1.2deg) scale(1.04); }
+  to { transform: rotate(0.6deg) scale(1.1); }
+}
+
+/* the color wash: two slow-breathing radial pools of the record's tone and
+   accent, drifting behind the sections */
+body.room-on .room-glow {
+  position: fixed;
+  inset: -22%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 46% at 16% 10%, var(--room-tone-glow, transparent), transparent 62%),
+    radial-gradient(50% 44% at 86% 90%, var(--room-accent-glow, transparent), transparent 64%);
+  animation: room-drift 90s ease-in-out infinite alternate;
+}
+
+@keyframes room-drift {
+  from { transform: translate3d(-2.5%, -1.5%, 0) scale(1); }
+  to { transform: translate3d(2.5%, 2%, 0) scale(1.06); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.room-on .room-glow,
+  body.room-on .room-echo {
+    animation: none;
+  }
+}
+
+/* the charcoal band takes the record's deep tone, and its red edge lines pick
+   up the room accent. (stylelint no-descending-specificity is disabled for the
+   room rules that share elements with reading-page selectors above: a body is
+   never .room-on and .reading-page at once — scripts.js guarantees it.) */
+/* stylelint-disable no-descending-specificity */
+body.room-on main > .section:first-of-type,
+body.room-on main .section.dark {
+  background-color: color-mix(in srgb, var(--room-deep, var(--text-color)) 58%, var(--text-color));
+  border-color: var(--room-accent, var(--accent-color));
+}
+
+/* …the cream panels — both the authored .light/.highlight variants and the
+   automatic alternating even-section stripes — take its wash, slightly
+   translucent so the echo breathes through, and the parchment gaps between
+   sections show the glow */
+body.room-on main > .section:nth-of-type(even):not(:first-of-type),
+body.room-on main .section.light,
+body.room-on main .section.highlight {
+  background-color: color-mix(in srgb, var(--room-wash, var(--light-color)) 62%, rgb(245 230 211 / 78%));
+}
+
+/* plain sections get a translucent parchment veil: enough echo bleeding
+   through to feel the room, enough paper for the prose to stay effortless.
+   The margins between sections stay bare — that's where the print shows. */
+body.room-on main > .section:not(:first-of-type, .light, .highlight, .dark) {
+  background-color: rgb(255 253 247 / 82%);
+}
+
+/* ornament wearing the accent: text selection, pull-quote spines, the hero
+   title's halo */
+body.room-on ::selection {
+  background: var(--room-accent, var(--accent-color));
+  color: var(--light-color);
+}
+
+body.room-on main blockquote,
+body.room-on main .section > div > p:first-child em:only-child {
+  border-color: var(--room-accent, var(--accent-color));
+}
+
+body.room-on main > .section:first-of-type h1 {
+  text-shadow: 0 2px 34px var(--room-accent-glow, rgb(217 48 37 / 12%));
+}
+
+/* stylelint-enable no-descending-specificity */

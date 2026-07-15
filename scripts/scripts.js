@@ -192,6 +192,18 @@ async function loadLazy(doc) {
   loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
   registerServiceWorker();
+
+  // room tone: playlist/artist pages (or any page authoring a `mood`) tune the
+  // environment to their own artwork — see scripts/room.js for the contract
+  const { pathname } = window.location;
+  const roomable = /^\/(playlists|artists)\/[^/]+\/?$/.test(pathname)
+    || getMetadata('mood') || getMetadata('room');
+  if (roomable
+    && !doc.querySelector('main .turntable, main .yunost, main .tp1')
+    && !document.body.classList.contains('liner-notes-page')
+    && !document.body.classList.contains('reading-page')) {
+    import('./room.js').then((m) => m.default()).catch(() => { /* decorative */ });
+  }
 }
 
 /**
