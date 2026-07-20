@@ -86,13 +86,16 @@ const CREAM = [245, 230, 211];
 const INK = [28, 28, 28];
 
 function deriveTokens({ avg, accent }) {
-  let wash = mix(avg, CREAM, 0.62);
-  while (lum(wash) < 0.72) wash = mix(wash, CREAM, 0.25);
-  let deep = mix(avg, [12, 11, 10], 0.68);
-  while (lum(deep) > 0.16) deep = mix(deep, [8, 8, 8], 0.3);
   // keep the accent lively but never neon-bright on cream
   let acc = accent;
   if (lum(acc) > 0.75) acc = mix(acc, INK, 0.35);
+  // the wash leans toward the accent so the panels carry the record's
+  // character rather than washing out to generic tan, then gets clamped
+  // light enough for charcoal text
+  let wash = mix(mix(avg, acc, 0.22), CREAM, 0.5);
+  while (lum(wash) < 0.72) wash = mix(wash, CREAM, 0.25);
+  let deep = mix(avg, [12, 11, 10], 0.68);
+  while (lum(deep) > 0.16) deep = mix(deep, [8, 8, 8], 0.3);
   return {
     accent: acc, tone: avg, deep, wash,
   };
@@ -216,11 +219,15 @@ function apply(tokens, echoURL, echoMode) {
     accent, tone, deep, wash,
   } = tokens;
   root.style.setProperty('--room-accent', css(accent));
+  // a slightly inked accent that keeps cream button text readable even when
+  // the artwork hands us something bright, plus a whisper-alpha fill for hovers
+  root.style.setProperty('--room-accent-strong', css(mix(accent, INK, 0.18)));
+  root.style.setProperty('--room-accent-soft', css(accent, 0.12));
   root.style.setProperty('--room-deep', css(deep));
   root.style.setProperty('--room-wash', css(wash));
-  root.style.setProperty('--room-tone-glow', css(tone, 0.34));
-  root.style.setProperty('--room-accent-glow', css(accent, 0.26));
-  root.style.setProperty('--room-echo-opacity', echoMode === 'bold' ? '0.3' : '0.18');
+  root.style.setProperty('--room-tone-glow', css(tone, 0.42));
+  root.style.setProperty('--room-accent-glow', css(accent, 0.34));
+  root.style.setProperty('--room-echo-opacity', echoMode === 'bold' ? '0.4' : '0.26');
 
   const glow = document.createElement('div');
   glow.className = 'room-glow';

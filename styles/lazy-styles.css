@@ -300,11 +300,14 @@ main .section.reading > div > blockquote {
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* the print echo: a low-res three-tone dither of the artwork, hung behind the
-   whole page like a poster through tracing paper */
+   whole page like a poster through tracing paper. z-index 0 (not negative):
+   the body's opaque parchment paints over negative-z fixed children in the
+   root stacking context, so the print must sit above the body background —
+   main and footer are lifted to z-index 1 below to stay on top of it. */
 body.room-on .room-echo {
   position: fixed;
   inset: -4%;
-  z-index: -2;
+  z-index: 0;
   background-size: cover;
   background-position: center 20%;
   opacity: var(--room-echo-opacity, 0.14);
@@ -324,12 +327,19 @@ body.room-on .room-echo {
 body.room-on .room-glow {
   position: fixed;
   inset: -22%;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
   background:
     radial-gradient(58% 46% at 16% 10%, var(--room-tone-glow, transparent), transparent 62%),
     radial-gradient(50% 44% at 86% 90%, var(--room-accent-glow, transparent), transparent 64%);
   animation: room-drift 90s ease-in-out infinite alternate;
+}
+
+/* content rides above the atmosphere layers (header is already fixed z10) */
+body.room-on main,
+body.room-on footer {
+  position: relative;
+  z-index: 1;
 }
 
 @keyframes room-drift {
@@ -362,14 +372,14 @@ body.room-on main .section.dark {
 body.room-on main > .section:nth-of-type(even):not(:first-of-type),
 body.room-on main .section.light,
 body.room-on main .section.highlight {
-  background-color: color-mix(in srgb, var(--room-wash, var(--light-color)) 62%, rgb(245 230 211 / 78%));
+  background-color: color-mix(in srgb, var(--room-wash, var(--light-color)) 88%, rgb(245 230 211 / 55%));
 }
 
 /* plain sections get a translucent parchment veil: enough echo bleeding
    through to feel the room, enough paper for the prose to stay effortless.
    The margins between sections stay bare — that's where the print shows. */
 body.room-on main > .section:not(:first-of-type, .light, .highlight, .dark) {
-  background-color: rgb(255 253 247 / 82%);
+  background-color: rgb(255 253 247 / 62%);
 }
 
 /* ornament wearing the accent: text selection, pull-quote spines, the hero
@@ -386,6 +396,51 @@ body.room-on main .section > div > p:first-child em:only-child {
 
 body.room-on main > .section:first-of-type h1 {
   text-shadow: 0 2px 34px var(--room-accent-glow, rgb(217 48 37 / 12%));
+}
+
+/* every button in the room wears the record's accent instead of the house
+   red — the single loudest tell that this page has its own light */
+body.room-on main a.button:any-link,
+body.room-on main button.button {
+  background-color: var(--room-accent-strong, var(--text-color));
+  color: var(--light-color);
+}
+
+body.room-on main a.button:any-link:hover,
+body.room-on main button.button:hover {
+  background-color: var(--room-accent, var(--accent-color));
+  color: var(--light-color);
+}
+
+body.room-on main a.button.secondary:any-link,
+body.room-on main button.button.secondary {
+  border-color: var(--room-accent-strong, var(--accent-color));
+  background-color: transparent;
+  color: var(--room-accent-strong, var(--accent-color));
+}
+
+body.room-on main a.button.secondary:any-link:hover,
+body.room-on main button.button.secondary:hover {
+  background-color: var(--room-accent-soft, rgb(217 48 37 / 8%));
+  color: var(--room-accent-strong, var(--accent-color));
+}
+
+/* plain links follow the accent too, inked toward charcoal for contrast —
+   dark sections keep their own smoke-on-charcoal link treatment */
+body.room-on main > .section:not(:first-of-type, .dark) a:any-link:not(.button) {
+  color: color-mix(in srgb, var(--room-accent, var(--link-color)) 72%, var(--text-color));
+}
+
+/* the room's printer's mark: a short skewed rule under section headings,
+   set in the record's accent — the label chip of each page */
+body.room-on main .section h2::after {
+  content: "";
+  display: block;
+  width: 2.75rem;
+  height: 0.3rem;
+  margin-top: 0.35em;
+  background-color: var(--room-accent, var(--accent-color));
+  transform: skew(-18deg);
 }
 
 /* stylelint-enable no-descending-specificity */
